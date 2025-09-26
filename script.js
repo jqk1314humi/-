@@ -159,42 +159,49 @@ class SmartAdvisor {
         // 清空输入框并禁用发送按钮
         this.chatInput.value = '';
         this.updateSendButtonState();
+        
+        // 禁用输入框和发送按钮，防止重复发送
+        this.chatInput.disabled = true;
+        this.sendButton.disabled = true;
 
         // 添加用户消息
         this.addMessage(userInput, 'user');
 
-        // 添加加载消息
-        const loadingMessageId = this.addLoadingMessage();
+        // 添加流式消息容器
+        const streamingMessage = this.addStreamingMessage('advisor');
+        let currentContent = '';
 
         try {
-            // 调用API获取回复
-            console.log('发送消息到API:', userInput);
-            const response = await this.callCozeAPI(userInput);
+            // 调用流式API获取回复
+            console.log('发送消息到API（流式）:', userInput);
+            const response = await this.callCozeAPIStream(userInput, (chunk) => {
+                currentContent += chunk;
+                this.updateStreamingMessage(streamingMessage, currentContent);
+            });
             console.log('收到API回复:', response);
             
-            // 移除加载消息
-            this.removeLoadingMessage(loadingMessageId);
-            
-            // 添加AI回复
-            this.addMessage(response, 'advisor');
+            // 完成流式消息
+            this.finalizeStreamingMessage(streamingMessage, response);
             
         } catch (error) {
             console.error('API调用失败:', error);
             
-            // 移除加载消息
-            this.removeLoadingMessage(loadingMessageId);
-            
-            // 添加错误消息
+            // 移除流式消息，添加错误消息
+            streamingMessage.remove();
             this.addMessage(`抱歉，我现在无法回答您的问题。错误信息: ${error.message}`, 'advisor');
+        } finally {
+            // 重新启用输入框和发送按钮
+            this.chatInput.disabled = false;
+            this.updateSendButtonState();
         }
 
         // 保存聊天历史
         this.saveChatHistory();
     }
 
-    async callCozeAPI(userInput) {
+    async callCozeAPIStream(userInput, onChunk) {
         try {
-            console.log('开始调用Coze Workflow API，用户输入:', userInput);
+            console.log('开始调用Coze Workflow API（流式），用户输入:', userInput);
             
             // 构建请求参数
             const requestBody = {
@@ -242,37 +249,70 @@ class SmartAdvisor {
                         console.log('解析后的data:', parsedData);
                         
                         // 优先使用output2，如果没有则使用output
+                        let content = '';
                         if (parsedData.output2 && parsedData.output2.trim()) {
-                            console.log('使用output2:', parsedData.output2);
-                            return parsedData.output2;
+                            content = parsedData.output2;
                         } else if (parsedData.output && parsedData.output.trim()) {
-                            console.log('使用output:', parsedData.output);
-                            return parsedData.output;
+                            content = parsedData.output;
+                        }
+                        
+                        if (content) {
+                            // 模拟流式输出
+                            await this.simulateStreamingOutput(content, onChunk);
+                            return content;
                         }
                     } catch (parseError) {
                         console.error('解析data字段失败:', parseError);
                         // 如果解析失败，直接返回data字段
                         if (typeof data.data === 'string' && data.data.trim()) {
+                            await this.simulateStreamingOutput(data.data, onChunk);
                             return data.data;
                         }
                     }
                 }
                 
                 // 尝试其他可能的字段
+                let content = '';
                 if (data.output) {
-                    return data.output;
+                    content = data.output;
                 } else if (data.result) {
-                    return data.result;
+                    content = data.result;
+                }
+                
+                if (content) {
+                    await this.simulateStreamingOutput(content, onChunk);
+                    return content;
                 }
             }
             
             // 如果都没有找到有效内容
             console.warn('未找到有效的响应内容，返回默认消息');
-            return '抱歉，我现在无法处理您的问题，请稍后再试。';
+            const defaultMessage = '抱歉，我现在无法处理您的问题，请稍后再试。';
+            await this.simulateStreamingOutput(defaultMessage, onChunk);
+            return defaultMessage;
             
         } catch (error) {
             console.error('API调用完整错误:', error);
             throw error;
+        }
+    }
+
+    async simulateStreamingOutput(text, onChunk) {
+        // 模拟流式输出效果
+        const words = text.split('');
+        for (let i = 0; i < words.length; i++) {
+            // 根据字符类型调整延迟时间
+            let delay = 30;
+            if (words[i] === '。' || words[i] === '！' || words[i] === '？') {
+                delay = 200; // 句号、感叹号、问号后稍长停顿
+            } else if (words[i] === '，' || words[i] === '；') {
+                delay = 100; // 逗号、分号后短停顿
+            } else if (words[i] === '\n') {
+                delay = 150; // 换行后停顿
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, delay));
+            onChunk(words[i]);
         }
     }
 
@@ -312,6 +352,64 @@ class SmartAdvisor {
         });
         
         return messageDiv;
+    }
+
+    addStreamingMessage(sender) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}-message streaming-message`;
+        
+        const avatarDiv = document.createElement('div');
+        avatarDiv.className = 'message-avatar';
+        avatarDiv.innerHTML = sender === 'user' ? 
+            '<i class="fas fa-user"></i>' : 
+            '<i class="fas fa-graduation-cap"></i>';
+        
+        const bubbleDiv = document.createElement('div');
+        bubbleDiv.className = 'message-bubble';
+        bubbleDiv.innerHTML = '<span class="streaming-content"></span><span class="streaming-cursor">|</span>';
+        
+        messageDiv.appendChild(avatarDiv);
+        messageDiv.appendChild(bubbleDiv);
+        
+        this.chatMessages.appendChild(messageDiv);
+        this.scrollToBottom();
+        
+        return messageDiv;
+    }
+
+    updateStreamingMessage(messageDiv, content) {
+        const contentSpan = messageDiv.querySelector('.streaming-content');
+        if (contentSpan) {
+            // 渲染Markdown内容
+            contentSpan.innerHTML = this.renderMarkdown(content);
+        }
+        this.scrollToBottom();
+    }
+
+    finalizeStreamingMessage(messageDiv, finalContent) {
+        // 移除流式消息类名
+        messageDiv.classList.remove('streaming-message');
+        
+        // 移除光标
+        const cursor = messageDiv.querySelector('.streaming-cursor');
+        if (cursor) {
+            cursor.remove();
+        }
+        
+        // 更新最终内容
+        const bubbleDiv = messageDiv.querySelector('.message-bubble');
+        if (bubbleDiv) {
+            bubbleDiv.innerHTML = this.renderMarkdown(finalContent);
+        }
+        
+        // 保存到历史记录
+        this.messageHistory.push({
+            sender: 'advisor',
+            content: finalContent,
+            timestamp: Date.now()
+        });
+        
+        this.scrollToBottom();
     }
 
     addLoadingMessage() {
