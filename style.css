@@ -285,6 +285,12 @@ body {
     transform: none;
 }
 
+.chat-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #f3f4f6;
+}
+
 .input-hint {
     text-align: center;
     font-size: 0.8rem;
@@ -508,6 +514,27 @@ body {
 
 .user-message .message-bubble hr {
     border-top-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Streaming Message Styles */
+.streaming-message .message-bubble {
+    position: relative;
+}
+
+.streaming-cursor {
+    color: #6366f1;
+    font-weight: bold;
+    animation: blink 1s infinite;
+    margin-left: 2px;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+.streaming-content {
+    display: inline;
 }
 
 /* Scrollbar Styles */
