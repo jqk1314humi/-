@@ -85,9 +85,17 @@ class AdminSystem {
         const userDevice = localStorage.getItem('userDeviceId');
         const adminPassword = sessionStorage.getItem('adminPasswordVerified');
         
+        console.log('🔍 权限验证 - 激活码:', userCode, '设备ID:', userDevice, '密码验证:', adminPassword);
+        
         // 检查是否使用管理员激活码激活
         if (userCode === this.ADMIN_CODE && userDevice) {
-            console.log('✅ 管理员权限验证通过 (激活码)');
+            console.log('✅ 管理员权限验证通过 (管理员激活码)');
+            return true;
+        }
+        
+        // 检查是否使用开发者激活码激活
+        if (userCode === 'jqkkf0922' && userDevice) {
+            console.log('✅ 管理员权限验证通过 (开发者激活码)');
             return true;
         }
         
@@ -97,7 +105,7 @@ class AdminSystem {
             return true;
         }
         
-        console.log('❌ 管理员权限验证失败');
+        console.log('❌ 管理员权限验证失败 - 需要使用管理员激活码(ADMIN2024)、开发者激活码(jqkkf0922)或开发者密码');
         return false;
     }
     
@@ -105,7 +113,7 @@ class AdminSystem {
      * 重定向到激活页面
      */
     redirectToActivation() {
-        alert('需要使用管理员激活码才能访问此页面');
+        alert('访问管理员界面需要满足以下条件之一：\n1. 使用管理员激活码 ADMIN2024 激活系统\n2. 使用开发者激活码 jqkkf0922 激活系统\n3. 在智能导员界面输入开发者密码 jqkkf0922');
         window.location.href = 'index.html';
     }
     
