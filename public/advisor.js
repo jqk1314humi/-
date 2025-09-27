@@ -519,50 +519,69 @@ function hashString(str) {
 
 // 检查激活状态的函数
 function checkActivationStatus() {
-    const currentActivation = JSON.parse(localStorage.getItem('currentActivation') || '{"activated": false}');
-    const codes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
+    // 使用新的存储键，与activation-vika.js保持一致
+    const userActivationCode = localStorage.getItem('userActivationCode');
+    const userDeviceId = localStorage.getItem('userDeviceId');
+    const activationTime = localStorage.getItem('activationTime');
     
-    if (!currentActivation.activated) {
-        // 如果没有激活，重定向到激活页面
+    console.log('🔍 advisor.js 激活状态检查:', {
+        userActivationCode,
+        userDeviceId,
+        activationTime
+    });
+    
+    if (!userActivationCode || !userDeviceId || !activationTime) {
+        // 如果没有激活信息，重定向到激活页面
+        console.log('❌ 激活信息不完整，重定向到激活页面');
         window.location.href = './index.html';
         return false;
     }
     
-    // 如果使用的不是开发者激活码，检查激活码状态
-    if (currentActivation.code !== 'jqkkf0922') {
-        const codeInfo = codes[currentActivation.code];
-        if (!codeInfo || !codeInfo.used || codeInfo.status === 'reset') {
-            // 激活码已被重置或删除，清除本地激活状态
-            localStorage.setItem('currentActivation', JSON.stringify({
-                activated: false,
-                code: null,
-                activatedAt: null
-            }));
+    // 如果使用的是开发者激活码或管理员激活码，直接通过
+    if (userActivationCode === 'jqkkf0922' || userActivationCode === 'ADMIN2024') {
+        console.log('✅ 使用开发者/管理员激活码，激活状态有效');
+        return true;
+    }
+    
+    // 对于其他激活码，检查云端状态（如果可用）
+    if (window.vikaCloudStorage && window.vikaCloudStorage.isInitialized) {
+        // 这里可以添加云端验证逻辑，但为了避免异步问题，暂时信任本地状态
+        console.log('✅ 云存储可用，信任本地激活状态');
+        return true;
+    }
+    
+    // 检查本地存储的激活码状态
+    const codes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
+    const codeInfo = codes[userActivationCode];
+    
+    if (!codeInfo || !codeInfo.isUsed) {
+        // 激活码不存在或未使用
+        console.log('❌ 激活码状态异常，清除本地状态');
+        localStorage.removeItem('userActivationCode');
+        localStorage.removeItem('userDeviceId');
+        localStorage.removeItem('activationTime');
+        
+        alert('激活码状态异常，请重新激活。');
+        window.location.href = './index.html';
+        return false;
+    }
+    
+    // 验证设备ID是否匹配
+    if (codeInfo.usedBy && codeInfo.usedBy.deviceId) {
+        const currentDeviceId = generateDeviceId();
+        if (codeInfo.usedBy.deviceId !== currentDeviceId) {
+            console.log('❌ 设备ID不匹配，激活码被其他设备使用');
+            localStorage.removeItem('userActivationCode');
+            localStorage.removeItem('userDeviceId');
+            localStorage.removeItem('activationTime');
             
-            alert('您的激活码已被管理员重置，请重新激活。');
+            alert('检测到激活码已被其他设备使用，请重新激活。');
             window.location.href = './index.html';
             return false;
         }
-        
-        // 验证设备ID是否匹配（防止激活码被其他设备使用）
-        if (codeInfo.usedBy && codeInfo.usedBy.deviceId) {
-            // 生成当前设备ID进行比较
-            const currentDeviceId = generateDeviceId();
-            if (codeInfo.usedBy.deviceId !== currentDeviceId) {
-                // 设备ID不匹配，激活码被其他设备使用
-                localStorage.setItem('currentActivation', JSON.stringify({
-                    activated: false,
-                    code: null,
-                    activatedAt: null
-                }));
-                
-                alert('检测到激活码已被其他设备使用，当前设备激活状态已失效，请重新激活。');
-                window.location.href = './index.html';
-                return false;
-            }
-        }
     }
     
+    console.log('✅ 激活状态验证通过');
     return true;
 }
 
