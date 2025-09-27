@@ -394,28 +394,23 @@ class AdminSystem {
      */
     setupEventListeners() {
         // 生成激活码按钮
-        const generateButton = document.getElementById('generateButton');
+        const generateButton = document.getElementById('generateCode');
         if (generateButton) {
             generateButton.addEventListener('click', () => this.generateNewCode());
         }
         
         // 重置所有激活码按钮
-        const resetAllButton = document.getElementById('resetAllButton');
+        const resetAllButton = document.getElementById('resetAllCodes');
         if (resetAllButton) {
             resetAllButton.addEventListener('click', () => this.resetAllCodes());
         }
         
         // 导出日志按钮
-        const exportButton = document.getElementById('exportButton');
+        const exportButton = document.getElementById('exportLogs');
         if (exportButton) {
             exportButton.addEventListener('click', () => this.exportLogs());
         }
         
-        // 刷新数据按钮
-        const refreshButton = document.getElementById('refreshButton');
-        if (refreshButton) {
-            refreshButton.addEventListener('click', () => this.refreshData());
-        }
         
         // 设置同步事件监听器
         this.setupSyncEventListeners();
