@@ -543,7 +543,7 @@ class SmartAdvisor {
     // 检测微信浏览器
     isWeChatBrowser() {
         const ua = navigator.userAgent.toLowerCase();
-        return ua.indexOf('micromessenger') !== -1;
+        return ua.indexOf('micromessenger') !== -1 || ua.indexOf('wechat') !== -1;
     }
 
     // 显示激活码模态框
@@ -578,6 +578,9 @@ class SmartAdvisor {
                 modal.style.display = 'flex';
                 modal.style.alignItems = 'center';
                 modal.style.justifyContent = 'center';
+                modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                modal.style.backdropFilter = 'blur(5px)';
+                modal.classList.add('wechat-modal');
             } else {
                 modal.classList.add('show', 'force-show');
                 modal.style.display = 'flex';
@@ -598,6 +601,17 @@ class SmartAdvisor {
             // 微信浏览器特殊处理
             if (this.isWeChatBrowser()) {
                 modal.style.display = 'none';
+                modal.style.position = '';
+                modal.style.top = '';
+                modal.style.left = '';
+                modal.style.width = '';
+                modal.style.height = '';
+                modal.style.zIndex = '';
+                modal.style.alignItems = '';
+                modal.style.justifyContent = '';
+                modal.style.backgroundColor = '';
+                modal.style.backdropFilter = '';
+                modal.classList.remove('wechat-modal');
             } else {
                 modal.classList.remove('show', 'force-show');
                 modal.style.display = 'none';
@@ -716,6 +730,14 @@ class SmartAdvisor {
                 setTimeout(() => {
                     this.hideActivationModal();
                     this.unlockApp();
+                    // 强制确保模态框关闭
+                    setTimeout(() => {
+                        const modal = document.getElementById('activationModal');
+                        if (modal) {
+                            modal.style.display = 'none';
+                            modal.classList.remove('show', 'force-show', 'wechat-modal');
+                        }
+                    }, 100);
                 }, 1500);
             } else {
                 this.showErrorMessage(result.message);
