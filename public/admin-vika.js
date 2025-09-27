@@ -28,11 +28,11 @@ class AdminSystem {
             // 管理员界面直接进入，无需权限验证
             console.log('✅ 管理员界面已开放访问');
             
-            // 等待维格表云存储初始化
+            // 等待维格表云存储初始化（但不自动加载数据）
             await this.waitForVikaStorage();
             
-            // 加载数据
-            await this.loadData();
+            // 加载本地数据
+            await this.loadLocalDataOnly();
             
             // 初始化界面
             this.initializeInterface();
@@ -56,42 +56,36 @@ class AdminSystem {
      * 等待维格表云存储就绪
      */
     async waitForVikaStorage() {
-        return new Promise((resolve, reject) => {
-            // 设置超时时间（10秒）
+        return new Promise((resolve) => {
+            console.log('⏳ 初始化云存储连接（不自动获取数据）...');
+            
+            // 设置较短的超时时间（3秒），因为我们不强制需要云存储
             const timeout = setTimeout(() => {
-                console.error('❌ 维格表云存储连接超时');
-                // 超时时使用本地模式
-                this.fallbackToLocalMode();
-                resolve(); // 不要reject，而是继续运行
-            }, 10000);
+                console.log('⚠️ 云存储连接超时，将在手动点击时重试');
+                this.showNotification('云存储连接超时，点击"从云端获取"时将重试连接', 'info');
+                resolve(); // 继续运行，不阻塞界面
+            }, 3000);
 
             if (window.vikaCloudStorage) {
                 this.vikaStorage = window.vikaCloudStorage;
                 console.log('📦 维格表云存储已连接');
+                this.showNotification('云存储已连接，可手动获取数据', 'success');
                 clearTimeout(timeout);
                 resolve();
             } else {
                 window.addEventListener('vikaStorageReady', (event) => {
                     this.vikaStorage = event.detail.storage;
                     console.log('📦 维格表云存储已就绪');
+                    
+                    if (event.detail.isLocal) {
+                        this.showNotification('云存储降级到本地模式', 'warning');
+                    } else {
+                        this.showNotification('云存储已连接，可手动获取数据', 'success');
+                    }
+                    
                     clearTimeout(timeout);
                     resolve();
                 }, { once: true });
-                
-                // 如果5秒后还没有连接，尝试手动创建
-                setTimeout(() => {
-                    if (!this.vikaStorage && window.VikaCloudStorage) {
-                        console.log('⚡ 尝试手动创建维格表连接...');
-                        try {
-                            window.vikaCloudStorage = new VikaCloudStorage();
-                            this.vikaStorage = window.vikaCloudStorage;
-                            clearTimeout(timeout);
-                            resolve();
-                        } catch (error) {
-                            console.error('❌ 手动创建维格表连接失败:', error);
-                        }
-                    }
-                }, 5000);
             }
         });
     }
@@ -134,29 +128,67 @@ class AdminSystem {
     
     
     /**
-     * 加载数据
+     * 只加载本地数据
      */
-    async loadData() {
+    async loadLocalDataOnly() {
         try {
-            console.log('📊 加载管理员数据...');
+            console.log('📊 加载本地数据...');
+            
+            this.currentData.codes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
+            this.currentData.logs = JSON.parse(localStorage.getItem('activationLogs') || '[]');
+            
+            this.calculateStats();
+            console.log('本地数据加载完成:', this.currentData.stats);
+            
+        } catch (error) {
+            console.error('加载本地数据失败:', error);
+            this.showNotification('加载本地数据失败: ' + error.message, 'error');
+        }
+    }
+
+    /**
+     * 从云端加载数据（手动触发）
+     */
+    async loadDataFromCloud() {
+        try {
+            console.log('📊 从云端加载数据...');
+            this.showNotification('正在从云端获取数据...', 'info');
             
             if (this.vikaStorage && this.vikaStorage.isInitialized) {
                 console.log('从维格表云存储加载数据...');
                 this.currentData.codes = await this.vikaStorage.getActivationCodes();
                 this.currentData.logs = await this.vikaStorage.getLogs();
+                
+                // 同步到本地存储
+                localStorage.setItem('activationCodes', JSON.stringify(this.currentData.codes));
+                localStorage.setItem('activationLogs', JSON.stringify(this.currentData.logs));
+                
+                this.calculateStats();
+                console.log('云端数据加载完成:', this.currentData.stats);
+                this.showNotification('云端数据获取成功', 'success');
+                
+                // 刷新界面显示
+                this.displayStats();
+                this.displayActivationCodes();
+                this.displayLogs();
+                this.updateSyncInfo();
+                
             } else {
-                console.log('从本地存储加载数据...');
-                this.currentData.codes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
-                this.currentData.logs = JSON.parse(localStorage.getItem('activationLogs') || '[]');
+                this.showNotification('云存储未连接，无法获取数据', 'warning');
             }
             
-            this.calculateStats();
-            console.log('数据加载完成:', this.currentData.stats);
-            
         } catch (error) {
-            console.error('加载数据失败:', error);
-            this.showNotification('加载数据失败: ' + error.message, 'error');
+            console.error('从云端加载数据失败:', error);
+            this.showNotification('从云端获取数据失败: ' + error.message, 'error');
         }
+    }
+
+    /**
+     * 加载数据（保留原方法供其他地方调用）
+     */
+    async loadData() {
+        // 默认只加载本地数据
+        await this.loadLocalDataOnly();
     }
     
     /**
@@ -688,23 +720,14 @@ class AdminSystem {
      * 从云端同步数据
      */
     async syncFromCloud() {
-        if (!this.vikaStorage || !this.vikaStorage.isInitialized) {
-            this.showSyncError('维格表云存储未初始化');
-            return;
-        }
-        
         try {
-            this.showSyncProgress('正在从维格表获取数据...');
             this.setSyncButtonsEnabled(false);
+            this.showSyncProgress('正在从云端获取数据...');
             
-            const result = await this.vikaStorage.syncFromVika();
+            // 调用新的从云端加载数据方法
+            await this.loadDataFromCloud();
             
-            if (result.success) {
-                await this.refreshData();
-                this.showSyncResults('从云端同步成功', 'success');
-            } else {
-                this.showSyncError('同步失败: ' + result.message);
-            }
+            this.showSyncResults('数据从云端获取完成', 'success');
             
         } catch (error) {
             console.error('从云端同步失败:', error);
