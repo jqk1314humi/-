@@ -121,17 +121,24 @@ class ActivationManager {
         
         // 模拟验证延迟
         setTimeout(() => {
-            const result = this.validateActivationCode(inputCode);
-            
-            if (result.success) {
-                this.activateApp(inputCode);
-                this.showMessage(activationMessage, '激活成功！正在跳转到智能导员...', 'success');
+            try {
+                const result = this.validateActivationCode(inputCode);
                 
-                setTimeout(() => {
-                    window.location.href = './advisor.html';
-                }, 1500);
-            } else {
-                this.showMessage(activationMessage, result.message, 'error');
+                if (result.success) {
+                    this.activateApp(inputCode);
+                    this.showMessage(activationMessage, '激活成功！正在跳转到智能导员...', 'success');
+                    
+                    setTimeout(() => {
+                        window.location.href = './advisor.html';
+                    }, 1500);
+                } else {
+                    this.showMessage(activationMessage, result.message, 'error');
+                    activationButton.disabled = false;
+                    activationButton.innerHTML = '<i class="fas fa-check"></i> 激活';
+                }
+            } catch (error) {
+                console.error('激活过程中发生错误:', error);
+                this.showMessage(activationMessage, error.message || '激活失败，请重试', 'error');
                 activationButton.disabled = false;
                 activationButton.innerHTML = '<i class="fas fa-check"></i> 激活';
             }
@@ -152,9 +159,12 @@ class ActivationManager {
         
         if (codes[code]) {
             if (codes[code].used) {
+                // 提供更详细的已使用信息
+                const usedTime = new Date(codes[code].usedAt).toLocaleString('zh-CN');
+                const usedDevice = codes[code].usedBy ? codes[code].usedBy.platform : '未知设备';
                 return {
                     success: false,
-                    message: '该激活码已被使用'
+                    message: `该激活码已于 ${usedTime} 在 ${usedDevice} 上被使用，每个激活码只能使用一次`
                 };
             } else {
                 return {
@@ -165,24 +175,33 @@ class ActivationManager {
         } else {
             return {
                 success: false,
-                message: '无效的激活码'
+                message: '无效的激活码，请检查输入是否正确'
             };
         }
     }
     
     activateApp(code) {
-        // 更新激活状态
+        // 如果不是开发者激活码，需要原子性地标记为已使用
+        if (code !== this.DEVELOPER_CODE) {
+            // 再次检查激活码状态，防止并发使用
+            const codes = JSON.parse(localStorage.getItem('activationCodes'));
+            if (codes[code] && codes[code].used) {
+                throw new Error('激活码已被其他设备使用，请刷新页面重试');
+            }
+            
+            // 立即标记为已使用
+            this.markCodeAsUsed(code);
+        }
+        
+        // 更新当前设备的激活状态
         const currentActivation = {
             activated: true,
             code: code,
-            activatedAt: Date.now()
+            activatedAt: Date.now(),
+            deviceId: this.generateDeviceId(),
+            activationId: this.generateActivationId()
         };
         localStorage.setItem('currentActivation', JSON.stringify(currentActivation));
-        
-        // 如果不是开发者激活码，标记为已使用
-        if (code !== this.DEVELOPER_CODE) {
-            this.markCodeAsUsed(code);
-        }
         
         // 记录使用日志
         this.logActivation(code);
@@ -190,11 +209,20 @@ class ActivationManager {
     
     markCodeAsUsed(code) {
         const codes = JSON.parse(localStorage.getItem('activationCodes'));
+        const clientInfo = this.getClientInfo();
+        
         codes[code] = {
             used: true,
             usedAt: Date.now(),
-            usedBy: this.getClientInfo(),
-            createdAt: codes[code].createdAt || Date.now()
+            usedBy: {
+                ...clientInfo,
+                deviceId: this.generateDeviceId(),
+                activationId: this.generateActivationId(),
+                ipHash: this.generateIPHash(), // 简化的IP标识
+                sessionId: this.generateSessionId()
+            },
+            createdAt: codes[code].createdAt || Date.now(),
+            status: 'active' // 激活状态：active, reset, deleted
         };
         localStorage.setItem('activationCodes', JSON.stringify(codes));
     }
@@ -215,8 +243,55 @@ class ActivationManager {
             userAgent: navigator.userAgent,
             language: navigator.language,
             platform: navigator.platform,
-            timestamp: new Date().toLocaleString('zh-CN')
+            timestamp: new Date().toLocaleString('zh-CN'),
+            screenResolution: `${screen.width}x${screen.height}`,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            cookieEnabled: navigator.cookieEnabled
         };
+    }
+    
+    // 生成设备唯一标识
+    generateDeviceId() {
+        // 基于浏览器指纹生成设备ID
+        const fingerprint = [
+            navigator.userAgent,
+            navigator.language,
+            navigator.platform,
+            screen.width + 'x' + screen.height,
+            new Date().getTimezoneOffset(),
+            navigator.hardwareConcurrency || 0,
+            navigator.maxTouchPoints || 0
+        ].join('|');
+        
+        return this.hashString(fingerprint).substring(0, 16);
+    }
+    
+    // 生成激活ID
+    generateActivationId() {
+        return 'act_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 8);
+    }
+    
+    // 生成会话ID
+    generateSessionId() {
+        return 'sess_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 10);
+    }
+    
+    // 生成IP哈希（模拟）
+    generateIPHash() {
+        // 由于无法直接获取真实IP，使用时间戳和随机数生成标识
+        const pseudo = Date.now() + Math.random();
+        return 'ip_' + this.hashString(pseudo.toString()).substring(0, 8);
+    }
+    
+    // 简单哈希函数
+    hashString(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // 转换为32位整数
+        }
+        return Math.abs(hash).toString(36);
     }
     
     showMessage(element, message, type) {

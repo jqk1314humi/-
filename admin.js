@@ -125,7 +125,34 @@ class AdminManager {
             
             const statusClass = info.used ? 'used' : 'available';
             const statusText = info.used ? '已使用' : '未使用';
-            const usedByInfo = info.usedBy ? `使用者: ${info.usedBy.platform || '未知'}` : '';
+            // 构建详细的使用信息
+            let deviceInfo = '';
+            let securityInfo = '';
+            if (info.used && info.usedBy) {
+                const platform = info.usedBy.platform || '未知平台';
+                const deviceId = info.usedBy.deviceId || '未知设备';
+                const browser = this.getBrowserInfo(info.usedBy.userAgent);
+                const resolution = info.usedBy.screenResolution || '未知分辨率';
+                const timezone = info.usedBy.timezone || '未知时区';
+                
+                deviceInfo = `
+                    <div class="device-info">
+                        <div class="device-row"><i class="fas fa-desktop"></i> 平台: ${platform}</div>
+                        <div class="device-row"><i class="fas fa-globe"></i> 浏览器: ${browser}</div>
+                        <div class="device-row"><i class="fas fa-tv"></i> 分辨率: ${resolution}</div>
+                        <div class="device-row"><i class="fas fa-clock"></i> 时区: ${timezone}</div>
+                    </div>
+                `;
+                
+                securityInfo = `
+                    <div class="security-info">
+                        <div class="security-row"><i class="fas fa-fingerprint"></i> 设备ID: ${deviceId}</div>
+                        ${info.usedBy.activationId ? `<div class="security-row"><i class="fas fa-key"></i> 激活ID: ${info.usedBy.activationId}</div>` : ''}
+                        ${info.usedBy.sessionId ? `<div class="security-row"><i class="fas fa-user-secret"></i> 会话ID: ${info.usedBy.sessionId}</div>` : ''}
+                        <div class="security-row"><i class="fas fa-shield-alt"></i> 状态: ${info.status || 'active'}</div>
+                    </div>
+                `;
+            }
             
             codeItem.innerHTML = `
                 <div class="code-info">
@@ -136,7 +163,8 @@ class AdminManager {
                     ${info.used ? `
                         <div class="code-details">
                             <div class="log-time">使用时间: ${new Date(info.usedAt).toLocaleString('zh-CN')}</div>
-                            ${usedByInfo ? `<div class="used-by">${usedByInfo}</div>` : ''}
+                            ${deviceInfo}
+                            ${securityInfo}
                         </div>
                     ` : ''}
                 </div>
@@ -332,42 +360,75 @@ class AdminManager {
     
     // 重置单个激活码
     resetSingleCode(code) {
-        if (confirm(`确定要重置激活码 "${code}" 的使用状态吗？此操作不可撤销！`)) {
-            const codes = JSON.parse(localStorage.getItem('activationCodes'));
+        const codes = JSON.parse(localStorage.getItem('activationCodes'));
+        const codeInfo = codes[code];
+        
+        if (!codeInfo) {
+            alert('激活码不存在！');
+            return;
+        }
+        
+        // 显示详细的重置确认信息
+        let confirmMessage = `确定要重置激活码 "${code}" 的使用状态吗？\n\n`;
+        if (codeInfo.used && codeInfo.usedBy) {
+            const usedTime = new Date(codeInfo.usedAt).toLocaleString('zh-CN');
+            const deviceId = codeInfo.usedBy.deviceId || '未知设备';
+            const platform = codeInfo.usedBy.platform || '未知平台';
+            confirmMessage += `当前状态: 已使用\n使用时间: ${usedTime}\n使用设备: ${deviceId}\n使用平台: ${platform}\n\n`;
+        }
+        confirmMessage += '重置后该激活码将可以重新使用，此操作不可撤销！';
+        
+        if (confirm(confirmMessage)) {
+            // 保存原始使用信息用于日志
+            const originalUsedBy = codeInfo.usedBy;
             
-            if (codes[code]) {
-                codes[code] = {
-                    used: false,
-                    usedAt: null,
-                    usedBy: null,
-                    createdAt: codes[code].createdAt || Date.now()
-                };
-                localStorage.setItem('activationCodes', JSON.stringify(codes));
-                
-                // 检查当前激活状态，如果使用的是这个激活码，则取消激活
-                const currentActivation = JSON.parse(localStorage.getItem('currentActivation') || '{"activated": false}');
-                if (currentActivation.activated && currentActivation.code === code) {
-                    localStorage.setItem('currentActivation', JSON.stringify({
-                        activated: false,
-                        code: null,
-                        activatedAt: null
-                    }));
-                    
-                    // 添加重置日志
-                    const logs = JSON.parse(localStorage.getItem('activationLogs'));
-                    logs.push({
-                        code: code,
-                        timestamp: Date.now(),
-                        type: 'reset',
-                        action: 'single_reset',
-                        clientInfo: this.getClientInfo()
-                    });
-                    localStorage.setItem('activationLogs', JSON.stringify(logs));
-                }
-                
-                this.updateAdminPanel();
-                alert(`激活码 "${code}" 已重置！`);
+            codes[code] = {
+                used: false,
+                usedAt: null,
+                usedBy: null,
+                createdAt: codes[code].createdAt || Date.now(),
+                status: 'reset',
+                resetAt: Date.now(),
+                resetCount: (codes[code].resetCount || 0) + 1
+            };
+            localStorage.setItem('activationCodes', JSON.stringify(codes));
+            
+            // 检查当前激活状态，如果使用的是这个激活码，则取消激活
+            const currentActivation = JSON.parse(localStorage.getItem('currentActivation') || '{"activated": false}');
+            let wasCurrentlyActive = false;
+            
+            if (currentActivation.activated && currentActivation.code === code) {
+                localStorage.setItem('currentActivation', JSON.stringify({
+                    activated: false,
+                    code: null,
+                    activatedAt: null
+                }));
+                wasCurrentlyActive = true;
             }
+            
+            // 添加详细的重置日志
+            const logs = JSON.parse(localStorage.getItem('activationLogs'));
+            logs.push({
+                code: code,
+                timestamp: Date.now(),
+                type: 'reset',
+                action: 'single_reset',
+                details: {
+                    wasCurrentlyActive: wasCurrentlyActive,
+                    originalUsedBy: originalUsedBy,
+                    resetReason: 'manual_admin_reset'
+                },
+                clientInfo: this.getClientInfo()
+            });
+            localStorage.setItem('activationLogs', JSON.stringify(logs));
+            
+            this.updateAdminPanel();
+            
+            let successMessage = `激活码 "${code}" 已成功重置！`;
+            if (wasCurrentlyActive) {
+                successMessage += '\n\n注意：该激活码当前正在使用中，相关设备的激活状态已被取消。';
+            }
+            alert(successMessage);
         }
     }
     

@@ -489,10 +489,49 @@ class SmartAdvisor {
     }
 }
 
+// 检查激活状态的函数
+function checkActivationStatus() {
+    const currentActivation = JSON.parse(localStorage.getItem('currentActivation') || '{"activated": false}');
+    const codes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
+    
+    if (!currentActivation.activated) {
+        // 如果没有激活，重定向到激活页面
+        window.location.href = './index.html';
+        return false;
+    }
+    
+    // 如果使用的不是开发者激活码，检查激活码状态
+    if (currentActivation.code !== 'jqkkf0922') {
+        const codeInfo = codes[currentActivation.code];
+        if (!codeInfo || !codeInfo.used || codeInfo.status === 'reset') {
+            // 激活码已被重置或删除，清除本地激活状态
+            localStorage.setItem('currentActivation', JSON.stringify({
+                activated: false,
+                code: null,
+                activatedAt: null
+            }));
+            
+            alert('您的激活码已被管理员重置，请重新激活。');
+            window.location.href = './index.html';
+            return false;
+        }
+    }
+    
+    return true;
+}
+
 // 页面加载完成后初始化应用
 document.addEventListener('DOMContentLoaded', () => {
-    new SmartAdvisor();
+    // 首先检查激活状态
+    if (checkActivationStatus()) {
+        new SmartAdvisor();
+    }
 });
+
+// 定期检查激活状态（每5分钟检查一次）
+setInterval(() => {
+    checkActivationStatus();
+}, 5 * 60 * 1000);
 
 // 添加一些实用功能
 document.addEventListener('DOMContentLoaded', () => {
