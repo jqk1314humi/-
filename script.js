@@ -561,13 +561,21 @@ class SmartAdvisor {
                 activateButton.textContent = '激活';
             }
             
-            // 强制重置样式
+            // 强制重置样式和类名
             modal.className = 'modal';
             modal.style.cssText = '';
             
-            // 添加显示类名和样式
+            // 移除隐藏类
+            modal.classList.remove('hidden');
+            
+            // 添加显示类名
             modal.classList.add('show', 'force-show');
+            
+            // 强制设置显示样式
             modal.style.display = 'flex';
+            modal.style.visibility = 'visible';
+            modal.style.opacity = '1';
+            modal.style.pointerEvents = 'auto';
             modal.style.position = 'fixed';
             modal.style.top = '0';
             modal.style.left = '0';
@@ -578,8 +586,13 @@ class SmartAdvisor {
             modal.style.justifyContent = 'center';
             modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
             modal.style.backdropFilter = 'blur(5px)';
+            modal.style.webkitBackdropFilter = 'blur(5px)';
             
             document.body.classList.add('app-locked');
+            
+            // 强制重新计算样式
+            modal.offsetHeight;
+            
             console.log('激活码模态框已显示');
         } else {
             console.error('未找到激活码模态框元素');
@@ -592,17 +605,29 @@ class SmartAdvisor {
         if (modal) {
             console.log('开始隐藏模态框');
             
-            // 强制移除所有类名
-            modal.className = 'modal';
+            // 添加隐藏类
+            modal.classList.add('hidden');
             
-            // 强制设置样式
-            modal.style.cssText = 'display: none !important; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;';
+            // 强制移除显示类
+            modal.classList.remove('show', 'force-show');
+            
+            // 强制设置样式 - 使用多种方式确保隐藏
+            modal.style.display = 'none';
+            modal.style.visibility = 'hidden';
+            modal.style.opacity = '0';
+            modal.style.pointerEvents = 'none';
+            modal.style.zIndex = '-1';
             
             // 移除body锁定状态
             document.body.classList.remove('app-locked');
             
             // 强制重新计算样式
             modal.offsetHeight;
+            
+            // 延迟再次确保隐藏
+            setTimeout(() => {
+                modal.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; z-index: -1 !important;';
+            }, 100);
             
             console.log('激活码模态框已隐藏');
         } else {
@@ -721,13 +746,24 @@ class SmartAdvisor {
                 this.hideActivationModal();
                 this.unlockApp();
                 
-                // 额外保险：再次确保模态框关闭
+                // 多重保险：确保模态框关闭
                 setTimeout(() => {
                     const modal = document.getElementById('activationModal');
-                    if (modal && modal.style.display !== 'none') {
-                        console.log('强制关闭模态框');
+                    if (modal) {
+                        console.log('第一次强制关闭检查');
+                        modal.classList.add('hidden');
                         modal.style.display = 'none';
-                        modal.className = 'modal';
+                        modal.style.visibility = 'hidden';
+                        modal.style.opacity = '0';
+                    }
+                }, 200);
+                
+                setTimeout(() => {
+                    const modal = document.getElementById('activationModal');
+                    if (modal) {
+                        console.log('第二次强制关闭检查');
+                        modal.className = 'modal hidden';
+                        modal.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; z-index: -1 !important;';
                     }
                 }, 500);
             } else {

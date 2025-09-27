@@ -907,7 +907,7 @@ body {
     }
 }
 
-/* 统一模态框样式 - 所有浏览器 */
+/* 统一模态框样式 - 所有浏览器内核兼容 */
 .modal {
     display: none;
     position: fixed;
@@ -917,17 +917,29 @@ body {
     height: 100%;
     z-index: 9999;
     background-color: rgba(0, 0, 0, 0.5);
+    -webkit-backdrop-filter: blur(5px);
     backdrop-filter: blur(5px);
+    -webkit-box-align: center;
+    -webkit-box-pack: center;
+    -ms-flex-align: center;
+    -ms-flex-pack: center;
     align-items: center;
     justify-content: center;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-perspective: 1000;
+    perspective: 1000;
 }
 
-.modal.show {
-    display: flex !important;
-}
-
+.modal.show,
 .modal.force-show {
+    display: -webkit-box !important;
+    display: -ms-flexbox !important;
     display: flex !important;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: column;
+    flex-direction: column;
 }
 
 .modal-content {
@@ -937,41 +949,104 @@ body {
     max-height: 80vh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    margin: 0;
+    margin: 0 auto;
     background: white;
     border-radius: 1rem;
+    -webkit-box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
 }
 
-/* 移动端输入框优化 */
+/* 强制隐藏模态框 */
+.modal.hidden {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* 移动端和微信浏览器特殊优化 */
 @media (max-width: 768px) {
+    .modal {
+        -webkit-transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0);
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+    }
+    
+    .modal.show,
+    .modal.force-show {
+        display: -webkit-box !important;
+        display: -ms-flexbox !important;
+        display: flex !important;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+        -ms-flex-direction: column;
+        flex-direction: column;
+        -webkit-box-align: center;
+        -webkit-box-pack: center;
+        -ms-flex-align: center;
+        -ms-flex-pack: center;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .modal-content {
+        -webkit-transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0);
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        width: 95% !important;
+        max-width: 350px !important;
+    }
+    
     .input-group input {
         -webkit-appearance: none !important;
+        -moz-appearance: none !important;
         appearance: none !important;
         border-radius: 0.5rem !important;
         font-size: 16px !important;
         padding: 0.875rem 1rem !important;
         border: 2px solid #e5e7eb !important;
         background: #f9fafb !important;
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
     }
     
     .input-group input:focus {
         border-color: #6366f1 !important;
         background: white !important;
         outline: none !important;
+        -webkit-box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
     }
     
     .btn-primary, .btn-secondary {
         -webkit-appearance: none !important;
+        -moz-appearance: none !important;
         appearance: none !important;
         border-radius: 0.5rem !important;
         font-size: 16px !important;
         padding: 0.875rem 1rem !important;
         border: none !important;
         cursor: pointer !important;
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
     }
     
     .btn-primary {
+        background: -webkit-linear-gradient(135deg, #6366f1, #8b5cf6) !important;
         background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
         color: white !important;
     }
@@ -980,6 +1055,31 @@ body {
         background: #f3f4f6 !important;
         color: #6b7280 !important;
         border: 1px solid #d1d5db !important;
+    }
+}
+
+/* 微信浏览器特殊修复 */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+    .modal {
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        -webkit-perspective: 1000;
+        perspective: 1000;
+    }
+    
+    .modal.show,
+    .modal.force-show {
+        display: -webkit-box !important;
+        display: -ms-flexbox !important;
+        display: flex !important;
+    }
+    
+    .modal.hidden {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        -webkit-transform: scale(0);
+        transform: scale(0);
     }
 }
 
