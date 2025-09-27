@@ -1,8 +1,11 @@
 // 激活码管理系统
 class ActivationManager {
     constructor() {
-        this.developerCode = 'jqkkf0922';
-        this.activationCodes = [
+        // 开发者激活码
+        this.DEVELOPER_CODE = 'jqkkf0922';
+        
+        // 初始激活码列表
+        this.INITIAL_CODES = [
             'j6si0f26cig0',
             'polex311eo4e',
             'gwhfntmgol8l',
@@ -14,179 +17,431 @@ class ActivationManager {
             'by8fahc1taa3',
             'v61g1yyvbgg6'
         ];
-        this.usedCodesKey = 'smartAdvisor_usedCodes';
-        this.activationStatusKey = 'smartAdvisor_activated';
         
-        this.initializeActivation();
+        this.initializeData();
+        this.initializeUI();
     }
-
-    initializeActivation() {
-        // 检查是否已经激活
-        const isActivated = localStorage.getItem(this.activationStatusKey);
-        if (isActivated === 'true') {
+    
+    initializeData() {
+        // 初始化激活码数据
+        if (!localStorage.getItem('activationCodes')) {
+            const codes = {};
+            this.INITIAL_CODES.forEach(code => {
+                codes[code] = {
+                    used: false,
+                    usedAt: null,
+                    usedBy: null
+                };
+            });
+            localStorage.setItem('activationCodes', JSON.stringify(codes));
+        }
+        
+        // 初始化使用日志
+        if (!localStorage.getItem('activationLogs')) {
+            localStorage.setItem('activationLogs', JSON.stringify([]));
+        }
+        
+        // 初始化当前激活状态
+        if (!localStorage.getItem('currentActivation')) {
+            localStorage.setItem('currentActivation', JSON.stringify({
+                activated: false,
+                code: null,
+                activatedAt: null
+            }));
+        }
+    }
+    
+    initializeUI() {
+        // 检查当前激活状态
+        const currentActivation = JSON.parse(localStorage.getItem('currentActivation'));
+        
+        if (currentActivation.activated) {
             this.showMainApp();
         } else {
             this.showActivationPage();
         }
+        
+        this.setupEventListeners();
     }
-
-    showActivationPage() {
-        document.getElementById('activationPage').style.display = 'block';
-        document.getElementById('mainApp').style.display = 'none';
-        this.setupActivationEvents();
-    }
-
-    showMainApp() {
-        document.getElementById('activationPage').style.display = 'none';
-        document.getElementById('mainApp').style.display = 'block';
-        // 初始化主应用
-        if (window.smartAdvisor) {
-            window.smartAdvisor.destroy();
+    
+    setupEventListeners() {
+        // 激活页面事件
+        const activationInput = document.getElementById('activationInput');
+        const activationButton = document.getElementById('activationButton');
+        
+        if (activationInput && activationButton) {
+            activationInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    this.handleActivation();
+                }
+            });
+            
+            activationButton.addEventListener('click', () => {
+                this.handleActivation();
+            });
+            
+            activationInput.addEventListener('input', () => {
+                this.updateActivationButtonState();
+            });
         }
-        window.smartAdvisor = new SmartAdvisor();
+        
+        // 主应用管理员按钮事件
+        const adminButtonMain = document.getElementById('adminButtonMain');
+        if (adminButtonMain) {
+            adminButtonMain.addEventListener('click', () => {
+                this.showAdminPasswordPrompt();
+            });
+        }
+        
+        // 管理员面板事件
+        this.setupAdminEventListeners();
     }
-
-    setupActivationEvents() {
-        const activationInput = document.getElementById('activationInput');
-        const activateButton = document.getElementById('activateButton');
-        const activationMessage = document.getElementById('activationMessage');
-
-        // 激活按钮点击事件
-        activateButton.addEventListener('click', () => this.verifyActivationCode());
-
-        // 输入框回车事件
-        activationInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                this.verifyActivationCode();
-            }
+    
+    setupAdminEventListeners() {
+        const backButton = document.getElementById('backToMainApp');
+        const resetButton = document.getElementById('resetAllCodes');
+        const exportButton = document.getElementById('exportLogs');
+        const tabButtons = document.querySelectorAll('.tab-button');
+        
+        if (backButton) {
+            backButton.addEventListener('click', () => {
+                this.showMainApp();
+            });
+        }
+        
+        if (resetButton) {
+            resetButton.addEventListener('click', () => {
+                this.resetAllCodes();
+            });
+        }
+        
+        if (exportButton) {
+            exportButton.addEventListener('click', () => {
+                this.exportLogs();
+            });
+        }
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                this.switchTab(button.dataset.tab);
+            });
         });
-
-        // 输入框输入事件
-        activationInput.addEventListener('input', () => {
-            this.updateActivateButtonState();
-        });
-
-        // 初始化按钮状态
-        this.updateActivateButtonState();
     }
-
-    updateActivateButtonState() {
+    
+    updateActivationButtonState() {
         const activationInput = document.getElementById('activationInput');
-        const activateButton = document.getElementById('activateButton');
-        const hasText = activationInput.value.trim().length > 0;
-        activateButton.disabled = !hasText;
+        const activationButton = document.getElementById('activationButton');
+        
+        if (activationInput && activationButton) {
+            const hasText = activationInput.value.trim().length > 0;
+            activationButton.disabled = !hasText;
+        }
     }
-
-    verifyActivationCode() {
+    
+    handleActivation() {
         const activationInput = document.getElementById('activationInput');
+        const activationButton = document.getElementById('activationButton');
         const activationMessage = document.getElementById('activationMessage');
-        const activateButton = document.getElementById('activateButton');
+        
+        if (!activationInput || !activationButton) return;
         
         const inputCode = activationInput.value.trim();
+        if (!inputCode) return;
         
-        if (!inputCode) {
-            this.showMessage('请输入激活码', 'error');
-            return;
-        }
-
         // 禁用按钮防止重复提交
-        activateButton.disabled = true;
-        activateButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>验证中...</span>';
-
+        activationButton.disabled = true;
+        activationButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 验证中...';
+        
         // 模拟验证延迟
         setTimeout(() => {
-            const result = this.checkActivationCode(inputCode);
+            const result = this.validateActivationCode(inputCode);
             
             if (result.success) {
-                this.showMessage(result.message, 'success');
-                // 保存激活状态
-                localStorage.setItem(this.activationStatusKey, 'true');
-                // 延迟跳转到主应用
+                this.activateApp(inputCode);
+                this.showMessage(activationMessage, '激活成功！正在进入应用...', 'success');
+                
                 setTimeout(() => {
                     this.showMainApp();
                 }, 1500);
             } else {
-                this.showMessage(result.message, 'error');
-                // 重新启用按钮
-                activateButton.disabled = false;
-                activateButton.innerHTML = '<i class="fas fa-check"></i><span>激活</span>';
+                this.showMessage(activationMessage, result.message, 'error');
+                activationButton.disabled = false;
+                activationButton.innerHTML = '<i class="fas fa-check"></i> 激活';
             }
         }, 1000);
     }
-
-    checkActivationCode(inputCode) {
+    
+    validateActivationCode(code) {
         // 检查开发者激活码
-        if (inputCode === this.developerCode) {
+        if (code === this.DEVELOPER_CODE) {
             return {
                 success: true,
-                message: '开发者激活码验证成功！欢迎使用智能导员！'
+                message: '开发者激活码验证成功'
             };
         }
-
+        
         // 检查普通激活码
-        if (this.activationCodes.includes(inputCode)) {
-            // 检查是否已经使用过
-            const usedCodes = this.getUsedCodes();
-            if (usedCodes.includes(inputCode)) {
+        const codes = JSON.parse(localStorage.getItem('activationCodes'));
+        
+        if (codes[code]) {
+            if (codes[code].used) {
                 return {
                     success: false,
-                    message: '该激活码已被使用，请使用其他激活码'
+                    message: '该激活码已被使用'
+                };
+            } else {
+                return {
+                    success: true,
+                    message: '激活码验证成功'
                 };
             }
-
-            // 标记为已使用
-            this.markCodeAsUsed(inputCode);
+        } else {
             return {
-                success: true,
-                message: '激活码验证成功！欢迎使用智能导员！'
+                success: false,
+                message: '无效的激活码'
             };
         }
-
+    }
+    
+    activateApp(code) {
+        // 更新激活状态
+        const currentActivation = {
+            activated: true,
+            code: code,
+            activatedAt: Date.now()
+        };
+        localStorage.setItem('currentActivation', JSON.stringify(currentActivation));
+        
+        // 如果不是开发者激活码，标记为已使用
+        if (code !== this.DEVELOPER_CODE) {
+            this.markCodeAsUsed(code);
+        }
+        
+        // 记录使用日志
+        this.logActivation(code);
+    }
+    
+    markCodeAsUsed(code) {
+        const codes = JSON.parse(localStorage.getItem('activationCodes'));
+        codes[code] = {
+            used: true,
+            usedAt: Date.now(),
+            usedBy: this.getClientInfo()
+        };
+        localStorage.setItem('activationCodes', JSON.stringify(codes));
+    }
+    
+    logActivation(code) {
+        const logs = JSON.parse(localStorage.getItem('activationLogs'));
+        logs.push({
+            code: code,
+            timestamp: Date.now(),
+            clientInfo: this.getClientInfo(),
+            type: code === this.DEVELOPER_CODE ? 'developer' : 'user'
+        });
+        localStorage.setItem('activationLogs', JSON.stringify(logs));
+    }
+    
+    getClientInfo() {
         return {
-            success: false,
-            message: '激活码无效，请检查后重试'
+            userAgent: navigator.userAgent,
+            language: navigator.language,
+            platform: navigator.platform,
+            timestamp: new Date().toLocaleString('zh-CN')
         };
     }
-
-    getUsedCodes() {
-        try {
-            const usedCodes = localStorage.getItem(this.usedCodesKey);
-            return usedCodes ? JSON.parse(usedCodes) : [];
-        } catch (error) {
-            console.error('获取已使用激活码失败:', error);
-            return [];
-        }
-    }
-
-    markCodeAsUsed(code) {
-        try {
-            const usedCodes = this.getUsedCodes();
-            if (!usedCodes.includes(code)) {
-                usedCodes.push(code);
-                localStorage.setItem(this.usedCodesKey, JSON.stringify(usedCodes));
-            }
-        } catch (error) {
-            console.error('标记激活码为已使用失败:', error);
-        }
-    }
-
-    showMessage(message, type) {
-        const activationMessage = document.getElementById('activationMessage');
-        activationMessage.textContent = message;
-        activationMessage.className = `activation-message ${type}`;
+    
+    showMessage(element, message, type) {
+        if (!element) return;
+        
+        element.textContent = message;
+        element.className = `activation-message ${type}`;
         
         // 3秒后清除消息
         setTimeout(() => {
-            activationMessage.textContent = '';
-            activationMessage.className = 'activation-message';
+            element.textContent = '';
+            element.className = 'activation-message';
         }, 3000);
     }
-
-    // 重置激活状态（用于测试）
-    resetActivation() {
-        localStorage.removeItem(this.activationStatusKey);
-        localStorage.removeItem(this.usedCodesKey);
-        this.showActivationPage();
+    
+    showActivationPage() {
+        document.getElementById('activationPage').classList.remove('hidden');
+        document.getElementById('adminPanel').classList.add('hidden');
+        document.getElementById('mainApp').classList.add('hidden');
+        
+        // 重置激活输入框
+        const activationInput = document.getElementById('activationInput');
+        const activationButton = document.getElementById('activationButton');
+        const activationMessage = document.getElementById('activationMessage');
+        
+        if (activationInput) activationInput.value = '';
+        if (activationButton) {
+            activationButton.disabled = true;
+            activationButton.innerHTML = '<i class="fas fa-check"></i> 激活';
+        }
+        if (activationMessage) {
+            activationMessage.textContent = '';
+            activationMessage.className = 'activation-message';
+        }
+    }
+    
+    showAdminPasswordPrompt() {
+        const password = prompt('请输入管理员密码：');
+        if (password === this.DEVELOPER_CODE) {
+            this.showAdminPanel();
+        } else if (password !== null) {
+            alert('密码错误！');
+        }
+    }
+    
+    showAdminPanel() {
+        document.getElementById('activationPage').classList.add('hidden');
+        document.getElementById('adminPanel').classList.remove('hidden');
+        document.getElementById('mainApp').classList.add('hidden');
+        
+        this.updateAdminPanel();
+    }
+    
+    showMainApp() {
+        document.getElementById('activationPage').classList.add('hidden');
+        document.getElementById('adminPanel').classList.add('hidden');
+        document.getElementById('mainApp').classList.remove('hidden');
+        
+        // 初始化智能导员应用
+        if (!window.smartAdvisor) {
+            window.smartAdvisor = new SmartAdvisor();
+        }
+    }
+    
+    updateAdminPanel() {
+        this.updateStats();
+        this.updateCodesList();
+        this.updateLogsList();
+    }
+    
+    updateStats() {
+        const codes = JSON.parse(localStorage.getItem('activationCodes'));
+        const totalCodes = Object.keys(codes).length;
+        const usedCodes = Object.values(codes).filter(code => code.used).length;
+        const availableCodes = totalCodes - usedCodes;
+        
+        document.getElementById('totalCodes').textContent = totalCodes;
+        document.getElementById('usedCodes').textContent = usedCodes;
+        document.getElementById('availableCodes').textContent = availableCodes;
+    }
+    
+    updateCodesList() {
+        const codesList = document.getElementById('codesList');
+        if (!codesList) return;
+        
+        const codes = JSON.parse(localStorage.getItem('activationCodes'));
+        codesList.innerHTML = '';
+        
+        Object.entries(codes).forEach(([code, info]) => {
+            const codeItem = document.createElement('div');
+            codeItem.className = 'code-item';
+            
+            const statusClass = info.used ? 'used' : 'available';
+            const statusText = info.used ? '已使用' : '未使用';
+            
+            codeItem.innerHTML = `
+                <div class="code-info">
+                    <span class="code-text">${code}</span>
+                    <span class="code-status ${statusClass}">${statusText}</span>
+                </div>
+                ${info.used ? `<div class="log-time">${new Date(info.usedAt).toLocaleString('zh-CN')}</div>` : ''}
+            `;
+            
+            codesList.appendChild(codeItem);
+        });
+    }
+    
+    updateLogsList() {
+        const logsList = document.getElementById('logsList');
+        if (!logsList) return;
+        
+        const logs = JSON.parse(localStorage.getItem('activationLogs'));
+        logsList.innerHTML = '';
+        
+        // 按时间倒序排列
+        logs.sort((a, b) => b.timestamp - a.timestamp);
+        
+        logs.forEach(log => {
+            const logItem = document.createElement('div');
+            logItem.className = 'log-item';
+            
+            const logType = log.type === 'developer' ? '开发者' : '用户';
+            const logTime = new Date(log.timestamp).toLocaleString('zh-CN');
+            
+            logItem.innerHTML = `
+                <div class="log-header">
+                    <span class="log-code">${log.code}</span>
+                    <span class="log-time">${logTime}</span>
+                </div>
+                <div class="log-details">
+                    类型: ${logType} | 平台: ${log.clientInfo.platform} | 语言: ${log.clientInfo.language}
+                </div>
+            `;
+            
+            logsList.appendChild(logItem);
+        });
+    }
+    
+    switchTab(tabName) {
+        // 更新标签按钮状态
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.classList.remove('active');
+        });
+        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        
+        // 更新标签面板
+        document.querySelectorAll('.tab-panel').forEach(panel => {
+            panel.classList.remove('active');
+        });
+        document.getElementById(`${tabName}Tab`).classList.add('active');
+    }
+    
+    resetAllCodes() {
+        if (confirm('确定要重置所有激活码的使用状态吗？此操作不可撤销！')) {
+            const codes = JSON.parse(localStorage.getItem('activationCodes'));
+            Object.keys(codes).forEach(code => {
+                codes[code] = {
+                    used: false,
+                    usedAt: null,
+                    usedBy: null
+                };
+            });
+            localStorage.setItem('activationCodes', JSON.stringify(codes));
+            
+            // 清除当前激活状态
+            localStorage.setItem('currentActivation', JSON.stringify({
+                activated: false,
+                code: null,
+                activatedAt: null
+            }));
+            
+            this.updateAdminPanel();
+            alert('所有激活码已重置！');
+        }
+    }
+    
+    exportLogs() {
+        const logs = JSON.parse(localStorage.getItem('activationLogs'));
+        const codes = JSON.parse(localStorage.getItem('activationCodes'));
+        
+        const exportData = {
+            exportTime: new Date().toLocaleString('zh-CN'),
+            codes: codes,
+            logs: logs
+        };
+        
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(dataBlob);
+        link.download = `activation_data_${new Date().toISOString().split('T')[0]}.json`;
+        link.click();
     }
 }
 
@@ -604,42 +859,6 @@ class SmartAdvisor {
         this.scrollToBottom();
     }
 
-    addLoadingMessage() {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'message advisor-message loading-message';
-        
-        const avatarDiv = document.createElement('div');
-        avatarDiv.className = 'message-avatar';
-        avatarDiv.innerHTML = '<i class="fas fa-graduation-cap"></i>';
-        
-        const bubbleDiv = document.createElement('div');
-        bubbleDiv.className = 'message-bubble';
-        bubbleDiv.innerHTML = `
-            <div class="loading">
-                <span>正在思考</span>
-                <div class="loading-dots">
-                    <div class="loading-dot"></div>
-                    <div class="loading-dot"></div>
-                    <div class="loading-dot"></div>
-                </div>
-            </div>
-        `;
-        
-        messageDiv.appendChild(avatarDiv);
-        messageDiv.appendChild(bubbleDiv);
-        
-        this.chatMessages.appendChild(messageDiv);
-        this.scrollToBottom();
-        
-        return messageDiv;
-    }
-
-    removeLoadingMessage(loadingMessage) {
-        if (loadingMessage && loadingMessage.parentNode) {
-            loadingMessage.parentNode.removeChild(loadingMessage);
-        }
-    }
-
     scrollToBottom() {
         this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
     }
@@ -697,29 +916,11 @@ class SmartAdvisor {
             console.error('加载聊天历史失败:', error);
         }
     }
-
-    destroy() {
-        // 清理事件监听器和其他资源
-        // 注意：由于使用了箭头函数，无法直接移除事件监听器
-        // 在实际应用中，应该保存事件处理函数的引用
-        console.log('SmartAdvisor destroyed');
-    }
 }
 
 // 页面加载完成后初始化激活码管理器
 document.addEventListener('DOMContentLoaded', () => {
     window.activationManager = new ActivationManager();
-    
-    // 添加全局测试方法
-    window.resetActivation = () => {
-        window.activationManager.resetActivation();
-    };
-    
-    window.testActivation = (code) => {
-        const result = window.activationManager.checkActivationCode(code);
-        console.log('激活码测试结果:', result);
-        return result;
-    };
 });
 
 // 添加一些实用功能
@@ -741,4 +942,3 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('网络连接已断开');
     });
 });
-

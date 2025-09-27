@@ -8,52 +8,118 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <!-- Activation Code Page -->
+    <!-- Activation Page -->
     <div id="activationPage" class="activation-page">
         <div class="activation-container">
             <div class="activation-card">
                 <div class="activation-header">
-                    <i class="fas fa-graduation-cap activation-icon"></i>
-                    <h1 class="activation-title">智能导员v2.0.13</h1>
-                    <p class="activation-subtitle">请输入激活码以继续使用</p>
+                    <i class="fas fa-key activation-icon"></i>
+                    <h2 class="activation-title">服务激活</h2>
+                    <p class="activation-subtitle">请输入激活码以使用智能导员服务</p>
                 </div>
-                
                 <div class="activation-form">
-                    <div class="input-group">
-                        <i class="fas fa-key input-icon"></i>
-                        <input type="text" id="activationInput" class="activation-input" placeholder="请输入激活码" maxlength="20">
-                    </div>
-                    <button id="activateButton" class="activate-button">
+                    <input type="text" id="activationInput" class="activation-input" placeholder="请输入激活码" maxlength="20">
+                    <button id="activationButton" class="activation-button">
                         <i class="fas fa-check"></i>
-                        <span>激活</span>
+                        激活
                     </button>
                 </div>
-                
                 <div id="activationMessage" class="activation-message"></div>
-                
-                <div class="activation-footer">
-                    <p class="footer-text">jqk开发团队</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="adminPanel" class="admin-panel hidden">
+        <div class="admin-header">
+            <h2 class="admin-title">
+                <i class="fas fa-shield-alt"></i>
+                激活码管理系统
+            </h2>
+            <button id="backToMainApp" class="back-button">
+                <i class="fas fa-arrow-left"></i>
+                返回智能导员界面
+            </button>
+        </div>
+        
+        <div class="admin-content">
+            <div class="admin-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-key"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="totalCodes">0</div>
+                        <div class="stat-label">总激活码</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon used">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="usedCodes">0</div>
+                        <div class="stat-label">已使用</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon available">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="availableCodes">0</div>
+                        <div class="stat-label">未使用</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-actions">
+                <button id="resetAllCodes" class="action-button reset-button">
+                    <i class="fas fa-undo"></i>
+                    重置所有激活码
+                </button>
+                <button id="exportLogs" class="action-button export-button">
+                    <i class="fas fa-download"></i>
+                    导出使用日志
+                </button>
+            </div>
+
+            <div class="admin-tabs">
+                <button class="tab-button active" data-tab="codes">激活码列表</button>
+                <button class="tab-button" data-tab="logs">使用日志</button>
+            </div>
+
+            <div class="tab-content">
+                <div id="codesTab" class="tab-panel active">
+                    <div class="codes-list" id="codesList">
+                        <!-- 激活码列表将在这里动态生成 -->
+                    </div>
+                </div>
+                <div id="logsTab" class="tab-panel">
+                    <div class="logs-list" id="logsList">
+                        <!-- 使用日志将在这里动态生成 -->
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Main Application (Hidden by default) -->
-    <div id="mainApp" class="main-app" style="display: none;">
+    <!-- Main Application -->
+    <div id="mainApp" class="main-app hidden">
         <!-- Header -->
         <header class="header">
-            <div class="header-left">
-                <i class="fas fa-graduation-cap header-icon"></i>
-                <h1 class="header-title">智能导员v2.0.13</h1>
-            </div>
-            <div class="header-right">
-                <i class="fas fa-redo-alt clear-icon"></i>
-                <span class="clear-text">清空聊天</span>
-            </div>
-        </header>
+        <div class="header-left">
+            <i class="fas fa-graduation-cap header-icon"></i>
+            <h1 class="header-title">智能导员v2.1.1</h1>
+        </div>
+        <div class="header-right">
+            <i class="fas fa-redo-alt clear-icon"></i>
+            <span class="clear-text">清空聊天</span>
+        </div>
+    </header>
 
-        <!-- Main Content -->
-        <main class="main-content">
+    <!-- Main Content -->
+    <main class="main-content">
         <!-- Left Sidebar -->
         <aside class="sidebar">
             <!-- Quick Questions Card -->
@@ -98,9 +164,9 @@
             <div class="card advisor-card">
                 <h3 class="card-title">智能导员</h3>
                 <p class="advisor-description">
-                   智能导员是一款jgk研发团队专为大学生设计的智能助手，能够提供学习、生活、职业规划等方面的建议和指导。<br>
-                   当前模型最高思索时间为180秒，若超时还未给出回答请重新提问或向管理员反馈<br>目前版本：v2.0.13
-                   <br>管理员微信：humi0922
+                    智能导员是一款jgk研发团队专为大学生设计的智能助手，能够提供学习、生活、职业规划等方面的建议和指导。
+                    <br>当前模型最高思索时间为180秒，若超时还未给出回答请重新提问或向管理员反馈<br>目前版本：v2.0.10
+                    <br>管理员微信：humi0922
                 </p>
             </div>
         </aside>
@@ -131,12 +197,17 @@
             </div>
             <div class="input-hint">按Enter 键快速发送消息</div>
         </section>
-        </main>
+    </main>
 
-        <!-- Footer -->
-        <footer class="footer">
-            <span>jqk开发团队</span>
-        </footer>
+    <!-- Footer -->
+    <footer class="footer">
+        <span>jqk开发团队</span>
+        <button id="adminButtonMain" class="admin-button-main">
+            <i class="fas fa-cog"></i>
+            管理员入口
+        </button>
+    </footer>
+
     </div>
 
     <script src="script.js"></script>

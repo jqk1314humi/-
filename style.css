@@ -319,10 +319,33 @@ body {
 
 /* Footer */
 .footer {
-    text-align: center;
-    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
     color: rgba(255, 255, 255, 0.8);
     font-size: 0.9rem;
+}
+
+.admin-button-main {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.8);
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.admin-button-main:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: white;
+    transform: translateY(-1px);
 }
 
 /* Loading Animation */
@@ -379,6 +402,18 @@ body {
     
     .message-bubble {
         max-width: 85%;
+    }
+    
+    .footer {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+        padding: 1rem;
+    }
+    
+    .admin-button-main {
+        font-size: 0.9rem;
+        padding: 0.75rem 1.5rem;
     }
 }
 
@@ -582,28 +617,21 @@ body {
     justify-content: center;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     padding: 2rem;
-    position: relative;
 }
 
 .activation-container {
     width: 100%;
-    max-width: 450px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    max-width: 400px;
 }
 
 .activation-card {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
     border-radius: 1.5rem;
-    padding: 3rem;
+    padding: 2.5rem;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
     text-align: center;
-    width: 100%;
-    position: relative;
 }
 
 .activation-header {
@@ -617,8 +645,8 @@ body {
 }
 
 .activation-title {
-    font-size: 2rem;
-    font-weight: 700;
+    font-size: 1.8rem;
+    font-weight: 600;
     color: #1f2937;
     margin-bottom: 0.5rem;
 }
@@ -626,46 +654,25 @@ body {
 .activation-subtitle {
     font-size: 1rem;
     color: #6b7280;
-    margin: 0;
+    line-height: 1.5;
 }
 
 .activation-form {
-    margin-bottom: 2rem;
-    width: 100%;
-    max-width: 350px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.input-group {
-    position: relative;
-    margin-bottom: 2rem;
-}
-
-.input-icon {
-    position: absolute;
-    left: 1.5rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #6366f1;
-    font-size: 1.2rem;
-    z-index: 1;
+    margin-bottom: 1.5rem;
 }
 
 .activation-input {
     width: 100%;
-    padding: 1.25rem 1.25rem 1.25rem 3.5rem;
-    border: 3px solid #e5e7eb;
-    border-radius: 1rem;
-    font-size: 1.1rem;
+    padding: 1rem 1.25rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.75rem;
+    font-size: 1rem;
     outline: none;
     transition: all 0.3s;
     background: #f9fafb;
+    margin-bottom: 1rem;
     text-align: center;
-    letter-spacing: 0.15em;
-    font-family: 'Courier New', monospace;
-    font-weight: 500;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    letter-spacing: 0.1em;
 }
 
 .activation-input:focus {
@@ -674,60 +681,44 @@ body {
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
-.activation-input::placeholder {
-    color: #9ca3af;
-    letter-spacing: normal;
-    font-family: inherit;
-}
-
-.activate-button {
+.activation-button {
     width: 100%;
-    padding: 1.25rem 2rem;
+    padding: 1rem 1.25rem;
     border: none;
-    border-radius: 1rem;
+    border-radius: 0.75rem;
     background: linear-gradient(135deg, #6366f1, #8b5cf6);
     color: white;
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
+    transition: all 0.3s;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem;
-    transition: all 0.3s;
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    gap: 0.5rem;
 }
 
-.activate-button:hover:not(:disabled) {
+.activation-button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
 }
 
-.activate-button:active:not(:disabled) {
-    transform: translateY(0);
-}
-
-.activate-button:disabled {
+.activation-button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
     transform: none;
-    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
 }
 
 .activation-message {
-    margin-top: 1.5rem;
-    padding: 1rem 1.5rem;
-    border-radius: 0.75rem;
-    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
     font-weight: 500;
-    min-height: 2rem;
-    transition: all 0.3s;
-    text-align: center;
-    max-width: 350px;
-    margin-left: auto;
-    margin-right: auto;
+    min-height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .activation-message.success {
@@ -742,69 +733,326 @@ body {
     border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
-.activation-footer {
-    margin-top: 3rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid rgba(229, 231, 235, 0.5);
-    position: absolute;
-    bottom: 2rem;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100%;
-    text-align: center;
-}
 
-.footer-text {
-    color: #9ca3af;
-    font-size: 0.9rem;
-    margin: 0;
-}
-
-/* Main App Styles */
-.main-app {
+/* Admin Panel Styles */
+.admin-panel {
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 2rem;
 }
 
-/* Responsive Design for Activation Page */
-@media (max-width: 480px) {
+.admin-header {
+    max-width: 1200px;
+    margin: 0 auto 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 1.5rem 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.admin-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.back-button {
+    background: transparent;
+    border: 2px solid #e5e7eb;
+    color: #6b7280;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.back-button:hover {
+    border-color: #6366f1;
+    color: #6366f1;
+    background: rgba(99, 102, 241, 0.05);
+}
+
+.admin-content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.admin-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 0.75rem;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.stat-icon.used {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.stat-icon.available {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.stat-info {
+    flex: 1;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1f2937;
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+.admin-actions {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.action-button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.reset-button {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+}
+
+.reset-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
+}
+
+.export-button {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.export-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+}
+
+.admin-tabs {
+    display: flex;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 0.75rem;
+    padding: 0.25rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.tab-button {
+    flex: 1;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    background: transparent;
+    color: #6b7280;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 0.5rem;
+    transition: all 0.3s;
+}
+
+.tab-button.active {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.tab-content {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 1rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.tab-panel {
+    display: none;
+    padding: 1.5rem;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.tab-panel.active {
+    display: block;
+}
+
+.codes-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.code-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    background: #f9fafb;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s;
+}
+
+.code-item:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+}
+
+.code-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.code-text {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1f2937;
+    letter-spacing: 0.05em;
+}
+
+.code-status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.code-status.used {
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+}
+
+.code-status.available {
+    background: rgba(245, 158, 11, 0.1);
+    color: #d97706;
+}
+
+.logs-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.log-item {
+    padding: 1rem 1.25rem;
+    background: #f9fafb;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+}
+
+.log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.log-code {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.log-time {
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+
+.log-details {
+    font-size: 0.9rem;
+    color: #4b5563;
+}
+
+/* Utility Classes */
+.hidden {
+    display: none !important;
+}
+
+/* Responsive Design for Admin Panel */
+@media (max-width: 768px) {
     .activation-page {
         padding: 1rem;
     }
     
     .activation-card {
-        padding: 2rem 1.5rem;
-        margin-bottom: 4rem; /* 为底部页脚留出空间 */
+        padding: 2rem;
     }
     
-    .activation-title {
-        font-size: 1.5rem;
+    .admin-panel {
+        padding: 1rem;
     }
     
-    .activation-icon {
-        font-size: 2.5rem;
+    .admin-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
     }
     
-    .activation-form {
-        max-width: 100%;
+    .admin-stats {
+        grid-template-columns: 1fr;
     }
     
-    .activation-input {
-        font-size: 1rem;
-        padding: 1rem 1rem 1rem 3rem;
+    .admin-actions {
+        flex-direction: column;
     }
     
-    .activate-button {
-        font-size: 1rem;
-        padding: 1rem 1.5rem;
-    }
-    
-    .activation-footer {
-        position: relative;
-        bottom: auto;
-        left: auto;
-        transform: none;
-        margin-top: 2rem;
+    .action-button {
+        justify-content: center;
     }
 }
