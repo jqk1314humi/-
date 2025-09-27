@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智能导员</title>
+    <title>智能导员 by JQK Group</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
@@ -12,7 +12,7 @@
     <header class="header">
         <div class="header-left">
             <i class="fas fa-graduation-cap header-icon"></i>
-            <h1 class="header-title">智能导员</h1>
+            <h1 class="header-title">智能导员v2.0.10</h1>
         </div>
         <div class="header-right">
             <i class="fas fa-redo-alt clear-icon"></i>
@@ -51,11 +51,25 @@
                 </ul>
             </div>
 
+            <!-- Policy Notice Card -->
+            <div class="card policy-notice-card">
+                <h3 class="card-title">
+                    <i class="fas fa-exclamation-triangle notice-icon"></i>
+                    重要提示
+                </h3>
+                <p class="policy-notice-text">
+                    当前模型在调试过程中发现针对学校政策的相关检索存在不准确的情况，在提问学校相关政策时最好在前面加上西北政法大学
+                </p>
+            </div>
+
             <!-- Advisor Introduction Card -->
             <div class="card advisor-card">
                 <h3 class="card-title">智能导员</h3>
                 <p class="advisor-description">
-                    智能导员是一款专为大学生设计的智能助手,能够为你提供学习、生活、职业规划等方面的建议和指导。
+                    智能导员是一款jgk研发团队专为大学生设计的智能助手，能够提供学习、生活、职业规划等方面的建议和指导。
+                    <br>当前模型最高思索时间为180秒，若超时还未给出回答请重新提问或向管理员反馈
+                    <br>目前版本：v2.0.10
+                    <br>管理员微信：humi0922
                 </p>
             </div>
         </aside>
@@ -91,7 +105,37 @@
     <!-- Footer -->
     <footer class="footer">
         <span>jqk开发团队</span>
+        <button onclick="testModal()" style="margin-left: 20px; padding: 5px 10px; background: #6366f1; color: white; border: none; border-radius: 4px; cursor: pointer;">测试激活码框</button>
     </footer>
+
+    <!-- Activation Modal -->
+    <div id="activationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>激活智能导员</h2>
+                <p class="modal-subtitle">请输入激活码以使用智能导员服务</p>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label for="activationCode">激活码</label>
+                    <input type="text" id="activationCode" placeholder="请输入激活码" maxlength="20">
+                    <div class="error-message" id="errorMessage"></div>
+                </div>
+                <div class="activation-info">
+                    <h4>激活码说明：</h4>
+                    <ul>
+                        <li>每个激活码限用一次</li>
+                        <li>激活后即可正常使用所有功能</li>
+                        <li>请妥善保管您的激活码</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="activateButton" class="btn-primary">激活</button>
+                <button id="cancelButton" class="btn-secondary">取消</button>
+            </div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>
