@@ -5,9 +5,6 @@
 
 class AdminSystem {
     constructor() {
-        // 管理员激活码
-        this.ADMIN_CODE = 'ADMIN2024';
-        
         // 系统状态
         this.isInitialized = false;
         this.vikaStorage = null;
@@ -28,14 +25,8 @@ class AdminSystem {
         try {
             console.log('🚀 管理系统初始化开始...');
             
-            // 暂时禁用权限验证，避免死循环
-            console.log('⚠️ 临时禁用管理员权限验证，直接进入管理界面');
-            
-            // 验证管理员权限 (临时注释)
-            // if (!this.verifyAdminAccess()) {
-            //     this.redirectToActivation();
-            //     return;
-            // }
+            // 管理员界面直接进入，无需权限验证
+            console.log('✅ 管理员界面已开放访问');
             
             // 等待维格表云存储初始化
             await this.waitForVikaStorage();
@@ -141,45 +132,6 @@ class AdminSystem {
         }
     }
     
-    /**
-     * 验证管理员访问权限
-     */
-    verifyAdminAccess() {
-        const userCode = localStorage.getItem('userActivationCode');
-        const userDevice = localStorage.getItem('userDeviceId');
-        const adminPassword = sessionStorage.getItem('adminPasswordVerified');
-        
-        console.log('🔍 权限验证 - 激活码:', userCode, '设备ID:', userDevice, '密码验证:', adminPassword);
-        
-        // 检查是否使用管理员激活码激活
-        if (userCode === this.ADMIN_CODE && userDevice) {
-            console.log('✅ 管理员权限验证通过 (管理员激活码)');
-            return true;
-        }
-        
-        // 检查是否使用开发者激活码激活
-        if (userCode === 'jqkkf0922' && userDevice) {
-            console.log('✅ 管理员权限验证通过 (开发者激活码)');
-            return true;
-        }
-        
-        // 检查是否通过开发者密码验证
-        if (adminPassword === 'jqkkf0922' && userDevice) {
-            console.log('✅ 管理员权限验证通过 (开发者密码)');
-            return true;
-        }
-        
-        console.log('❌ 管理员权限验证失败 - 需要使用管理员激活码(ADMIN2024)、开发者激活码(jqkkf0922)或开发者密码');
-        return false;
-    }
-    
-    /**
-     * 重定向到激活页面
-     */
-    redirectToActivation() {
-        alert('访问管理员界面需要满足以下条件之一：\n1. 使用管理员激活码 ADMIN2024 激活系统\n2. 使用开发者激活码 jqkkf0922 激活系统\n3. 在智能导员界面输入开发者密码 jqkkf0922');
-        window.location.href = 'index.html';
-    }
     
     /**
      * 加载数据

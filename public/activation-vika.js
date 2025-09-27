@@ -486,14 +486,25 @@ class ActivationSystem {
         if (!element) return;
         
         element.textContent = message;
-        element.className = `message ${type}`;
+        element.className = `activation-message ${type}`;
+        
+        // 显示消息
+        element.style.display = 'block';
         
         // 自动清除成功消息
         if (type === 'success') {
             setTimeout(() => {
                 element.textContent = '';
-                element.className = 'message';
+                element.className = 'activation-message';
+                element.style.display = 'none';
             }, 3000);
+        }
+        
+        // 如果是错误消息，5秒后自动隐藏
+        if (type === 'error') {
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 5000);
         }
     }
     
