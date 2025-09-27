@@ -320,48 +320,35 @@ class AdminSystem {
             const statusIcon = info.isUsed ? 'fas fa-check-circle' : 'fas fa-clock';
             
             html += `
-                <div class="code-item ${statusClass}" data-code="${code}">
+                <div class="code-item ${statusClass}">
                     <div class="code-header">
-                        <div class="code-info">
+                        <div class="code-main">
                             <span class="code-text">${code}</span>
                             <span class="code-status">
                                 <i class="${statusIcon}"></i> ${statusText}
                             </span>
                         </div>
                         <div class="code-actions">
-                            <button class="reset-button" onclick="adminSystem.resetSingleCode('${code}')" 
+                            <button class="action-btn reset-btn" onclick="adminSystem.resetSingleCode('${code}')" 
                                     title="重置激活码" ${!info.isUsed ? 'disabled' : ''}>
                                 <i class="fas fa-undo"></i>
                             </button>
-                            <button class="delete-button" onclick="adminSystem.deleteCode('${code}')" 
+                            <button class="action-btn delete-btn" onclick="adminSystem.deleteCode('${code}')" 
                                     title="删除激活码">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
                     </div>
                     
-                    <div class="code-meta">
-                        <div class="detail-row">
-                            <span class="label">创建时间:</span>
-                            <span class="value">${this.formatDate(info.createdAt)}</span>
-                        </div>
+                    <div class="code-details">
+                        <span class="detail-item">创建时间: ${this.formatDate(info.createdAt)}</span>
                         
                         ${info.isUsed ? `
-                            <div class="detail-row">
-                                <span class="label">使用时间:</span>
-                                <span class="value">${this.formatDate(info.usedAt)}</span>
-                            </div>
+                            <span class="detail-item">使用时间: ${this.formatDate(info.usedAt)}</span>
                             
                             ${info.usedBy ? `
-                                <div class="detail-row">
-                                    <span class="label">使用设备:</span>
-                                    <span class="value device-info">${info.usedBy.deviceId || 'unknown'}</span>
-                                </div>
-                                
-                                <div class="detail-row">
-                                    <span class="label">用户代理:</span>
-                                    <span class="value user-agent">${this.truncateText(info.usedBy.userAgent || 'unknown', 50)}</span>
-                                </div>
+                                <span class="detail-item">设备: ${info.usedBy.deviceId || 'unknown'}</span>
+                                <span class="detail-item">平台: ${info.usedBy.platform || 'unknown'}</span>
                             ` : ''}
                         ` : ''}
                     </div>
