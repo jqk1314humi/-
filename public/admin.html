@@ -91,8 +91,9 @@
         </div>
     </div>
 
+    <script src="admin.js"></script>
     <script>
-        // 检查激活状态，如果未激活则重定向到激活页面
+        // 在admin.js加载后检查激活状态
         document.addEventListener('DOMContentLoaded', () => {
             const currentActivation = JSON.parse(localStorage.getItem('currentActivation') || '{"activated": false}');
             if (!currentActivation.activated) {
@@ -101,6 +102,5 @@
             }
         });
     </script>
-    <script src="admin.js"></script>
 </body>
 </html>

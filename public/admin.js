@@ -93,6 +93,36 @@ class AdminManager {
                 this.switchTab(button.dataset.tab);
             });
         });
+        
+        // 添加事件委托处理激活码操作按钮
+        this.setupCodeActionsEventListeners();
+    }
+    
+    setupCodeActionsEventListeners() {
+        const codesList = document.getElementById('codesList');
+        if (!codesList) return;
+        
+        // 使用事件委托处理动态生成的按钮
+        codesList.addEventListener('click', (event) => {
+            const button = event.target.closest('button[data-action]');
+            if (!button) return;
+            
+            const action = button.dataset.action;
+            const code = button.dataset.code;
+            
+            if (!code) return;
+            
+            switch (action) {
+                case 'reset':
+                    if (!button.disabled) {
+                        this.resetSingleCode(code);
+                    }
+                    break;
+                case 'delete':
+                    this.deleteCode(code);
+                    break;
+            }
+        });
     }
     
     updateAdminPanel() {
@@ -114,10 +144,19 @@ class AdminManager {
     
     updateCodesList() {
         const codesList = document.getElementById('codesList');
-        if (!codesList) return;
+        if (!codesList) {
+            console.error('codesList元素未找到');
+            return;
+        }
         
-        const codes = JSON.parse(localStorage.getItem('activationCodes'));
+        const codes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
+        console.log('激活码数据:', codes);
         codesList.innerHTML = '';
+        
+        if (Object.keys(codes).length === 0) {
+            codesList.innerHTML = '<div class="no-codes">暂无激活码数据</div>';
+            return;
+        }
         
         Object.entries(codes).forEach(([code, info]) => {
             const codeItem = document.createElement('div');
@@ -170,7 +209,7 @@ class AdminManager {
                 </div>
                 <div class="code-actions">
                     ${info.used ? `
-                        <button class="reset-single-button" onclick="adminManager.resetSingleCode('${code}')">
+                        <button class="reset-single-button" data-action="reset" data-code="${code}">
                             <i class="fas fa-undo"></i>
                             重置
                         </button>
@@ -180,7 +219,7 @@ class AdminManager {
                             重置
                         </button>
                     `}
-                    <button class="delete-code-button" onclick="adminManager.deleteCode('${code}')">
+                    <button class="delete-code-button" data-action="delete" data-code="${code}">
                         <i class="fas fa-trash"></i>
                         删除
                     </button>
@@ -496,10 +535,21 @@ class AdminManager {
     }
 }
 
-// 全局变量，用于在HTML中调用方法
-let adminManager;
-
 // 页面加载完成后初始化管理员面板
-document.addEventListener('DOMContentLoaded', () => {
-    adminManager = new AdminManager();
-});
+function initializeAdminManager() {
+    try {
+        new AdminManager();
+        console.log('管理员面板初始化成功');
+    } catch (error) {
+        console.error('管理员面板初始化失败:', error);
+        // 延迟重试
+        setTimeout(initializeAdminManager, 1000);
+    }
+}
+
+// 确保在DOM完全加载后初始化
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeAdminManager);
+} else {
+    initializeAdminManager();
+}

@@ -1260,11 +1260,14 @@ html {
     color: #dc2626;
 }
 
-.no-logs {
+.no-logs, .no-codes {
     text-align: center;
     color: #6b7280;
     font-style: italic;
     padding: 2rem;
+    background: #f9fafb;
+    border-radius: 0.5rem;
+    border: 2px dashed #d1d5db;
 }
 
 /* Utility Classes */
