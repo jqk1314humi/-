@@ -65,19 +65,80 @@ class AdminSystem {
      * 等待维格表云存储就绪
      */
     async waitForVikaStorage() {
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
+            // 设置超时时间（10秒）
+            const timeout = setTimeout(() => {
+                console.error('❌ 维格表云存储连接超时');
+                // 超时时使用本地模式
+                this.fallbackToLocalMode();
+                resolve(); // 不要reject，而是继续运行
+            }, 10000);
+
             if (window.vikaCloudStorage) {
                 this.vikaStorage = window.vikaCloudStorage;
                 console.log('📦 维格表云存储已连接');
+                clearTimeout(timeout);
                 resolve();
             } else {
                 window.addEventListener('vikaStorageReady', (event) => {
                     this.vikaStorage = event.detail.storage;
                     console.log('📦 维格表云存储已就绪');
+                    clearTimeout(timeout);
                     resolve();
                 }, { once: true });
+                
+                // 如果5秒后还没有连接，尝试手动创建
+                setTimeout(() => {
+                    if (!this.vikaStorage && window.VikaCloudStorage) {
+                        console.log('⚡ 尝试手动创建维格表连接...');
+                        try {
+                            window.vikaCloudStorage = new VikaCloudStorage();
+                            this.vikaStorage = window.vikaCloudStorage;
+                            clearTimeout(timeout);
+                            resolve();
+                        } catch (error) {
+                            console.error('❌ 手动创建维格表连接失败:', error);
+                        }
+                    }
+                }, 5000);
             }
         });
+    }
+    
+    /**
+     * 回退到本地模式
+     */
+    fallbackToLocalMode() {
+        console.log('🔄 回退到本地模式...');
+        this.vikaStorage = null;
+        // 使用本地存储的数据
+        this.loadLocalData();
+    }
+    
+    /**
+     * 加载本地数据
+     */
+    loadLocalData() {
+        try {
+            const localCodes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
+            const localLogs = JSON.parse(localStorage.getItem('activationLogs') || '[]');
+            
+            this.currentData = {
+                codes: localCodes,
+                logs: localLogs,
+                stats: this.calculateStats(localCodes)
+            };
+            
+            console.log('📦 本地数据加载完成');
+        } catch (error) {
+            console.error('❌ 本地数据加载失败:', error);
+            // 使用默认数据
+            this.currentData = {
+                codes: {},
+                logs: [],
+                stats: { total: 0, used: 0, unused: 0 }
+            };
+        }
     }
     
     /**

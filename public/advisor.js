@@ -491,19 +491,26 @@ class SmartAdvisor {
     }
 }
 
-// 生成设备ID的函数（与activation.js中的逻辑保持一致）
+// 生成设备ID的函数（与activation-vika.js中的逻辑保持一致）
 function generateDeviceId() {
-    const fingerprint = [
+    const components = [
         navigator.userAgent,
         navigator.language,
         navigator.platform,
         screen.width + 'x' + screen.height,
+        screen.colorDepth,
         new Date().getTimezoneOffset(),
-        navigator.hardwareConcurrency || 0,
-        navigator.maxTouchPoints || 0
-    ].join('|');
+        navigator.hardwareConcurrency || 'unknown',
+        navigator.deviceMemory || 'unknown'
+    ];
     
-    return hashString(fingerprint).substring(0, 16);
+    // 添加更多浏览器特征
+    if (navigator.plugins) {
+        components.push(Array.from(navigator.plugins).map(p => p.name).join(','));
+    }
+    
+    const fingerprint = hashString(components.join('|'));
+    return fingerprint.substring(0, 16); // 取前16位作为设备ID
 }
 
 // 简单哈希函数
@@ -514,7 +521,7 @@ function hashString(str) {
         hash = ((hash << 5) - hash) + char;
         hash = hash & hash; // 转换为32位整数
     }
-    return Math.abs(hash).toString(36);
+    return Math.abs(hash).toString(16);
 }
 
 // 检查激活状态的函数

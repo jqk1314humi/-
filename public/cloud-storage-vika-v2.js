@@ -10,7 +10,7 @@ class VikaCloudStorage {
         // 维格表配置
         this.VIKA_CONFIG = {
             token: "uskNUrvWvJoD3VuQ5zW7GYH",
-            baseUrl: "https://vika.cn/fusion/v1/",
+            baseUrl: "https://api.vika.cn/fusion/v1/",
             datasheetId: "dstVZvdm5sqCs9NFY4",
             fieldKey: "name" // 使用字段名而不是字段ID
         };
