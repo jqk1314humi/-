@@ -58,7 +58,38 @@ class ActivationManager {
         // 检查当前激活状态
         const currentActivation = JSON.parse(localStorage.getItem('currentActivation') || '{"activated": false}');
         if (currentActivation.activated) {
-            // 如果已经激活，直接跳转到主应用
+            // 验证激活状态的一致性
+            if (currentActivation.code && currentActivation.code !== this.DEVELOPER_CODE) {
+                const codes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
+                const codeInfo = codes[currentActivation.code];
+                
+                // 如果激活码不存在或未被使用，清除无效的激活状态
+                if (!codeInfo || !codeInfo.used) {
+                    console.warn('检测到无效的激活状态，正在清除...');
+                    localStorage.setItem('currentActivation', JSON.stringify({
+                        activated: false,
+                        code: null,
+                        activatedAt: null
+                    }));
+                    alert('激活状态异常，请重新激活');
+                    return;
+                }
+                
+                // 验证设备ID是否匹配（防止激活码被其他设备使用）
+                const currentDeviceId = this.generateDeviceId();
+                if (codeInfo.usedBy && codeInfo.usedBy.deviceId && codeInfo.usedBy.deviceId !== currentDeviceId) {
+                    console.warn('设备ID不匹配，激活码可能被其他设备使用');
+                    localStorage.setItem('currentActivation', JSON.stringify({
+                        activated: false,
+                        code: null,
+                        activatedAt: null
+                    }));
+                    alert('激活码已被其他设备使用，当前设备激活状态已失效');
+                    return;
+                }
+            }
+            
+            // 如果验证通过，跳转到主应用
             window.location.href = './advisor.html';
         }
     }
@@ -148,6 +179,14 @@ class ActivationManager {
     validateActivationCode(code) {
         // 检查开发者激活码
         if (code === this.DEVELOPER_CODE) {
+            // 开发者激活码也要检查是否已经在当前设备激活
+            const currentActivation = JSON.parse(localStorage.getItem('currentActivation') || '{"activated": false}');
+            if (currentActivation.activated && currentActivation.code === this.DEVELOPER_CODE) {
+                return {
+                    success: false,
+                    message: '开发者激活码已在当前设备激活，无需重复激活'
+                };
+            }
             return {
                 success: true,
                 message: '开发者激活码验证成功'
@@ -155,18 +194,38 @@ class ActivationManager {
         }
         
         // 检查普通激活码
-        const codes = JSON.parse(localStorage.getItem('activationCodes'));
+        const codes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
         
         if (codes[code]) {
             if (codes[code].used) {
                 // 提供更详细的已使用信息
                 const usedTime = new Date(codes[code].usedAt).toLocaleString('zh-CN');
                 const usedDevice = codes[code].usedBy ? codes[code].usedBy.platform : '未知设备';
-                return {
-                    success: false,
-                    message: `该激活码已于 ${usedTime} 在 ${usedDevice} 上被使用，每个激活码只能使用一次`
-                };
+                const deviceId = codes[code].usedBy ? codes[code].usedBy.deviceId : '未知';
+                
+                // 检查是否是同一设备尝试重复激活
+                const currentDeviceId = this.generateDeviceId();
+                if (codes[code].usedBy && codes[code].usedBy.deviceId === currentDeviceId) {
+                    return {
+                        success: false,
+                        message: `该激活码已在当前设备上激活，激活时间：${usedTime}。如需重新激活请联系管理员重置。`
+                    };
+                } else {
+                    return {
+                        success: false,
+                        message: `该激活码已于 ${usedTime} 在其他设备（${deviceId}）上被使用，每个激活码只能使用一次`
+                    };
+                }
             } else {
+                // 检查当前设备是否已经有其他激活码激活
+                const currentActivation = JSON.parse(localStorage.getItem('currentActivation') || '{"activated": false}');
+                if (currentActivation.activated && currentActivation.code !== code) {
+                    return {
+                        success: false,
+                        message: `当前设备已使用激活码 "${currentActivation.code}" 激活，一个设备只能激活一次`
+                    };
+                }
+                
                 return {
                     success: true,
                     message: '激活码验证成功'
@@ -208,23 +267,48 @@ class ActivationManager {
     }
     
     markCodeAsUsed(code) {
-        const codes = JSON.parse(localStorage.getItem('activationCodes'));
-        const clientInfo = this.getClientInfo();
+        const codes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
         
+        // 双重检查：确保激活码存在且未被使用
+        if (!codes[code]) {
+            throw new Error('激活码不存在或已被删除');
+        }
+        
+        if (codes[code].used) {
+            throw new Error('激活码已被使用，无法重复激活');
+        }
+        
+        const clientInfo = this.getClientInfo();
+        const deviceId = this.generateDeviceId();
+        const activationId = this.generateActivationId();
+        const timestamp = Date.now();
+        
+        // 原子性更新激活码状态
         codes[code] = {
             used: true,
-            usedAt: Date.now(),
+            usedAt: timestamp,
             usedBy: {
                 ...clientInfo,
-                deviceId: this.generateDeviceId(),
-                activationId: this.generateActivationId(),
-                ipHash: this.generateIPHash(), // 简化的IP标识
+                deviceId: deviceId,
+                activationId: activationId,
+                ipHash: this.generateIPHash(),
                 sessionId: this.generateSessionId()
             },
-            createdAt: codes[code].createdAt || Date.now(),
-            status: 'active' // 激活状态：active, reset, deleted
+            createdAt: codes[code].createdAt || timestamp,
+            status: 'active',
+            lockTimestamp: timestamp // 添加锁定时间戳
         };
+        
+        // 立即保存到localStorage
         localStorage.setItem('activationCodes', JSON.stringify(codes));
+        
+        // 验证保存是否成功
+        const savedCodes = JSON.parse(localStorage.getItem('activationCodes'));
+        if (!savedCodes[code] || !savedCodes[code].used) {
+            throw new Error('激活码状态保存失败，请重试');
+        }
+        
+        console.log(`激活码 ${code} 已标记为已使用，设备ID: ${deviceId}`);
     }
     
     logActivation(code) {

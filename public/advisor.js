@@ -489,6 +489,32 @@ class SmartAdvisor {
     }
 }
 
+// 生成设备ID的函数（与activation.js中的逻辑保持一致）
+function generateDeviceId() {
+    const fingerprint = [
+        navigator.userAgent,
+        navigator.language,
+        navigator.platform,
+        screen.width + 'x' + screen.height,
+        new Date().getTimezoneOffset(),
+        navigator.hardwareConcurrency || 0,
+        navigator.maxTouchPoints || 0
+    ].join('|');
+    
+    return hashString(fingerprint).substring(0, 16);
+}
+
+// 简单哈希函数
+function hashString(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // 转换为32位整数
+    }
+    return Math.abs(hash).toString(36);
+}
+
 // 检查激活状态的函数
 function checkActivationStatus() {
     const currentActivation = JSON.parse(localStorage.getItem('currentActivation') || '{"activated": false}');
@@ -514,6 +540,24 @@ function checkActivationStatus() {
             alert('您的激活码已被管理员重置，请重新激活。');
             window.location.href = './index.html';
             return false;
+        }
+        
+        // 验证设备ID是否匹配（防止激活码被其他设备使用）
+        if (codeInfo.usedBy && codeInfo.usedBy.deviceId) {
+            // 生成当前设备ID进行比较
+            const currentDeviceId = generateDeviceId();
+            if (codeInfo.usedBy.deviceId !== currentDeviceId) {
+                // 设备ID不匹配，激活码被其他设备使用
+                localStorage.setItem('currentActivation', JSON.stringify({
+                    activated: false,
+                    code: null,
+                    activatedAt: null
+                }));
+                
+                alert('检测到激活码已被其他设备使用，当前设备激活状态已失效，请重新激活。');
+                window.location.href = './index.html';
+                return false;
+            }
         }
     }
     
