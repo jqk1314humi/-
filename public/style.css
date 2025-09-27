@@ -993,6 +993,24 @@ html {
     display: block;
 }
 
+.admin-notice {
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    border: 1px solid #93c5fd;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #1e40af;
+    font-size: 0.9rem;
+}
+
+.admin-notice i {
+    color: #3b82f6;
+    font-size: 1rem;
+}
+
 .codes-list {
     display: grid;
     gap: 1rem;
@@ -1162,6 +1180,19 @@ html {
     background: linear-gradient(135deg, #d97706, #b45309);
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.reset-single-button.disabled {
+    background: #e5e7eb;
+    color: #9ca3af;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.reset-single-button.disabled:hover {
+    background: #e5e7eb;
+    transform: none;
+    box-shadow: none;
 }
 
 .delete-code-button {

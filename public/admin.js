@@ -174,7 +174,12 @@ class AdminManager {
                             <i class="fas fa-undo"></i>
                             重置
                         </button>
-                    ` : ''}
+                    ` : `
+                        <button class="reset-single-button disabled" disabled title="激活码未使用，无需重置">
+                            <i class="fas fa-undo"></i>
+                            重置
+                        </button>
+                    `}
                     <button class="delete-code-button" onclick="adminManager.deleteCode('${code}')">
                         <i class="fas fa-trash"></i>
                         删除
