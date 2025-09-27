@@ -51,7 +51,7 @@ class AdminManager {
         
         if (backButton) {
             backButton.addEventListener('click', () => {
-                window.location.href = 'advisor.html';
+                window.location.href = './advisor.html';
             });
         }
         

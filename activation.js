@@ -45,7 +45,7 @@ class ActivationManager {
         const currentActivation = JSON.parse(localStorage.getItem('currentActivation') || '{"activated": false}');
         if (currentActivation.activated) {
             // 如果已经激活，直接跳转到主应用
-            window.location.href = 'advisor.html';
+            window.location.href = './advisor.html';
         }
     }
     
@@ -103,7 +103,7 @@ class ActivationManager {
                 this.showMessage(activationMessage, '激活成功！正在跳转到智能导员...', 'success');
                 
                 setTimeout(() => {
-                    window.location.href = 'advisor.html';
+                    window.location.href = './advisor.html';
                 }, 1500);
             } else {
                 this.showMessage(activationMessage, result.message, 'error');

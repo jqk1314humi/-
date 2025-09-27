@@ -1,0 +1,23 @@
+{
+  "name": "intelligent-advisor",
+  "version": "2.1.1",
+  "description": "智能导员系统 - 为大学生提供学习、生活、职业规划指导",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve -s .",
+    "build": "echo 'No build process needed for static site'",
+    "dev": "serve -s . -p 3000"
+  },
+  "keywords": [
+    "advisor",
+    "education",
+    "student",
+    "guidance",
+    "chatbot"
+  ],
+  "author": "jqk开发团队",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.0.0"
+  }
+}

@@ -1,76 +1,68 @@
-# 智能导员网站
+# 智能导员系统 v2.1.1
 
-一个现代化的智能导员聊天应用，为大学生提供学习、生活和职业规划方面的指导。
+一个专为大学生设计的智能助手，提供学习、生活、职业规划等方面的建议和指导。
+
+## 项目结构
+
+```
+智能导员/
+├── index.html          # 激活页面（入口页面）
+├── advisor.html        # 智能导员主页面
+├── admin.html          # 管理员面板
+├── activation.js       # 激活码管理逻辑
+├── advisor.js          # 智能导员聊天功能
+├── admin.js           # 管理员面板功能
+├── style.css          # 全局样式文件
+├── vercel.json        # Vercel部署配置
+└── package.json       # 项目配置文件
+```
+
+## 部署说明
+
+### Vercel 部署
+
+1. 将项目上传到 GitHub 仓库
+2. 在 Vercel 中导入该仓库
+3. Vercel 会自动检测到 `vercel.json` 配置文件
+4. 部署完成后，访问域名会自动跳转到激活页面
+
+### 路由配置
+
+- `/` - 激活页面 (index.html)
+- `/advisor` - 智能导员主页面 (advisor.html) 
+- `/admin` - 管理员面板 (admin.html)
 
 ## 功能特性
 
-- 🎨 现代化的渐变UI设计
-- 💬 实时聊天对话功能
-- 🚀 快速提问预设选项
-- 🔄 聊天历史记录保存
-- 📱 响应式设计，支持移动端
-- 🤖 集成Coze AI API
-- 🎯 专为大学生设计的智能助手
+- **激活码系统**: 用户需要输入有效激活码才能使用
+- **智能对话**: 基于 Coze API 的智能问答系统
+- **流式输出**: 模拟打字机效果的消息显示
+- **管理员面板**: 激活码管理和使用日志查看
+- **响应式设计**: 支持移动端和桌面端
 
 ## 技术栈
 
-- HTML5
-- CSS3 (渐变背景、毛玻璃效果、动画)
-- JavaScript (ES6+)
-- Coze AI API
-- Font Awesome 图标
+- HTML5 + CSS3 + JavaScript (ES6+)
+- Font Awesome 图标库
+- Coze API 智能对话
+- LocalStorage 数据持久化
 
-## 安装和使用
+## 激活码
 
-1. 克隆或下载项目文件
-2. 确保所有文件在同一目录下：
-   - `index.html` - 主页面
-   - `style.css` - 样式文件
-   - `script.js` - JavaScript逻辑
-   - `README.md` - 说明文档
+默认激活码列表：
+- j6si0f26cig0
+- polex311eo4e
+- gwhfntmgol8l
+- sej5z1hhleqf
+- 2ta1zchbuj8v
+- 6uwqby0nk0fv
+- jza4m0okaflj
+- 5n51yax303tm
+- by8fahc1taa3
+- v61g1yyvbgg6
 
-3. 直接在浏览器中打开 `index.html` 文件
-
-## API配置
-
-项目已经预配置了Coze API：
-- Token: `pat_KXu4Wwa2VuyrOo2YxzdLNVgtoZgt8oANTFybMkHJVwioq7GgguDwFJuD951mvMwq`
-- Bot ID: `7553901337742802980`
-- Base URL: `https://api.coze.cn`
-
-## 功能说明
-
-### 快速提问
-左侧边栏提供5个预设问题：
-- 如何提高学习效率?
-- 怎样平衡学习和社交?
-- 如何规划大学生涯?
-- 如何缓解学习压力?
-- 实习对求职有帮助吗?
-
-### 聊天功能
-- 在底部输入框输入问题
-- 点击发送按钮或按Enter键发送
-- AI将自动回复相关建议和指导
-- 支持聊天历史记录本地保存
-
-### 界面操作
-- 点击右上角"清空聊天"可清除对话历史
-- 聊天窗口支持滚动查看历史消息
-- 响应式设计适配各种屏幕尺寸
-
-## 浏览器兼容性
-
-- Chrome 60+
-- Firefox 60+
-- Safari 12+
-- Edge 79+
+开发者激活码：`jqkkf0922`
 
 ## 开发团队
 
 jqk开发团队
-
-## 许可证
-
-本项目仅供学习和演示使用。
-#

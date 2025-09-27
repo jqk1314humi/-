@@ -482,7 +482,7 @@ class SmartAdvisor {
         const password = prompt('请输入管理员密码：');
         if (password === 'jqkkf0922') {
             // 跳转到管理员页面
-            window.location.href = 'admin.html';
+            window.location.href = './admin.html';
         } else if (password !== null) {
             alert('密码错误！');
         }

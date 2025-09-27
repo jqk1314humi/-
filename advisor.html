@@ -110,6 +110,16 @@
         </button>
     </footer>
 
+    <script>
+        // 检查激活状态，如果未激活则重定向到激活页面
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentActivation = JSON.parse(localStorage.getItem('currentActivation') || '{"activated": false}');
+            if (!currentActivation.activated) {
+                window.location.href = './index.html';
+                return;
+            }
+        });
+    </script>
     <script src="advisor.js"></script>
 </body>
 </html>
