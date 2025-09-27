@@ -1024,8 +1024,52 @@ body {
     display: none !important;
 }
 
+/* Ensure proper page visibility control */
+#activationPage.hidden,
+#adminPanel.hidden,
+#mainApp.hidden {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+#activationPage:not(.hidden),
+#adminPanel:not(.hidden),
+#mainApp:not(.hidden) {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
 /* Responsive Design for Admin Panel */
 @media (max-width: 768px) {
+    /* Ensure page visibility works on mobile */
+    #activationPage.hidden,
+    #adminPanel.hidden,
+    #mainApp.hidden {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        position: absolute !important;
+        top: -9999px !important;
+        left: -9999px !important;
+    }
+    
+    #activationPage:not(.hidden),
+    #adminPanel:not(.hidden),
+    #mainApp:not(.hidden) {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        position: static !important;
+        top: auto !important;
+        left: auto !important;
+    }
+    
     .activation-page {
         padding: 1rem;
     }

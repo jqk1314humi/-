@@ -265,9 +265,15 @@ class ActivationManager {
     }
     
     showActivationPage() {
+        // 确保所有页面都被隐藏
         document.getElementById('activationPage').classList.remove('hidden');
         document.getElementById('adminPanel').classList.add('hidden');
         document.getElementById('mainApp').classList.add('hidden');
+        
+        // 强制重新计算样式（移动设备兼容）
+        document.getElementById('activationPage').style.display = 'block';
+        document.getElementById('adminPanel').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'none';
         
         // 重置激活输入框
         const activationInput = document.getElementById('activationInput');
@@ -299,6 +305,11 @@ class ActivationManager {
         document.getElementById('adminPanel').classList.remove('hidden');
         document.getElementById('mainApp').classList.add('hidden');
         
+        // 强制重新计算样式（移动设备兼容）
+        document.getElementById('activationPage').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'block';
+        document.getElementById('mainApp').style.display = 'none';
+        
         this.updateAdminPanel();
     }
     
@@ -306,6 +317,11 @@ class ActivationManager {
         document.getElementById('activationPage').classList.add('hidden');
         document.getElementById('adminPanel').classList.add('hidden');
         document.getElementById('mainApp').classList.remove('hidden');
+        
+        // 强制重新计算样式（移动设备兼容）
+        document.getElementById('activationPage').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
         
         // 初始化智能导员应用
         if (!window.smartAdvisor) {
