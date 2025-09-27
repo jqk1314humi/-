@@ -15,6 +15,12 @@ body {
     overflow-x: hidden;
 }
 
+html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
 /* Header Styles */
 .header {
     background: rgba(255, 255, 255, 0.95);
@@ -620,8 +626,12 @@ body {
     justify-content: center;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     padding: 2rem;
-    position: relative;
-    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1000;
 }
 
 .activation-container {
@@ -640,6 +650,9 @@ body {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
     text-align: center;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
 }
 
 .activation-header {
@@ -749,9 +762,13 @@ body {
     min-height: 100vh;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     padding: 2rem;
-    position: relative;
-    width: 100%;
-    box-sizing: border-box;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1000;
+    overflow-y: auto;
 }
 
 .admin-header {
@@ -765,6 +782,7 @@ body {
     padding: 1.5rem 2rem;
     border-radius: 1rem;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    width: 100%;
 }
 
 .admin-title {
@@ -801,6 +819,7 @@ body {
     margin: 0 auto;
     position: relative;
     z-index: 1;
+    width: 100%;
 }
 
 .admin-stats {
@@ -933,6 +952,7 @@ body {
     border-radius: 1rem;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     overflow: hidden;
+    width: 100%;
 }
 
 .tab-panel {
