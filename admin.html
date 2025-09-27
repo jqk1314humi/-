@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>激活码管理系统 - jqk Group</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Admin Panel -->
+    <div class="admin-panel">
+        <div class="admin-header">
+            <h2 class="admin-title">
+                <i class="fas fa-shield-alt"></i>
+                激活码管理系统
+            </h2>
+            <button id="backToMainApp" class="back-button">
+                <i class="fas fa-arrow-left"></i>
+                返回智能导员界面
+            </button>
+        </div>
+        
+        <div class="admin-content">
+            <div class="admin-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-key"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="totalCodes">0</div>
+                        <div class="stat-label">总激活码</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon used">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="usedCodes">0</div>
+                        <div class="stat-label">已使用</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon available">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="availableCodes">0</div>
+                        <div class="stat-label">未使用</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-actions">
+                <button id="resetAllCodes" class="action-button reset-button">
+                    <i class="fas fa-undo"></i>
+                    重置所有激活码
+                </button>
+                <button id="exportLogs" class="action-button export-button">
+                    <i class="fas fa-download"></i>
+                    导出使用日志
+                </button>
+            </div>
+
+            <div class="admin-tabs">
+                <button class="tab-button active" data-tab="codes">激活码列表</button>
+                <button class="tab-button" data-tab="logs">使用日志</button>
+            </div>
+
+            <div class="tab-content">
+                <div id="codesTab" class="tab-panel active">
+                    <div class="codes-list" id="codesList">
+                        <!-- 激活码列表将在这里动态生成 -->
+                    </div>
+                </div>
+                <div id="logsTab" class="tab-panel">
+                    <div class="logs-list" id="logsList">
+                        <!-- 使用日志将在这里动态生成 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

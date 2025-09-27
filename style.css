@@ -1024,52 +1024,8 @@ body {
     display: none !important;
 }
 
-/* Ensure proper page visibility control */
-#activationPage.hidden,
-#adminPanel.hidden,
-#mainApp.hidden {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-}
-
-#activationPage:not(.hidden),
-#adminPanel:not(.hidden),
-#mainApp:not(.hidden) {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    pointer-events: auto !important;
-}
-
-/* Responsive Design for Admin Panel */
+/* Responsive Design */
 @media (max-width: 768px) {
-    /* Ensure page visibility works on mobile */
-    #activationPage.hidden,
-    #adminPanel.hidden,
-    #mainApp.hidden {
-        display: none !important;
-        visibility: hidden !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
-        position: absolute !important;
-        top: -9999px !important;
-        left: -9999px !important;
-    }
-    
-    #activationPage:not(.hidden),
-    #adminPanel:not(.hidden),
-    #mainApp:not(.hidden) {
-        display: block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        pointer-events: auto !important;
-        position: static !important;
-        top: auto !important;
-        left: auto !important;
-    }
-    
     .activation-page {
         padding: 1rem;
     }
@@ -1098,5 +1054,39 @@ body {
     
     .action-button {
         justify-content: center;
+    }
+    
+    .main-content {
+        flex-direction: column;
+        padding: 1rem;
+        gap: 1rem;
+    }
+    
+    .sidebar {
+        width: 100%;
+    }
+    
+    .header {
+        padding: 1rem;
+    }
+    
+    .chat-messages {
+        max-height: 300px;
+    }
+    
+    .message-bubble {
+        max-width: 85%;
+    }
+    
+    .footer {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+        padding: 1rem;
+    }
+    
+    .admin-button-main {
+        font-size: 0.9rem;
+        padding: 0.75rem 1.5rem;
     }
 }
