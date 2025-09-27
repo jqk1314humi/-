@@ -1,7 +1,7 @@
 /**
- * 智能导员管理员系统 v3.0.1
- * 完全重写版本 - 完善的激活码管理和状态显示
- * 更新时间: 2025/9/27 23:30
+ * 智能导员管理员系统 v4.0
+ * 集成云存储 - 实现跨设备激活码状态同步
+ * 更新时间: 2025/9/27 23:45
  */
 
 class AdminSystem {
@@ -11,6 +11,7 @@ class AdminSystem {
         
         // 系统状态
         this.isInitialized = false;
+        this.cloudStorage = null;
         this.currentData = {
             codes: {},
             logs: [],
@@ -22,9 +23,12 @@ class AdminSystem {
     
     async init() {
         try {
-            console.log('管理员系统 v3.0.1 初始化开始...');
+            console.log('管理员系统 v4.0 初始化开始...');
             console.log('当前时间:', new Date().toLocaleString());
             console.log('浏览器:', navigator.userAgent);
+            
+            // 等待云存储初始化
+            await this.waitForCloudStorage();
             
             // 验证访问权限
             if (!this.validateAccess()) {
@@ -49,6 +53,27 @@ class AdminSystem {
         }
     }
     
+    /**
+     * 等待云存储初始化
+     */
+    async waitForCloudStorage() {
+        let attempts = 0;
+        const maxAttempts = 50;
+        
+        while (attempts < maxAttempts) {
+            if (window.cloudStorage && window.cloudStorage.localCache) {
+                this.cloudStorage = window.cloudStorage;
+                console.log('管理员系统云存储连接成功');
+                return;
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+        }
+        
+        console.warn('管理员系统云存储连接超时，使用本地存储模式');
+    }
+
     /**
      * 验证访问权限
      */
@@ -77,11 +102,18 @@ class AdminSystem {
      */
     async loadData() {
         try {
-            // 加载激活码数据
-            this.currentData.codes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
-            
-            // 加载日志数据
-            this.currentData.logs = JSON.parse(localStorage.getItem('activationLogs') || '[]');
+            // 优先从云存储加载数据
+            if (this.cloudStorage) {
+                console.log('从云存储加载管理员数据...');
+                this.currentData.codes = await this.cloudStorage.getActivationCodes();
+                this.currentData.logs = await this.cloudStorage.getLogs();
+                console.log('云存储数据加载完成');
+            } else {
+                console.log('从本地存储加载管理员数据...');
+                // 降级到本地存储
+                this.currentData.codes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
+                this.currentData.logs = JSON.parse(localStorage.getItem('activationLogs') || '[]');
+            }
             
             // 计算统计数据
             this.calculateStats();
@@ -255,19 +287,19 @@ class AdminSystem {
      * 创建激活码项目元素
      */
     createCodeItem(code, info) {
-        const codeItem = document.createElement('div');
-        codeItem.className = 'code-item';
+            const codeItem = document.createElement('div');
+            codeItem.className = 'code-item';
         codeItem.dataset.code = code;
-        
-        const statusClass = info.used ? 'used' : 'available';
-        const statusText = info.used ? '已使用' : '未使用';
+            
+            const statusClass = info.used ? 'used' : 'available';
+            const statusText = info.used ? '已使用' : '未使用';
         
         // 构建详细信息
         let detailsHtml = '';
-        if (info.used && info.usedBy) {
+            if (info.used && info.usedBy) {
             const usedTime = new Date(info.usedAt).toLocaleString('zh-CN');
             const deviceInfo = info.deviceFingerprint || '未知设备';
-            const platform = info.usedBy.platform || '未知平台';
+                const platform = info.usedBy.platform || '未知平台';
             const browser = this.getBrowserInfo(info.usedBy.userAgent || '');
             
             detailsHtml = `
@@ -287,14 +319,14 @@ class AdminSystem {
                     <div class="detail-row">
                         <i class="fas fa-globe"></i>
                         <span>浏览器: ${browser}</span>
-                    </div>
+                        </div>
                 </div>
             `;
         }
         
         // 构建操作按钮
         const actionsHtml = `
-            <div class="code-actions">
+                <div class="code-actions">
                 <button 
                     class="reset-button ${info.used ? '' : 'disabled'}" 
                     data-action="reset" 
@@ -302,21 +334,21 @@ class AdminSystem {
                     ${info.used ? '' : 'disabled'}
                     title="${info.used ? '重置此激活码' : '激活码未使用，无需重置'}"
                 >
-                    <i class="fas fa-undo"></i>
-                    重置
-                </button>
+                            <i class="fas fa-undo"></i>
+                            重置
+                        </button>
                 <button 
                     class="delete-button" 
                     data-action="delete" 
                     data-code="${code}"
                     title="删除此激活码"
                 >
-                    <i class="fas fa-trash"></i>
-                    删除
-                </button>
-            </div>
-        `;
-        
+                        <i class="fas fa-trash"></i>
+                        删除
+                    </button>
+                </div>
+            `;
+            
         codeItem.innerHTML = `
             <div class="code-header">
                 <div class="code-info">
@@ -374,11 +406,11 @@ class AdminSystem {
      * 创建日志项目元素
      */
     createLogItem(log, index) {
-        const logItem = document.createElement('div');
-        logItem.className = 'log-item';
-        
+            const logItem = document.createElement('div');
+            logItem.className = 'log-item';
+            
         const logTime = new Date(log.timestamp).toLocaleString('zh-CN');
-        const logType = log.type === 'developer' ? '开发者' : '用户';
+            const logType = log.type === 'developer' ? '开发者' : '用户';
         const actionText = this.getActionText(log.action || 'activation');
         
         let detailsHtml = '';
@@ -486,9 +518,9 @@ class AdminSystem {
             // 添加新激活码
             this.currentData.codes[newCode] = {
                 code: newCode,
-                used: false,
-                usedAt: null,
-                usedBy: null,
+                    used: false,
+                    usedAt: null,
+                    usedBy: null,
                 deviceFingerprint: null,
                 createdAt: Date.now(),
                 status: 'available',
@@ -570,18 +602,31 @@ class AdminSystem {
             
             console.log('重置激活码:', code);
             
-            // 重置激活码状态
-            this.currentData.codes[code] = {
-                ...codeData,
-                used: false,
-                usedAt: null,
-                usedBy: null,
-                deviceFingerprint: null,
-                status: 'available'
-            };
-            
-            // 保存到存储
-            localStorage.setItem('activationCodes', JSON.stringify(this.currentData.codes));
+            // 使用云存储重置激活码
+            if (this.cloudStorage) {
+                const success = await this.cloudStorage.resetActivationCode(code);
+                if (!success) {
+                    this.showNotification('重置激活码失败，请重试', 'error');
+                    return;
+                }
+                
+                // 重新加载数据以确保同步
+                await this.loadData();
+                
+            } else {
+                // 降级到本地存储
+                this.currentData.codes[code] = {
+                    ...codeData,
+            used: false,
+            usedAt: null,
+            usedBy: null,
+                    deviceFingerprint: null,
+                    status: 'available'
+                };
+                
+                // 保存到存储
+                localStorage.setItem('activationCodes', JSON.stringify(this.currentData.codes));
+            }
             
             // 检查并清除相关的激活状态
             this.clearRelatedActivationStatus(code);
@@ -610,9 +655,9 @@ class AdminSystem {
             const codeData = this.currentData.codes[code];
             if (!codeData) {
                 this.showNotification('激活码不存在', 'error');
-                return;
-            }
-            
+            return;
+        }
+        
             // 显示确认对话框
             let confirmMessage = `确定要删除激活码 "${code}" 吗？\\n\\n`;
             
@@ -782,8 +827,8 @@ class AdminSystem {
     logAction(code, action, description) {
         try {
             const logEntry = {
-                code: code,
-                timestamp: Date.now(),
+                    code: code,
+                    timestamp: Date.now(),
                 action: action,
                 description: description,
                 type: 'admin',

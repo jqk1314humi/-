@@ -1,6 +1,6 @@
 /**
- * 智能导员激活码管理系统 v3.0
- * 完全重写版本 - 确保激活码一次性使用和完整的状态管理
+ * 智能导员激活码管理系统 v4.0
+ * 集成云存储 - 实现真正的跨设备激活码状态同步
  */
 
 class ActivationSystem {
@@ -25,6 +25,7 @@ class ActivationSystem {
         // 系统状态
         this.isInitialized = false;
         this.deviceFingerprint = null;
+        this.cloudStorage = null;
         
         this.init();
     }
@@ -37,8 +38,11 @@ class ActivationSystem {
             this.deviceFingerprint = this.generateDeviceFingerprint();
             console.log('设备指纹:', this.deviceFingerprint);
             
+            // 等待云存储初始化
+            await this.waitForCloudStorage();
+            
             // 初始化数据存储
-            this.initializeStorage();
+            await this.initializeStorage();
             
             // 验证现有激活状态
             await this.validateExistingActivation();
@@ -89,11 +93,46 @@ class ActivationSystem {
     }
     
     /**
+     * 等待云存储初始化
+     */
+    async waitForCloudStorage() {
+        let attempts = 0;
+        const maxAttempts = 50;
+        
+        while (attempts < maxAttempts) {
+            if (window.cloudStorage && window.cloudStorage.localCache) {
+                this.cloudStorage = window.cloudStorage;
+                console.log('云存储连接成功');
+                return;
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+        }
+        
+        console.warn('云存储连接超时，使用本地存储模式');
+    }
+
+    /**
      * 初始化数据存储
      */
-    initializeStorage() {
+    async initializeStorage() {
         try {
-            // 初始化激活码数据
+            // 如果有云存储，优先使用云存储数据
+            if (this.cloudStorage) {
+                const cloudCodes = await this.cloudStorage.getActivationCodes();
+                
+                // 如果云端没有数据，初始化默认数据
+                if (Object.keys(cloudCodes).length === 0) {
+                    console.log('云端数据为空，初始化默认激活码...');
+                    await this.cloudStorage.initializeDefaultData();
+                }
+                
+                console.log('使用云存储数据');
+                return;
+            }
+            
+            // 降级到本地存储
             if (!localStorage.getItem('activationCodes')) {
                 const codes = {};
                 this.INITIAL_CODES.forEach(code => {
@@ -105,13 +144,13 @@ class ActivationSystem {
                         deviceFingerprint: null,
                         createdAt: Date.now(),
                         status: 'available',
-                        version: '3.0'
+                        version: '4.0'
                     };
                 });
                 localStorage.setItem('activationCodes', JSON.stringify(codes));
-                console.log('初始化激活码数据完成');
+                console.log('本地激活码数据初始化完成');
             } else {
-                // 升级现有数据到v3.0格式
+                // 升级现有数据到v4.0格式
                 this.upgradeStorageFormat();
             }
             
@@ -367,8 +406,13 @@ class ActivationSystem {
                 };
             }
             
-            // 检查普通激活码
-            const codes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
+            // 检查普通激活码（优先从云存储获取）
+            let codes;
+            if (this.cloudStorage) {
+                codes = await this.cloudStorage.getActivationCodes();
+            } else {
+                codes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
+            }
             const codeData = codes[code];
             
             if (!codeData) {
@@ -459,6 +503,23 @@ class ActivationSystem {
      */
     async markCodeAsUsed(code) {
         try {
+            // 如果有云存储，使用云存储的原子操作
+            if (this.cloudStorage) {
+                const deviceInfo = {
+                    ...this.getClientInfo(),
+                    deviceFingerprint: this.deviceFingerprint
+                };
+                
+                const success = await this.cloudStorage.useActivationCode(code, deviceInfo);
+                if (!success) {
+                    throw new Error('云端激活码使用失败');
+                }
+                
+                console.log('激活码已在云端标记为已使用:', code);
+                return;
+            }
+            
+            // 降级到本地存储
             const codes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
             const codeData = codes[code];
             
@@ -477,7 +538,8 @@ class ActivationSystem {
                 usedAt: Date.now(),
                 usedBy: this.getClientInfo(),
                 deviceFingerprint: this.deviceFingerprint,
-                status: 'used'
+                status: 'used',
+                version: '4.0'
             };
             
             // 原子性保存

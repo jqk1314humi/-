@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>云存储测试 - jqk Group</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-title {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .test-result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin: 5px;
+            display: inline-block;
+        }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.warning { background: #fff3cd; color: #856404; }
+        .status.info { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 class="test-title">云存储系统测试</h1>
+        <div id="connectionStatus" class="status info">正在连接云存储...</div>
+        
+        <div>
+            <button class="test-button" onclick="testConnection()">测试连接</button>
+            <button class="test-button" onclick="testDataSync()">测试数据同步</button>
+            <button class="test-button" onclick="testActivationFlow()">测试激活流程</button>
+            <button class="test-button" onclick="clearTestData()">清除测试数据</button>
+        </div>
+        
+        <div id="testResults" class="test-result">等待测试...</div>
+    </div>
+
+    <div class="test-container">
+        <h2 class="test-title">激活码状态监控</h2>
+        <button class="test-button" onclick="refreshCodes()">刷新激活码</button>
+        <div id="codesDisplay" class="test-result">加载中...</div>
+    </div>
+
+    <div class="test-container">
+        <h2 class="test-title">设备指纹信息</h2>
+        <div id="deviceInfo" class="test-result">加载中...</div>
+    </div>
+
+    <script src="cloud-storage.js"></script>
+    <script>
+        let testResults = [];
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            testResults.push(`[${timestamp}] ${type.toUpperCase()}: ${message}`);
+            updateDisplay();
+        }
+        
+        function updateDisplay() {
+            document.getElementById('testResults').textContent = testResults.join('\n');
+        }
+        
+        // 等待云存储初始化
+        async function waitForCloudStorage() {
+            let attempts = 0;
+            while (attempts < 50) {
+                if (window.cloudStorage && window.cloudStorage.localCache) {
+                    document.getElementById('connectionStatus').className = 'status success';
+                    document.getElementById('connectionStatus').textContent = '云存储连接成功';
+                    return window.cloudStorage;
+                }
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+            }
+            
+            document.getElementById('connectionStatus').className = 'status error';
+            document.getElementById('connectionStatus').textContent = '云存储连接失败';
+            return null;
+        }
+        
+        async function testConnection() {
+            log('开始测试云存储连接...', 'info');
+            
+            const storage = await waitForCloudStorage();
+            if (!storage) {
+                log('云存储连接失败', 'error');
+                return;
+            }
+            
+            try {
+                // 测试基本连接
+                const codes = await storage.getActivationCodes();
+                log(`成功获取激活码数据，共 ${Object.keys(codes).length} 个激活码`, 'success');
+                
+                const logs = await storage.getLogs();
+                log(`成功获取日志数据，共 ${logs.length} 条记录`, 'success');
+                
+                log('云存储连接测试完成', 'success');
+                
+            } catch (error) {
+                log(`云存储连接测试失败: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testDataSync() {
+            log('开始测试数据同步...', 'info');
+            
+            const storage = await waitForCloudStorage();
+            if (!storage) return;
+            
+            try {
+                // 测试同步到云端
+                log('测试同步数据到云端...', 'info');
+                await storage.syncFromCloud();
+                log('从云端同步数据成功', 'success');
+                
+                // 测试添加日志
+                const testLog = {
+                    code: 'TEST_CODE',
+                    action: 'test',
+                    deviceInfo: { test: true },
+                    type: 'test'
+                };
+                
+                await storage.addLog(testLog);
+                log('添加测试日志成功', 'success');
+                
+                log('数据同步测试完成', 'success');
+                
+            } catch (error) {
+                log(`数据同步测试失败: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testActivationFlow() {
+            log('开始测试激活流程...', 'info');
+            
+            const storage = await waitForCloudStorage();
+            if (!storage) return;
+            
+            try {
+                // 生成测试设备信息
+                const deviceInfo = {
+                    userAgent: navigator.userAgent,
+                    language: navigator.language,
+                    platform: navigator.platform,
+                    deviceFingerprint: 'test_device_' + Date.now()
+                };
+                
+                // 获取一个未使用的激活码进行测试
+                const codes = await storage.getActivationCodes();
+                const availableCode = Object.keys(codes).find(code => !codes[code].used);
+                
+                if (!availableCode) {
+                    log('没有可用的激活码进行测试', 'warning');
+                    return;
+                }
+                
+                log(`使用激活码 ${availableCode} 进行测试`, 'info');
+                
+                // 测试激活码使用
+                await storage.useActivationCode(availableCode, deviceInfo);
+                log(`激活码 ${availableCode} 使用成功`, 'success');
+                
+                // 测试重置
+                await storage.resetActivationCode(availableCode);
+                log(`激活码 ${availableCode} 重置成功`, 'success');
+                
+                log('激活流程测试完成', 'success');
+                
+            } catch (error) {
+                log(`激活流程测试失败: ${error.message}`, 'error');
+            }
+        }
+        
+        async function clearTestData() {
+            log('清除测试数据...', 'info');
+            testResults = [];
+            updateDisplay();
+            log('测试数据已清除', 'success');
+        }
+        
+        async function refreshCodes() {
+            const storage = await waitForCloudStorage();
+            if (!storage) return;
+            
+            try {
+                const codes = await storage.getActivationCodes();
+                let display = `激活码状态 (共 ${Object.keys(codes).length} 个):\n\n`;
+                
+                Object.entries(codes).forEach(([code, data]) => {
+                    display += `${code}: ${data.used ? '已使用' : '可用'}`;
+                    if (data.used) {
+                        display += ` (${new Date(data.usedAt).toLocaleString()})`;
+                    }
+                    display += '\n';
+                });
+                
+                document.getElementById('codesDisplay').textContent = display;
+                
+            } catch (error) {
+                document.getElementById('codesDisplay').textContent = `获取激活码失败: ${error.message}`;
+            }
+        }
+        
+        // 显示设备指纹信息
+        function showDeviceInfo() {
+            const info = {
+                userAgent: navigator.userAgent,
+                language: navigator.language,
+                languages: navigator.languages,
+                platform: navigator.platform,
+                cookieEnabled: navigator.cookieEnabled,
+                screenResolution: `${screen.width}x${screen.height}`,
+                colorDepth: screen.colorDepth,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                timestamp: new Date().toISOString()
+            };
+            
+            document.getElementById('deviceInfo').textContent = JSON.stringify(info, null, 2);
+        }
+        
+        // 页面加载后初始化
+        document.addEventListener('DOMContentLoaded', async () => {
+            showDeviceInfo();
+            await testConnection();
+            await refreshCodes();
+        });
+    </script>
+</body>
+</html>
