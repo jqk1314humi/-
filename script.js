@@ -540,12 +540,6 @@ class SmartAdvisor {
         }
     }
 
-    // 检测微信浏览器
-    isWeChatBrowser() {
-        const ua = navigator.userAgent.toLowerCase();
-        return ua.indexOf('micromessenger') !== -1 || ua.indexOf('wechat') !== -1;
-    }
-
     // 显示激活码模态框
     showActivationModal() {
         const modal = document.getElementById('activationModal');
@@ -567,25 +561,10 @@ class SmartAdvisor {
                 activateButton.textContent = '激活';
             }
             
-            // 微信浏览器特殊处理
-            if (this.isWeChatBrowser()) {
-                modal.style.position = 'fixed';
-                modal.style.top = '0';
-                modal.style.left = '0';
-                modal.style.width = '100%';
-                modal.style.height = '100%';
-                modal.style.zIndex = '9999';
-                modal.style.display = 'flex';
-                modal.style.alignItems = 'center';
-                modal.style.justifyContent = 'center';
-                modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-                modal.style.backdropFilter = 'blur(5px)';
-                modal.classList.add('wechat-modal');
-            } else {
-                modal.classList.add('show', 'force-show');
-                modal.style.display = 'flex';
-                modal.style.zIndex = '9999';
-            }
+            // 统一处理所有浏览器
+            modal.classList.add('show', 'force-show');
+            modal.style.display = 'flex';
+            modal.style.zIndex = '9999';
             
             document.body.classList.add('app-locked');
             console.log('激活码模态框已显示');
@@ -598,24 +577,20 @@ class SmartAdvisor {
     hideActivationModal() {
         const modal = document.getElementById('activationModal');
         if (modal) {
-            // 微信浏览器特殊处理
-            if (this.isWeChatBrowser()) {
-                modal.style.display = 'none';
-                modal.style.position = '';
-                modal.style.top = '';
-                modal.style.left = '';
-                modal.style.width = '';
-                modal.style.height = '';
-                modal.style.zIndex = '';
-                modal.style.alignItems = '';
-                modal.style.justifyContent = '';
-                modal.style.backgroundColor = '';
-                modal.style.backdropFilter = '';
-                modal.classList.remove('wechat-modal');
-            } else {
-                modal.classList.remove('show', 'force-show');
-                modal.style.display = 'none';
-            }
+            // 统一处理所有浏览器
+            modal.classList.remove('show', 'force-show', 'wechat-modal');
+            modal.style.display = 'none';
+            modal.style.position = '';
+            modal.style.top = '';
+            modal.style.left = '';
+            modal.style.width = '';
+            modal.style.height = '';
+            modal.style.zIndex = '';
+            modal.style.alignItems = '';
+            modal.style.justifyContent = '';
+            modal.style.backgroundColor = '';
+            modal.style.backdropFilter = '';
+            
             document.body.classList.remove('app-locked');
             console.log('激活码模态框已隐藏');
         }
@@ -730,14 +705,6 @@ class SmartAdvisor {
                 setTimeout(() => {
                     this.hideActivationModal();
                     this.unlockApp();
-                    // 强制确保模态框关闭
-                    setTimeout(() => {
-                        const modal = document.getElementById('activationModal');
-                        if (modal) {
-                            modal.style.display = 'none';
-                            modal.classList.remove('show', 'force-show', 'wechat-modal');
-                        }
-                    }, 100);
                 }, 1500);
             } else {
                 this.showErrorMessage(result.message);
