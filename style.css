@@ -9,16 +9,19 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
+    height: 100%;
     color: #333;
     margin: 0;
     padding: 0;
     overflow-x: hidden;
+    box-sizing: border-box;
 }
 
 html {
     margin: 0;
     padding: 0;
     height: 100%;
+    box-sizing: border-box;
 }
 
 /* Header Styles */
@@ -621,17 +624,15 @@ html {
 /* Activation Page Styles */
 .activation-page {
     min-height: 100vh;
+    height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     padding: 2rem;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 1000;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .activation-container {
@@ -639,12 +640,16 @@ html {
     max-width: 400px;
     margin: 0 auto;
     position: relative;
-    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .activation-card {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-radius: 1.5rem;
     padding: 2.5rem;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -653,6 +658,8 @@ html {
     width: 100%;
     max-width: 400px;
     margin: 0 auto;
+    box-sizing: border-box;
+    position: relative;
 }
 
 .activation-header {
@@ -1069,14 +1076,45 @@ html {
     display: none !important;
 }
 
+/* Desktop Browser Compatibility */
+@media (min-width: 769px) {
+    .activation-page {
+        display: -webkit-flex;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-align-items: center;
+        -ms-flex-align: center;
+        align-items: center;
+        -webkit-justify-content: center;
+        -ms-flex-pack: center;
+        justify-content: center;
+    }
+    
+    .activation-container {
+        -webkit-align-items: center;
+        -ms-flex-align: center;
+        align-items: center;
+        -webkit-justify-content: center;
+        -ms-flex-pack: center;
+        justify-content: center;
+    }
+}
+
 /* Additional Mobile Styles for Activation and Admin Pages */
 @media (max-width: 768px) {
     .activation-page {
         padding: 1rem;
+        min-height: 100vh;
+        height: auto;
+    }
+    
+    .activation-container {
+        min-height: calc(100vh - 2rem);
     }
     
     .activation-card {
         padding: 2rem 1.5rem;
+        margin: 1rem 0;
     }
     
     .activation-button {
