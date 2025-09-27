@@ -244,9 +244,14 @@ class AdminSystem {
      */
     displayActivationCodes() {
         const container = document.getElementById('codesList');
-        if (!container) return;
+        if (!container) {
+            console.error('❌ 找不到激活码容器 #codesList');
+            return;
+        }
         
         const codes = this.currentData.codes;
+        console.log('📊 显示激活码数据:', codes);
+        console.log('📊 激活码数量:', Object.keys(codes).length);
         
         if (Object.keys(codes).length === 0) {
             container.innerHTML = `
@@ -318,7 +323,9 @@ class AdminSystem {
             `;
         });
         
+        console.log('📊 生成的HTML长度:', html.length);
         container.innerHTML = html;
+        console.log('✅ 激活码列表已更新');
     }
     
     /**
@@ -414,6 +421,9 @@ class AdminSystem {
         
         // 设置同步事件监听器
         this.setupSyncEventListeners();
+        
+        // 设置标签切换事件监听器
+        this.setupTabSwitching();
     }
     
     /**
@@ -437,6 +447,33 @@ class AdminSystem {
         if (forceSyncButton) {
             forceSyncButton.addEventListener('click', () => this.forceSync());
         }
+    }
+    
+    /**
+     * 设置标签切换事件监听器
+     */
+    setupTabSwitching() {
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabPanels = document.querySelectorAll('.tab-panel');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetTab = button.getAttribute('data-tab');
+                
+                // 移除所有active类
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabPanels.forEach(panel => panel.classList.remove('active'));
+                
+                // 添加active类到当前选中的标签和面板
+                button.classList.add('active');
+                const targetPanel = document.getElementById(targetTab + 'Tab');
+                if (targetPanel) {
+                    targetPanel.classList.add('active');
+                }
+                
+                console.log(`切换到标签: ${targetTab}`);
+            });
+        });
     }
     
     /**
