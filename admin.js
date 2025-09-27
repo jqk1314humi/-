@@ -31,10 +31,24 @@ class AdminManager {
                 codes[code] = {
                     used: false,
                     usedAt: null,
-                    usedBy: null
+                    usedBy: null,
+                    createdAt: Date.now()
                 };
             });
             localStorage.setItem('activationCodes', JSON.stringify(codes));
+        } else {
+            // 为现有激活码添加createdAt字段（如果没有的话）
+            const codes = JSON.parse(localStorage.getItem('activationCodes'));
+            let needsUpdate = false;
+            Object.keys(codes).forEach(code => {
+                if (!codes[code].createdAt) {
+                    codes[code].createdAt = Date.now();
+                    needsUpdate = true;
+                }
+            });
+            if (needsUpdate) {
+                localStorage.setItem('activationCodes', JSON.stringify(codes));
+            }
         }
         
         // 初始化使用日志
@@ -45,6 +59,7 @@ class AdminManager {
     
     setupEventListeners() {
         const backButton = document.getElementById('backToMainApp');
+        const generateButton = document.getElementById('generateCode');
         const resetButton = document.getElementById('resetAllCodes');
         const exportButton = document.getElementById('exportLogs');
         const tabButtons = document.querySelectorAll('.tab-button');
@@ -52,6 +67,12 @@ class AdminManager {
         if (backButton) {
             backButton.addEventListener('click', () => {
                 window.location.href = './advisor.html';
+            });
+        }
+        
+        if (generateButton) {
+            generateButton.addEventListener('click', () => {
+                this.generateNewCode();
             });
         }
         
@@ -104,13 +125,33 @@ class AdminManager {
             
             const statusClass = info.used ? 'used' : 'available';
             const statusText = info.used ? '已使用' : '未使用';
+            const usedByInfo = info.usedBy ? `使用者: ${info.usedBy.platform || '未知'}` : '';
             
             codeItem.innerHTML = `
                 <div class="code-info">
-                    <span class="code-text">${code}</span>
-                    <span class="code-status ${statusClass}">${statusText}</span>
+                    <div class="code-main">
+                        <span class="code-text">${code}</span>
+                        <span class="code-status ${statusClass}">${statusText}</span>
+                    </div>
+                    ${info.used ? `
+                        <div class="code-details">
+                            <div class="log-time">使用时间: ${new Date(info.usedAt).toLocaleString('zh-CN')}</div>
+                            ${usedByInfo ? `<div class="used-by">${usedByInfo}</div>` : ''}
+                        </div>
+                    ` : ''}
                 </div>
-                ${info.used ? `<div class="log-time">${new Date(info.usedAt).toLocaleString('zh-CN')}</div>` : ''}
+                <div class="code-actions">
+                    ${info.used ? `
+                        <button class="reset-single-button" onclick="adminManager.resetSingleCode('${code}')">
+                            <i class="fas fa-undo"></i>
+                            重置
+                        </button>
+                    ` : ''}
+                    <button class="delete-code-button" onclick="adminManager.deleteCode('${code}')">
+                        <i class="fas fa-trash"></i>
+                        删除
+                    </button>
+                </div>
             `;
             
             codesList.appendChild(codeItem);
@@ -124,23 +165,50 @@ class AdminManager {
         const logs = JSON.parse(localStorage.getItem('activationLogs'));
         logsList.innerHTML = '';
         
+        if (logs.length === 0) {
+            logsList.innerHTML = '<div class="no-logs">暂无使用日志</div>';
+            return;
+        }
+        
         // 按时间倒序排列
         logs.sort((a, b) => b.timestamp - a.timestamp);
         
-        logs.forEach(log => {
+        logs.forEach((log, index) => {
             const logItem = document.createElement('div');
             logItem.className = 'log-item';
             
             const logType = log.type === 'developer' ? '开发者' : '用户';
             const logTime = new Date(log.timestamp).toLocaleString('zh-CN');
+            const userAgent = log.clientInfo.userAgent || '未知';
+            const browser = this.getBrowserInfo(userAgent);
             
             logItem.innerHTML = `
                 <div class="log-header">
-                    <span class="log-code">${log.code}</span>
+                    <div class="log-main">
+                        <span class="log-code">${log.code}</span>
+                        <span class="log-type ${log.type}">${logType}</span>
+                    </div>
                     <span class="log-time">${logTime}</span>
                 </div>
                 <div class="log-details">
-                    类型: ${logType} | 平台: ${log.clientInfo.platform} | 语言: ${log.clientInfo.language}
+                    <div class="log-detail-row">
+                        <i class="fas fa-desktop"></i>
+                        <span>平台: ${log.clientInfo.platform}</span>
+                    </div>
+                    <div class="log-detail-row">
+                        <i class="fas fa-globe"></i>
+                        <span>浏览器: ${browser}</span>
+                    </div>
+                    <div class="log-detail-row">
+                        <i class="fas fa-language"></i>
+                        <span>语言: ${log.clientInfo.language}</span>
+                    </div>
+                    ${log.clientInfo.timestamp ? `
+                        <div class="log-detail-row">
+                            <i class="fas fa-clock"></i>
+                            <span>客户端时间: ${log.clientInfo.timestamp}</span>
+                        </div>
+                    ` : ''}
                 </div>
             `;
             
@@ -169,7 +237,8 @@ class AdminManager {
                 codes[code] = {
                     used: false,
                     usedAt: null,
-                    usedBy: null
+                    usedBy: null,
+                    createdAt: codes[code].createdAt || Date.now()
                 };
             });
             localStorage.setItem('activationCodes', JSON.stringify(codes));
@@ -180,6 +249,17 @@ class AdminManager {
                 code: null,
                 activatedAt: null
             }));
+            
+            // 添加重置日志
+            const logs = JSON.parse(localStorage.getItem('activationLogs'));
+            logs.push({
+                code: 'ALL_CODES',
+                timestamp: Date.now(),
+                type: 'reset',
+                action: 'bulk_reset',
+                clientInfo: this.getClientInfo()
+            });
+            localStorage.setItem('activationLogs', JSON.stringify(logs));
             
             this.updateAdminPanel();
             alert('所有激活码已重置！');
@@ -204,9 +284,156 @@ class AdminManager {
         link.download = `activation_data_${new Date().toISOString().split('T')[0]}.json`;
         link.click();
     }
+    
+    // 生成12位随机激活码
+    generateRandomCode() {
+        const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        let result = '';
+        for (let i = 0; i < 12; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
+    }
+    
+    // 生成新激活码
+    generateNewCode() {
+        const newCode = this.generateRandomCode();
+        const codes = JSON.parse(localStorage.getItem('activationCodes'));
+        
+        // 检查是否已存在
+        if (codes[newCode]) {
+            // 如果存在，递归生成新的
+            return this.generateNewCode();
+        }
+        
+        // 添加新激活码
+        codes[newCode] = {
+            used: false,
+            usedAt: null,
+            usedBy: null,
+            createdAt: Date.now()
+        };
+        
+        localStorage.setItem('activationCodes', JSON.stringify(codes));
+        this.updateAdminPanel();
+        
+        // 显示生成成功的消息
+        alert(`新激活码已生成: ${newCode}`);
+        
+        // 复制到剪贴板
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(newCode).then(() => {
+                console.log('激活码已复制到剪贴板');
+            }).catch(err => {
+                console.error('复制到剪贴板失败:', err);
+            });
+        }
+    }
+    
+    // 重置单个激活码
+    resetSingleCode(code) {
+        if (confirm(`确定要重置激活码 "${code}" 的使用状态吗？此操作不可撤销！`)) {
+            const codes = JSON.parse(localStorage.getItem('activationCodes'));
+            
+            if (codes[code]) {
+                codes[code] = {
+                    used: false,
+                    usedAt: null,
+                    usedBy: null,
+                    createdAt: codes[code].createdAt || Date.now()
+                };
+                localStorage.setItem('activationCodes', JSON.stringify(codes));
+                
+                // 检查当前激活状态，如果使用的是这个激活码，则取消激活
+                const currentActivation = JSON.parse(localStorage.getItem('currentActivation') || '{"activated": false}');
+                if (currentActivation.activated && currentActivation.code === code) {
+                    localStorage.setItem('currentActivation', JSON.stringify({
+                        activated: false,
+                        code: null,
+                        activatedAt: null
+                    }));
+                    
+                    // 添加重置日志
+                    const logs = JSON.parse(localStorage.getItem('activationLogs'));
+                    logs.push({
+                        code: code,
+                        timestamp: Date.now(),
+                        type: 'reset',
+                        action: 'single_reset',
+                        clientInfo: this.getClientInfo()
+                    });
+                    localStorage.setItem('activationLogs', JSON.stringify(logs));
+                }
+                
+                this.updateAdminPanel();
+                alert(`激活码 "${code}" 已重置！`);
+            }
+        }
+    }
+    
+    // 删除激活码
+    deleteCode(code) {
+        if (confirm(`确定要删除激活码 "${code}" 吗？此操作不可撤销！`)) {
+            const codes = JSON.parse(localStorage.getItem('activationCodes'));
+            
+            if (codes[code]) {
+                delete codes[code];
+                localStorage.setItem('activationCodes', JSON.stringify(codes));
+                
+                // 检查当前激活状态，如果使用的是这个激活码，则取消激活
+                const currentActivation = JSON.parse(localStorage.getItem('currentActivation') || '{"activated": false}');
+                if (currentActivation.activated && currentActivation.code === code) {
+                    localStorage.setItem('currentActivation', JSON.stringify({
+                        activated: false,
+                        code: null,
+                        activatedAt: null
+                    }));
+                }
+                
+                // 添加删除日志
+                const logs = JSON.parse(localStorage.getItem('activationLogs'));
+                logs.push({
+                    code: code,
+                    timestamp: Date.now(),
+                    type: 'delete',
+                    action: 'code_deleted',
+                    clientInfo: this.getClientInfo()
+                });
+                localStorage.setItem('activationLogs', JSON.stringify(logs));
+                
+                this.updateAdminPanel();
+                alert(`激活码 "${code}" 已删除！`);
+            }
+        }
+    }
+    
+    // 获取浏览器信息
+    getBrowserInfo(userAgent) {
+        if (!userAgent) return '未知';
+        
+        if (userAgent.includes('Chrome')) return 'Chrome';
+        if (userAgent.includes('Firefox')) return 'Firefox';
+        if (userAgent.includes('Safari')) return 'Safari';
+        if (userAgent.includes('Edge')) return 'Edge';
+        if (userAgent.includes('Opera')) return 'Opera';
+        return '其他';
+    }
+    
+    // 获取客户端信息
+    getClientInfo() {
+        return {
+            userAgent: navigator.userAgent,
+            language: navigator.language,
+            platform: navigator.platform,
+            timestamp: new Date().toLocaleString('zh-CN')
+        };
+    }
 }
+
+// 全局变量，用于在HTML中调用方法
+let adminManager;
 
 // 页面加载完成后初始化管理员面板
 document.addEventListener('DOMContentLoaded', () => {
-    new AdminManager();
+    adminManager = new AdminManager();
 });

@@ -30,10 +30,24 @@ class ActivationManager {
                 codes[code] = {
                     used: false,
                     usedAt: null,
-                    usedBy: null
+                    usedBy: null,
+                    createdAt: Date.now()
                 };
             });
             localStorage.setItem('activationCodes', JSON.stringify(codes));
+        } else {
+            // 为现有激活码添加createdAt字段（如果没有的话）
+            const codes = JSON.parse(localStorage.getItem('activationCodes'));
+            let needsUpdate = false;
+            Object.keys(codes).forEach(code => {
+                if (!codes[code].createdAt) {
+                    codes[code].createdAt = Date.now();
+                    needsUpdate = true;
+                }
+            });
+            if (needsUpdate) {
+                localStorage.setItem('activationCodes', JSON.stringify(codes));
+            }
         }
         
         // 初始化使用日志
@@ -179,7 +193,8 @@ class ActivationManager {
         codes[code] = {
             used: true,
             usedAt: Date.now(),
-            usedBy: this.getClientInfo()
+            usedBy: this.getClientInfo(),
+            createdAt: codes[code].createdAt || Date.now()
         };
         localStorage.setItem('activationCodes', JSON.stringify(codes));
     }
