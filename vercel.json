@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/index.js": {
+    "api/*.js": {
       "runtime": "nodejs18.x",
       "maxDuration": 30
     }
@@ -9,10 +9,6 @@
   "outputDirectory": "public",
   "installCommand": "npm install",
   "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/index.js"
-    },
     {
       "source": "/",
       "destination": "/index.html"
@@ -24,6 +20,10 @@
     {
       "source": "/admin",
       "destination": "/admin.html"
+    },
+    {
+      "source": "/api-test",
+      "destination": "/api-test.html"
     }
   ],
   "headers": [
