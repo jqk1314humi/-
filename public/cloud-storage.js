@@ -6,15 +6,15 @@
 
 class CloudStorage {
     constructor() {
-        // GitHub配置
-        this.GITHUB_TOKEN = 'ghp_your_token_here'; // 需要配置实际的token
-        this.GIST_ID = 'your_gist_id_here'; // 需要配置实际的gist ID
-        this.API_BASE = 'https://api.github.com';
-        
-        // 备用存储方案：使用免费的JSON存储服务
-        this.JSONBIN_API_KEY = '$2a$10$your_api_key_here';
-        this.JSONBIN_BIN_ID = 'your_bin_id_here';
-        this.JSONBIN_BASE = 'https://api.jsonbin.io/v3';
+        // MySQL API配置
+        this.API_BASE = window.location.origin; // 使用相同域名
+        this.API_ENDPOINTS = {
+            health: '/api/health',
+            codes: '/api/codes',
+            logs: '/api/logs',
+            sync: '/api/sync',
+            stats: '/api/stats'
+        };
         
         // 本地缓存
         this.localCache = {
@@ -69,8 +69,8 @@ class CloudStorage {
         try {
             console.log('从云端同步数据...');
             
-            // 获取云端数据（本地模拟）
-            const cloudData = await this.fetchFromJSONBin();
+            // 获取云端数据（MySQL数据库）
+            const cloudData = await this.fetchFromDatabase();
             
             if (cloudData) {
                 this.localCache = {
@@ -123,8 +123,8 @@ class CloudStorage {
                 syncSource: 'manual'
             };
             
-            // 同步到云端（本地模拟）
-            const success = await this.saveToJSONBin(this.localCache);
+            // 同步到云端（MySQL数据库）
+            const success = await this.saveToDatabase(this.localCache);
             
             if (success) {
                 // 更新本地存储
@@ -153,67 +153,90 @@ class CloudStorage {
     }
     
     /**
-     * 使用JSONBin获取数据
+     * 从MySQL数据库获取数据
      */
-    async fetchFromJSONBin() {
+    async fetchFromDatabase() {
         try {
-            // 使用GitHub Gist作为免费的云数据库
-            const gistId = '6b4e8f7d3c2a1b9e8f6d4c3a2b1e9f8d7c6b5a4e';
-            const gistUrl = `https://api.github.com/gists/${gistId}`;
+            console.log('从MySQL数据库获取数据...');
             
-            const response = await fetch(gistUrl, {
+            const response = await fetch(`${this.API_BASE}${this.API_ENDPOINTS.codes}`, {
                 method: 'GET',
                 headers: {
-                    'Accept': 'application/vnd.github.v3+json',
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 }
             });
             
             if (response.ok) {
-                const gist = await response.json();
-                const fileContent = gist.files['activation-data.json']?.content;
-                
-                if (fileContent) {
-                    return JSON.parse(fileContent);
+                const result = await response.json();
+                if (result.success && result.data) {
+                    console.log('MySQL数据获取成功');
+                    return result.data;
                 }
+            } else {
+                console.warn(`MySQL API响应失败: ${response.status} ${response.statusText}`);
             }
             
-            // 如果GitHub Gist失败，使用本地模拟数据
-            console.warn('GitHub Gist访问失败，使用本地模拟云数据');
+            // 如果MySQL API失败，使用本地模拟数据
+            console.warn('MySQL API访问失败，使用本地模拟云数据');
             return this.getLocalCloudData();
             
         } catch (error) {
-            console.error('云端数据获取失败:', error);
+            console.error('MySQL数据库获取失败:', error);
             // 降级到本地模拟数据
             return this.getLocalCloudData();
         }
     }
     
     /**
-     * 保存数据到云端
+     * 保存数据到MySQL数据库
      */
-    async saveToJSONBin(data) {
+    async saveToDatabase(data) {
         try {
-            // 由于GitHub Gist的写入需要认证，我们将数据保存到本地
-            // 并模拟云端同步成功
-            console.log('模拟保存数据到云端:', data);
+            console.log('保存数据到MySQL数据库...');
             
-            // 将数据保存到本地作为"云端"备份
+            const response = await fetch(`${this.API_BASE}${this.API_ENDPOINTS.sync}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    codes: data.codes,
+                    logs: data.logs,
+                    timestamp: Date.now()
+                })
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success) {
+                    console.log('数据已保存到MySQL数据库');
+                    return true;
+                }
+            }
+            
+            console.warn('MySQL数据库保存失败，使用本地备份');
+            // 降级到本地备份
             localStorage.setItem('cloudBackup', JSON.stringify({
                 ...data,
                 cloudSyncTime: Date.now(),
                 syncId: this.generateSyncId()
             }));
             
-            // 模拟网络延迟
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
-            console.log('数据已保存到本地云端备份');
             return true;
             
         } catch (error) {
-            console.error('保存数据失败:', error);
-            return false;
+            console.error('保存到MySQL数据库失败:', error);
+            
+            // 降级到本地备份
+            localStorage.setItem('cloudBackup', JSON.stringify({
+                ...data,
+                cloudSyncTime: Date.now(),
+                syncId: this.generateSyncId()
+            }));
+            
+            return true; // 即使MySQL失败，本地备份成功也返回true
         }
     }
 
@@ -393,6 +416,45 @@ class CloudStorage {
      */
     async useActivationCode(code, deviceInfo) {
         try {
+            console.log('使用激活码通过API:', code);
+            
+            // 直接调用API使用激活码
+            const response = await fetch(`${this.API_BASE}${this.API_ENDPOINTS.codes}/${code}/use`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(deviceInfo)
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success) {
+                    console.log('激活码使用成功');
+                    
+                    // 更新本地缓存
+                    await this.syncFromCloud();
+                    return true;
+                }
+            }
+            
+            // API调用失败，降级到本地处理
+            console.warn('API调用失败，使用本地处理');
+            return await this.useActivationCodeLocal(code, deviceInfo);
+            
+        } catch (error) {
+            console.error('API使用激活码失败:', error);
+            // 降级到本地处理
+            return await this.useActivationCodeLocal(code, deviceInfo);
+        }
+    }
+
+    /**
+     * 本地激活码使用处理（降级方案）
+     */
+    async useActivationCodeLocal(code, deviceInfo) {
+        try {
             // 获取最新数据
             await this.syncFromCloud();
             
@@ -440,7 +502,7 @@ class CloudStorage {
             return true;
             
         } catch (error) {
-            console.error('使用激活码失败:', error);
+            console.error('本地使用激活码失败:', error);
             throw error;
         }
     }
@@ -449,6 +511,44 @@ class CloudStorage {
      * 重置激活码
      */
     async resetActivationCode(code) {
+        try {
+            console.log('重置激活码通过API:', code);
+            
+            // 直接调用API重置激活码
+            const response = await fetch(`${this.API_BASE}${this.API_ENDPOINTS.codes}/${code}/reset`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success) {
+                    console.log('激活码重置成功');
+                    
+                    // 更新本地缓存
+                    await this.syncFromCloud();
+                    return true;
+                }
+            }
+            
+            // API调用失败，降级到本地处理
+            console.warn('API调用失败，使用本地处理');
+            return await this.resetActivationCodeLocal(code);
+            
+        } catch (error) {
+            console.error('API重置激活码失败:', error);
+            // 降级到本地处理
+            return await this.resetActivationCodeLocal(code);
+        }
+    }
+
+    /**
+     * 本地重置激活码处理（降级方案）
+     */
+    async resetActivationCodeLocal(code) {
         try {
             await this.syncFromCloud();
             
@@ -485,7 +585,7 @@ class CloudStorage {
             return true;
             
         } catch (error) {
-            console.error('重置激活码失败:', error);
+            console.error('本地重置激活码失败:', error);
             throw error;
         }
     }

@@ -1,23 +1,38 @@
 {
   "name": "intelligent-advisor",
-  "version": "2.1.1",
-  "description": "智能导员系统 - 为大学生提供学习、生活、职业规划指导",
-  "main": "index.html",
+  "version": "4.2.0",
+  "description": "智能导员系统 - 带MySQL数据库支持的激活码管理系统",
+  "main": "api/index.js",
   "scripts": {
-    "start": "serve -s .",
+    "start": "node api/index.js",
+    "dev": "nodemon api/index.js",
+    "serve": "serve -s public -p 3000",
     "build": "echo 'No build process needed for static site'",
-    "dev": "serve -s . -p 3000"
+    "test": "node test/test-db.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "mysql2": "^3.6.5",
+    "cors": "^2.8.5",
+    "express-rate-limit": "^7.1.5"
+  },
+  "devDependencies": {
+    "serve": "^14.0.0",
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=16.0.0"
   },
   "keywords": [
     "advisor",
     "education",
     "student",
     "guidance",
-    "chatbot"
+    "chatbot",
+    "mysql",
+    "activation",
+    "api"
   ],
   "author": "jqk开发团队",
-  "license": "MIT",
-  "devDependencies": {
-    "serve": "^14.0.0"
-  }
+  "license": "MIT"
 }
