@@ -35,6 +35,14 @@
       "dest": "/public/quick-test.html"
     },
     {
+      "src": "/vika-test",
+      "dest": "/public/vika-test.html"
+    },
+    {
+      "src": "/simple-vika-test",
+      "dest": "/public/simple-vika-test.html"
+    },
+    {
       "src": "/(.*)",
       "dest": "/public/$1"
     }
