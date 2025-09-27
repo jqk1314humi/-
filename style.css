@@ -704,12 +704,12 @@ html {
 
 .activation-button {
     width: 100%;
-    padding: 1rem 1.25rem;
+    padding: 1.25rem 1.5rem;
     border: none;
     border-radius: 0.75rem;
     background: linear-gradient(135deg, #6366f1, #8b5cf6);
     color: white;
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s;
@@ -717,11 +717,21 @@ html {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    min-height: 54px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .activation-button:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+}
+
+.activation-button:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
 }
 
 .activation-button:disabled {
@@ -1066,7 +1076,29 @@ html {
     }
     
     .activation-card {
-        padding: 2rem;
+        padding: 2rem 1.5rem;
+    }
+    
+    .activation-button {
+        padding: 1.5rem 2rem;
+        font-size: 1.2rem;
+        min-height: 60px;
+        border-radius: 1rem;
+    }
+    
+    .activation-input {
+        padding: 1.25rem 1.5rem;
+        font-size: 1.1rem;
+        min-height: 54px;
+        border-radius: 1rem;
+    }
+    
+    .activation-title {
+        font-size: 2rem;
+    }
+    
+    .activation-subtitle {
+        font-size: 1.1rem;
     }
     
     .admin-panel {
@@ -1089,5 +1121,7 @@ html {
     
     .action-button {
         justify-content: center;
+        min-height: 54px;
+        padding: 1.25rem 1.5rem;
     }
 }

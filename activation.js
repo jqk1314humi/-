@@ -60,13 +60,24 @@ class ActivationManager {
                 }
             });
             
-            activationButton.addEventListener('click', () => {
+            // 添加多种事件监听以确保移动端兼容性
+            activationButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.handleActivation();
+            });
+            
+            // 添加触摸事件支持
+            activationButton.addEventListener('touchend', (e) => {
+                e.preventDefault();
                 this.handleActivation();
             });
             
             activationInput.addEventListener('input', () => {
                 this.updateActivationButtonState();
             });
+            
+            // 初始状态检查
+            this.updateActivationButtonState();
         }
     }
     
