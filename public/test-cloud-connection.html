@@ -180,57 +180,101 @@
         }
         
         async function testConnection() {
-            log('开始连接测试', 'info');
+            log('开始MySQL数据库连接测试', 'info');
             
-            const storage = await waitForCloudStorage();
-            if (!storage) {
-                log('云存储连接失败 - 未找到cloudStorage实例', 'error');
-                updateConnectionStatus('error', '❌ 连接失败 - 云存储未初始化');
-                return;
-            }
-            
-            log('云存储实例已找到', 'success');
-            updateConnectionStatus('success', '✅ 云存储已连接');
-            
-            // 测试基本功能
             try {
-                const codes = await storage.getActivationCodes();
-                log(`获取激活码成功，共 ${Object.keys(codes).length} 个`, 'success');
+                // 直接测试API健康检查
+                log('测试API健康检查...', 'info');
+                const response = await fetch('/api/health');
                 
-                const logs = await storage.getLogs();
-                log(`获取日志成功，共 ${logs.length} 条`, 'success');
+                if (response.ok) {
+                    const healthData = await response.json();
+                    log(`API健康检查成功: ${healthData.status}`, 'success');
+                    log(`数据库状态: ${healthData.database}`, 'success');
+                    
+                    if (healthData.stats) {
+                        log(`激活码统计: 总数${healthData.stats.codes.total}, 已使用${healthData.stats.codes.used}`, 'info');
+                        log(`日志统计: ${healthData.stats.logs.total} 条记录`, 'info');
+                    }
+                    
+                    updateConnectionStatus('success', '✅ MySQL数据库连接成功');
+                } else {
+                    throw new Error(`API响应失败: ${response.status}`);
+                }
                 
-                updateDataOverview(codes, logs);
+                // 测试云存储实例
+                const storage = await waitForCloudStorage();
+                if (storage) {
+                    log('云存储实例已找到', 'success');
+                    
+                    // 测试基本功能
+                    const codes = await storage.getActivationCodes();
+                    log(`获取激活码成功，共 ${Object.keys(codes).length} 个`, 'success');
+                    
+                    const logs = await storage.getLogs();
+                    log(`获取日志成功，共 ${logs.length} 条`, 'success');
+                    
+                    updateDataOverview(codes, logs);
+                } else {
+                    log('云存储实例未找到，但API连接正常', 'warning');
+                }
                 
             } catch (error) {
-                log(`功能测试失败: ${error.message}`, 'error');
+                log(`连接测试失败: ${error.message}`, 'error');
+                updateConnectionStatus('error', '❌ MySQL数据库连接失败');
+                
+                // 测试本地降级
+                log('尝试本地降级模式...', 'info');
+                const storage = await waitForCloudStorage();
+                if (storage) {
+                    try {
+                        const codes = await storage.getActivationCodes();
+                        log(`本地降级成功，获取到 ${Object.keys(codes).length} 个激活码`, 'warning');
+                        updateConnectionStatus('warning', '⚠️ 使用本地降级模式');
+                        updateDataOverview(codes, []);
+                    } catch (localError) {
+                        log(`本地降级也失败: ${localError.message}`, 'error');
+                    }
+                }
             }
         }
         
         async function testDataSync() {
-            log('开始数据同步测试', 'info');
-            
-            const storage = await waitForCloudStorage();
-            if (!storage) {
-                log('云存储未连接', 'error');
-                return;
-            }
+            log('开始MySQL数据同步测试', 'info');
             
             try {
-                // 测试从云端同步
-                log('测试从云端同步数据...', 'info');
-                const syncResult = await storage.syncFromCloud();
+                // 直接测试API数据获取
+                log('测试API数据获取...', 'info');
+                const response = await fetch('/api/codes');
                 
-                if (syncResult) {
-                    log('从云端同步数据成功', 'success');
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data) {
+                        log(`API数据获取成功: ${Object.keys(result.data.codes).length} 个激活码, ${result.data.logs.length} 条日志`, 'success');
+                        log(`数据来源: ${result.data.source}`, 'info');
+                        updateDataOverview(result.data.codes, result.data.logs);
+                    }
                 } else {
-                    log('从云端同步数据失败，但系统正常运行', 'warning');
+                    throw new Error(`API数据获取失败: ${response.status}`);
                 }
                 
-                // 更新数据概览
-                const codes = await storage.getActivationCodes();
-                const logs = await storage.getLogs();
-                updateDataOverview(codes, logs);
+                // 测试云存储同步
+                const storage = await waitForCloudStorage();
+                if (storage) {
+                    log('测试云存储同步...', 'info');
+                    const syncResult = await storage.syncFromCloud();
+                    
+                    if (syncResult) {
+                        log('云存储同步成功', 'success');
+                    } else {
+                        log('云存储同步失败，但API正常', 'warning');
+                    }
+                    
+                    // 更新数据概览
+                    const codes = await storage.getActivationCodes();
+                    const logs = await storage.getLogs();
+                    updateDataOverview(codes, logs);
+                }
                 
             } catch (error) {
                 log(`数据同步测试失败: ${error.message}`, 'error');
@@ -238,33 +282,91 @@
         }
         
         async function testDataSave() {
-            log('开始数据保存测试', 'info');
-            
-            const storage = await waitForCloudStorage();
-            if (!storage) {
-                log('云存储未连接', 'error');
-                return;
-            }
+            log('开始MySQL数据保存测试', 'info');
             
             try {
-                // 创建测试数据
-                const testData = {
-                    codes: await storage.getActivationCodes(),
-                    logs: await storage.getLogs(),
-                    testEntry: {
-                        timestamp: Date.now(),
-                        message: '测试数据保存',
-                        type: 'test'
+                // 创建测试激活码
+                const testCode = 'TEST' + Date.now().toString().slice(-6);
+                log(`创建测试激活码: ${testCode}`, 'info');
+                
+                const createResponse = await fetch('/api/codes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ code: testCode })
+                });
+                
+                if (createResponse.ok) {
+                    const createResult = await createResponse.json();
+                    if (createResult.success) {
+                        log('测试激活码创建成功', 'success');
+                        
+                        // 测试使用激活码
+                        log('测试使用激活码...', 'info');
+                        const useResponse = await fetch(`/api/codes/${testCode}/use`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                deviceFingerprint: 'test_device_' + Date.now(),
+                                userAgent: 'Test User Agent',
+                                ipHash: 'test_ip_hash',
+                                sessionId: 'test_session_' + Date.now()
+                            })
+                        });
+                        
+                        if (useResponse.ok) {
+                            log('测试激活码使用成功', 'success');
+                            
+                            // 测试重置激活码
+                            log('测试重置激活码...', 'info');
+                            const resetResponse = await fetch(`/api/codes/${testCode}/reset`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
+                            });
+                            
+                            if (resetResponse.ok) {
+                                log('测试激活码重置成功', 'success');
+                            }
+                        }
+                        
+                        // 删除测试激活码
+                        log('清理测试激活码...', 'info');
+                        const deleteResponse = await fetch(`/api/codes/${testCode}`, {
+                            method: 'DELETE'
+                        });
+                        
+                        if (deleteResponse.ok) {
+                            log('测试激活码删除成功', 'success');
+                        }
                     }
-                };
-                
-                log('测试数据保存到云端...', 'info');
-                const saveResult = await storage.syncToCloud(testData);
-                
-                if (saveResult) {
-                    log('数据保存到云端成功', 'success');
                 } else {
-                    log('数据保存到云端失败', 'error');
+                    throw new Error(`创建测试激活码失败: ${createResponse.status}`);
+                }
+                
+                // 测试云存储同步
+                const storage = await waitForCloudStorage();
+                if (storage) {
+                    log('测试云存储数据同步...', 'info');
+                    const syncResult = await storage.syncToCloud({
+                        codes: await storage.getActivationCodes(),
+                        logs: await storage.getLogs(),
+                        testEntry: {
+                            timestamp: Date.now(),
+                            message: '测试数据保存',
+                            type: 'test'
+                        }
+                    });
+                    
+                    if (syncResult) {
+                        log('云存储数据同步成功', 'success');
+                    } else {
+                        log('云存储数据同步失败', 'error');
+                    }
                 }
                 
             } catch (error) {

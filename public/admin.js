@@ -3,7 +3,6 @@
  * 集成云存储 - 实现跨设备激活码状态同步
  * 更新时间: 2025/9/27 23:45
  */
-
 class AdminSystem {
     constructor() {
         // 开发者激活码
@@ -415,7 +414,7 @@ class AdminSystem {
             const logItem = document.createElement('div');
             logItem.className = 'log-item';
             
-        const logTime = new Date(log.timestamp).toLocaleString('zh-CN');
+            const logTime = new Date(log.timestamp).toLocaleString('zh-CN');
             const logType = log.type === 'developer' ? '开发者' : '用户';
         const actionText = this.getActionText(log.action || 'activation');
         
@@ -439,7 +438,7 @@ class AdminSystem {
                         <i class="fas fa-globe"></i>
                         <span>浏览器: ${browser}</span>
                     </div>
-                </div>
+                    </div>
             `;
         }
         
@@ -449,9 +448,9 @@ class AdminSystem {
                     <span class="log-code">${log.code}</span>
                     <span class="log-type ${log.type}">${logType}</span>
                     <span class="log-action">${actionText}</span>
-                </div>
+                        </div>
                 <span class="log-time">${logTime}</span>
-            </div>
+                </div>
             ${detailsHtml}
         `;
         
@@ -753,9 +752,9 @@ class AdminSystem {
                 if (this.currentData.codes[code].used) {
                     this.currentData.codes[code] = {
                         ...this.currentData.codes[code],
-                        used: false,
-                        usedAt: null,
-                        usedBy: null,
+                used: false,
+                usedAt: null,
+                usedBy: null,
                         deviceFingerprint: null,
                         status: 'available'
                     };
@@ -766,9 +765,9 @@ class AdminSystem {
             localStorage.setItem('activationCodes', JSON.stringify(this.currentData.codes));
             
             // 清除当前激活状态
-            localStorage.setItem('currentActivation', JSON.stringify({
-                activated: false,
-                code: null,
+                localStorage.setItem('currentActivation', JSON.stringify({
+                    activated: false,
+                    code: null,
                 activatedAt: null,
                 deviceFingerprint: null
             }));
@@ -833,8 +832,8 @@ class AdminSystem {
     logAction(code, action, description) {
         try {
             const logEntry = {
-                    code: code,
-                    timestamp: Date.now(),
+                code: code,
+                timestamp: Date.now(),
                 action: action,
                 description: description,
                 type: 'admin',
