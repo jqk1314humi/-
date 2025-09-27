@@ -1,13 +1,17 @@
-// 激活码管理系统
-class ActivationManager {
+/**
+ * 智能导员激活码管理系统 v3.0
+ * 完全重写版本 - 确保激活码一次性使用和完整的状态管理
+ */
+
+class ActivationSystem {
     constructor() {
-        // 开发者激活码
+        // 开发者激活码（可重复使用但有限制）
         this.DEVELOPER_CODE = 'jqkkf0922';
         
         // 初始激活码列表
         this.INITIAL_CODES = [
             'j6si0f26cig0',
-            'polex311eo4e',
+            'polex311eo4e', 
             'gwhfntmgol8l',
             'sej5z1hhleqf',
             '2ta1zchbuj8v',
@@ -18,356 +22,62 @@ class ActivationManager {
             'v61g1yyvbgg6'
         ];
         
-        this.initializeData();
-        this.setupEventListeners();
+        // 系统状态
+        this.isInitialized = false;
+        this.deviceFingerprint = null;
+        
+        this.init();
     }
     
-    initializeData() {
-        // 初始化激活码数据
-        if (!localStorage.getItem('activationCodes')) {
-            const codes = {};
-            this.INITIAL_CODES.forEach(code => {
-                codes[code] = {
-                    used: false,
-                    usedAt: null,
-                    usedBy: null,
-                    createdAt: Date.now()
-                };
-            });
-            localStorage.setItem('activationCodes', JSON.stringify(codes));
-        } else {
-            // 为现有激活码添加createdAt字段（如果没有的话）
-            const codes = JSON.parse(localStorage.getItem('activationCodes'));
-            let needsUpdate = false;
-            Object.keys(codes).forEach(code => {
-                if (!codes[code].createdAt) {
-                    codes[code].createdAt = Date.now();
-                    needsUpdate = true;
-                }
-            });
-            if (needsUpdate) {
-                localStorage.setItem('activationCodes', JSON.stringify(codes));
-            }
-        }
-        
-        // 初始化使用日志
-        if (!localStorage.getItem('activationLogs')) {
-            localStorage.setItem('activationLogs', JSON.stringify([]));
-        }
-        
-        // 检查当前激活状态
-        const currentActivation = JSON.parse(localStorage.getItem('currentActivation') || '{"activated": false}');
-        if (currentActivation.activated) {
-            // 验证激活状态的一致性
-            if (currentActivation.code && currentActivation.code !== this.DEVELOPER_CODE) {
-                const codes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
-                const codeInfo = codes[currentActivation.code];
-                
-                // 如果激活码不存在或未被使用，清除无效的激活状态
-                if (!codeInfo || !codeInfo.used) {
-                    console.warn('检测到无效的激活状态，正在清除...');
-                    localStorage.setItem('currentActivation', JSON.stringify({
-                        activated: false,
-                        code: null,
-                        activatedAt: null
-                    }));
-                    alert('激活状态异常，请重新激活');
-                    return;
-                }
-                
-                // 验证设备ID是否匹配（防止激活码被其他设备使用）
-                const currentDeviceId = this.generateDeviceId();
-                if (codeInfo.usedBy && codeInfo.usedBy.deviceId && codeInfo.usedBy.deviceId !== currentDeviceId) {
-                    console.warn('设备ID不匹配，激活码可能被其他设备使用');
-                    localStorage.setItem('currentActivation', JSON.stringify({
-                        activated: false,
-                        code: null,
-                        activatedAt: null
-                    }));
-                    alert('激活码已被其他设备使用，当前设备激活状态已失效');
-                    return;
-                }
-            }
+    async init() {
+        try {
+            console.log('激活系统初始化开始...');
             
-            // 如果验证通过，跳转到主应用
-            window.location.href = './advisor.html';
-        }
-    }
-    
-    setupEventListeners() {
-        const activationInput = document.getElementById('activationInput');
-        const activationButton = document.getElementById('activationButton');
-        
-        if (activationInput && activationButton) {
-            activationInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    this.handleActivation();
-                }
-            });
+            // 生成设备指纹
+            this.deviceFingerprint = this.generateDeviceFingerprint();
+            console.log('设备指纹:', this.deviceFingerprint);
             
-            // 添加多种事件监听以确保移动端兼容性
-            activationButton.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.handleActivation();
-            });
+            // 初始化数据存储
+            this.initializeStorage();
             
-            // 添加触摸事件支持
-            activationButton.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                this.handleActivation();
-            });
+            // 验证现有激活状态
+            await this.validateExistingActivation();
             
-            activationInput.addEventListener('input', () => {
-                this.updateActivationButtonState();
-            });
+            // 设置事件监听器
+            this.setupEventListeners();
             
-            // 初始状态检查
-            this.updateActivationButtonState();
-        }
-    }
-    
-    updateActivationButtonState() {
-        const activationInput = document.getElementById('activationInput');
-        const activationButton = document.getElementById('activationButton');
-        
-        if (activationInput && activationButton) {
-            const hasText = activationInput.value.trim().length > 0;
-            activationButton.disabled = !hasText;
-        }
-    }
-    
-    handleActivation() {
-        const activationInput = document.getElementById('activationInput');
-        const activationButton = document.getElementById('activationButton');
-        const activationMessage = document.getElementById('activationMessage');
-        
-        if (!activationInput || !activationButton) return;
-        
-        const inputCode = activationInput.value.trim();
-        if (!inputCode) return;
-        
-        // 禁用按钮防止重复提交
-        activationButton.disabled = true;
-        activationButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 验证中...';
-        
-        // 模拟验证延迟
-        setTimeout(() => {
-            try {
-                const result = this.validateActivationCode(inputCode);
-                
-                if (result.success) {
-                    this.activateApp(inputCode);
-                    this.showMessage(activationMessage, '激活成功！正在跳转到智能导员...', 'success');
-                    
-                    setTimeout(() => {
-                        window.location.href = './advisor.html';
-                    }, 1500);
-                } else {
-                    this.showMessage(activationMessage, result.message, 'error');
-                    activationButton.disabled = false;
-                    activationButton.innerHTML = '<i class="fas fa-check"></i> 激活';
-                }
-            } catch (error) {
-                console.error('激活过程中发生错误:', error);
-                this.showMessage(activationMessage, error.message || '激活失败，请重试', 'error');
-                activationButton.disabled = false;
-                activationButton.innerHTML = '<i class="fas fa-check"></i> 激活';
-            }
-        }, 1000);
-    }
-    
-    validateActivationCode(code) {
-        // 检查开发者激活码
-        if (code === this.DEVELOPER_CODE) {
-            // 开发者激活码也要检查是否已经在当前设备激活
-            const currentActivation = JSON.parse(localStorage.getItem('currentActivation') || '{"activated": false}');
-            if (currentActivation.activated && currentActivation.code === this.DEVELOPER_CODE) {
-                return {
-                    success: false,
-                    message: '开发者激活码已在当前设备激活，无需重复激活'
-                };
-            }
-            return {
-                success: true,
-                message: '开发者激活码验证成功'
-            };
-        }
-        
-        // 检查普通激活码
-        const codes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
-        
-        if (codes[code]) {
-            if (codes[code].used) {
-                // 提供更详细的已使用信息
-                const usedTime = new Date(codes[code].usedAt).toLocaleString('zh-CN');
-                const usedDevice = codes[code].usedBy ? codes[code].usedBy.platform : '未知设备';
-                const deviceId = codes[code].usedBy ? codes[code].usedBy.deviceId : '未知';
-                
-                // 检查是否是同一设备尝试重复激活
-                const currentDeviceId = this.generateDeviceId();
-                if (codes[code].usedBy && codes[code].usedBy.deviceId === currentDeviceId) {
-                    return {
-                        success: false,
-                        message: `该激活码已在当前设备上激活，激活时间：${usedTime}。如需重新激活请联系管理员重置。`
-                    };
-                } else {
-                    return {
-                        success: false,
-                        message: `该激活码已于 ${usedTime} 在其他设备（${deviceId}）上被使用，每个激活码只能使用一次`
-                    };
-                }
-            } else {
-                // 检查当前设备是否已经有其他激活码激活
-                const currentActivation = JSON.parse(localStorage.getItem('currentActivation') || '{"activated": false}');
-                if (currentActivation.activated && currentActivation.code !== code) {
-                    return {
-                        success: false,
-                        message: `当前设备已使用激活码 "${currentActivation.code}" 激活，一个设备只能激活一次`
-                    };
-                }
-                
-                return {
-                    success: true,
-                    message: '激活码验证成功'
-                };
-            }
-        } else {
-            return {
-                success: false,
-                message: '无效的激活码，请检查输入是否正确'
-            };
-        }
-    }
-    
-    activateApp(code) {
-        // 如果不是开发者激活码，需要原子性地标记为已使用
-        if (code !== this.DEVELOPER_CODE) {
-            // 再次检查激活码状态，防止并发使用
-            const codes = JSON.parse(localStorage.getItem('activationCodes'));
-            if (codes[code] && codes[code].used) {
-                throw new Error('激活码已被其他设备使用，请刷新页面重试');
-            }
+            this.isInitialized = true;
+            console.log('激活系统初始化完成');
             
-            // 立即标记为已使用
-            this.markCodeAsUsed(code);
+        } catch (error) {
+            console.error('激活系统初始化失败:', error);
+            this.showError('系统初始化失败，请刷新页面重试');
         }
-        
-        // 更新当前设备的激活状态
-        const currentActivation = {
-            activated: true,
-            code: code,
-            activatedAt: Date.now(),
-            deviceId: this.generateDeviceId(),
-            activationId: this.generateActivationId()
-        };
-        localStorage.setItem('currentActivation', JSON.stringify(currentActivation));
-        
-        // 记录使用日志
-        this.logActivation(code);
     }
     
-    markCodeAsUsed(code) {
-        const codes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
-        
-        // 双重检查：确保激活码存在且未被使用
-        if (!codes[code]) {
-            throw new Error('激活码不存在或已被删除');
-        }
-        
-        if (codes[code].used) {
-            throw new Error('激活码已被使用，无法重复激活');
-        }
-        
-        const clientInfo = this.getClientInfo();
-        const deviceId = this.generateDeviceId();
-        const activationId = this.generateActivationId();
-        const timestamp = Date.now();
-        
-        // 原子性更新激活码状态
-        codes[code] = {
-            used: true,
-            usedAt: timestamp,
-            usedBy: {
-                ...clientInfo,
-                deviceId: deviceId,
-                activationId: activationId,
-                ipHash: this.generateIPHash(),
-                sessionId: this.generateSessionId()
-            },
-            createdAt: codes[code].createdAt || timestamp,
-            status: 'active',
-            lockTimestamp: timestamp // 添加锁定时间戳
-        };
-        
-        // 立即保存到localStorage
-        localStorage.setItem('activationCodes', JSON.stringify(codes));
-        
-        // 验证保存是否成功
-        const savedCodes = JSON.parse(localStorage.getItem('activationCodes'));
-        if (!savedCodes[code] || !savedCodes[code].used) {
-            throw new Error('激活码状态保存失败，请重试');
-        }
-        
-        console.log(`激活码 ${code} 已标记为已使用，设备ID: ${deviceId}`);
-    }
-    
-    logActivation(code) {
-        const logs = JSON.parse(localStorage.getItem('activationLogs'));
-        logs.push({
-            code: code,
-            timestamp: Date.now(),
-            clientInfo: this.getClientInfo(),
-            type: code === this.DEVELOPER_CODE ? 'developer' : 'user'
-        });
-        localStorage.setItem('activationLogs', JSON.stringify(logs));
-    }
-    
-    getClientInfo() {
-        return {
-            userAgent: navigator.userAgent,
-            language: navigator.language,
-            platform: navigator.platform,
-            timestamp: new Date().toLocaleString('zh-CN'),
-            screenResolution: `${screen.width}x${screen.height}`,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            cookieEnabled: navigator.cookieEnabled
-        };
-    }
-    
-    // 生成设备唯一标识
-    generateDeviceId() {
-        // 基于浏览器指纹生成设备ID
-        const fingerprint = [
-            navigator.userAgent,
-            navigator.language,
-            navigator.platform,
+    /**
+     * 生成设备指纹 - 用于唯一标识设备
+     */
+    generateDeviceFingerprint() {
+        const components = [
+            navigator.userAgent || '',
+            navigator.language || '',
+            navigator.platform || '',
             screen.width + 'x' + screen.height,
+            screen.colorDepth || 0,
             new Date().getTimezoneOffset(),
             navigator.hardwareConcurrency || 0,
-            navigator.maxTouchPoints || 0
-        ].join('|');
+            navigator.maxTouchPoints || 0,
+            navigator.cookieEnabled ? '1' : '0'
+        ];
         
+        const fingerprint = components.join('|');
         return this.hashString(fingerprint).substring(0, 16);
     }
     
-    // 生成激活ID
-    generateActivationId() {
-        return 'act_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 8);
-    }
-    
-    // 生成会话ID
-    generateSessionId() {
-        return 'sess_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 10);
-    }
-    
-    // 生成IP哈希（模拟）
-    generateIPHash() {
-        // 由于无法直接获取真实IP，使用时间戳和随机数生成标识
-        const pseudo = Date.now() + Math.random();
-        return 'ip_' + this.hashString(pseudo.toString()).substring(0, 8);
-    }
-    
-    // 简单哈希函数
+    /**
+     * 字符串哈希函数
+     */
     hashString(str) {
         let hash = 0;
         for (let i = 0; i < str.length; i++) {
@@ -378,21 +88,519 @@ class ActivationManager {
         return Math.abs(hash).toString(36);
     }
     
-    showMessage(element, message, type) {
-        if (!element) return;
+    /**
+     * 初始化数据存储
+     */
+    initializeStorage() {
+        try {
+            // 初始化激活码数据
+            if (!localStorage.getItem('activationCodes')) {
+                const codes = {};
+                this.INITIAL_CODES.forEach(code => {
+                    codes[code] = {
+                        code: code,
+                        used: false,
+                        usedAt: null,
+                        usedBy: null,
+                        deviceFingerprint: null,
+                        createdAt: Date.now(),
+                        status: 'available',
+                        version: '3.0'
+                    };
+                });
+                localStorage.setItem('activationCodes', JSON.stringify(codes));
+                console.log('初始化激活码数据完成');
+            } else {
+                // 升级现有数据到v3.0格式
+                this.upgradeStorageFormat();
+            }
+            
+            // 初始化使用日志
+            if (!localStorage.getItem('activationLogs')) {
+                localStorage.setItem('activationLogs', JSON.stringify([]));
+            }
+            
+            // 初始化系统配置
+            if (!localStorage.getItem('systemConfig')) {
+                const config = {
+                    version: '3.0',
+                    createdAt: Date.now(),
+                    lastUpdated: Date.now()
+                };
+                localStorage.setItem('systemConfig', JSON.stringify(config));
+            }
+            
+        } catch (error) {
+            console.error('存储初始化失败:', error);
+            throw new Error('数据存储初始化失败');
+        }
+    }
+    
+    /**
+     * 升级存储格式到v3.0
+     */
+    upgradeStorageFormat() {
+        try {
+            const codes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
+            let needsUpdate = false;
+            
+            Object.keys(codes).forEach(codeKey => {
+                const codeData = codes[codeKey];
+                
+                // 添加缺失的字段
+                if (!codeData.version || codeData.version !== '3.0') {
+                    codes[codeKey] = {
+                        code: codeKey,
+                        used: codeData.used || false,
+                        usedAt: codeData.usedAt || null,
+                        usedBy: codeData.usedBy || null,
+                        deviceFingerprint: codeData.deviceFingerprint || null,
+                        createdAt: codeData.createdAt || Date.now(),
+                        status: codeData.used ? 'used' : 'available',
+                        version: '3.0'
+                    };
+                    needsUpdate = true;
+                }
+            });
+            
+            if (needsUpdate) {
+                localStorage.setItem('activationCodes', JSON.stringify(codes));
+                console.log('存储格式升级完成');
+            }
+        } catch (error) {
+            console.error('存储格式升级失败:', error);
+        }
+    }
+    
+    /**
+     * 验证现有激活状态
+     */
+    async validateExistingActivation() {
+        try {
+            const currentActivation = JSON.parse(localStorage.getItem('currentActivation') || '{"activated": false}');
+            
+            if (!currentActivation.activated) {
+                console.log('当前设备未激活');
+                return;
+            }
+            
+            console.log('验证现有激活状态:', currentActivation);
+            
+            // 如果是开发者激活码，允许继续使用
+            if (currentActivation.code === this.DEVELOPER_CODE) {
+                console.log('开发者激活码验证通过');
+                this.redirectToApp();
+                return;
+            }
+            
+            // 验证普通激活码
+            const codes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
+            const codeData = codes[currentActivation.code];
+            
+            if (!codeData) {
+                console.warn('激活码不存在，清除激活状态');
+                this.clearActivationStatus();
+                return;
+            }
+            
+            if (!codeData.used) {
+                console.warn('激活码未被标记为已使用，清除激活状态');
+                this.clearActivationStatus();
+                return;
+            }
+            
+            if (codeData.deviceFingerprint && codeData.deviceFingerprint !== this.deviceFingerprint) {
+                console.warn('设备指纹不匹配，激活码可能被其他设备使用');
+                this.clearActivationStatus();
+                this.showError('检测到激活码已被其他设备使用，请重新激活');
+                return;
+            }
+            
+            console.log('激活状态验证通过');
+            this.redirectToApp();
+            
+        } catch (error) {
+            console.error('激活状态验证失败:', error);
+            this.clearActivationStatus();
+        }
+    }
+    
+    /**
+     * 清除激活状态
+     */
+    clearActivationStatus() {
+        localStorage.setItem('currentActivation', JSON.stringify({
+            activated: false,
+            code: null,
+            activatedAt: null,
+            deviceFingerprint: null
+        }));
+        console.log('激活状态已清除');
+    }
+    
+    /**
+     * 设置事件监听器
+     */
+    setupEventListeners() {
+        const activationInput = document.getElementById('activationInput');
+        const activationButton = document.getElementById('activationButton');
         
-        element.textContent = message;
-        element.className = `activation-message ${type}`;
+        if (!activationInput || !activationButton) {
+            console.error('激活界面元素未找到');
+            return;
+        }
         
-        // 3秒后清除消息
+        // 输入框事件
+        activationInput.addEventListener('input', () => {
+            this.updateButtonState();
+            this.clearMessage();
+        });
+        
+        activationInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !activationButton.disabled) {
+                this.handleActivation();
+            }
+        });
+        
+        // 激活按钮事件
+        activationButton.addEventListener('click', () => {
+            this.handleActivation();
+        });
+        
+        // 初始状态
+        this.updateButtonState();
+    }
+    
+    /**
+     * 更新按钮状态
+     */
+    updateButtonState() {
+        const activationInput = document.getElementById('activationInput');
+        const activationButton = document.getElementById('activationButton');
+        
+        if (!activationInput || !activationButton) return;
+        
+        const hasInput = activationInput.value.trim().length > 0;
+        activationButton.disabled = !hasInput || !this.isInitialized;
+    }
+    
+    /**
+     * 处理激活请求
+     */
+    async handleActivation() {
+        if (!this.isInitialized) {
+            this.showError('系统尚未初始化完成，请稍后重试');
+            return;
+        }
+        
+        const activationInput = document.getElementById('activationInput');
+        const activationButton = document.getElementById('activationButton');
+        
+        if (!activationInput || !activationButton) {
+            this.showError('界面元素未找到');
+            return;
+        }
+        
+        const inputCode = activationInput.value.trim();
+        if (!inputCode) {
+            this.showError('请输入激活码');
+            return;
+        }
+        
+        // 禁用界面
+        activationButton.disabled = true;
+        activationInput.disabled = true;
+        activationButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 验证中...';
+        
+        try {
+            // 验证激活码
+            const validationResult = await this.validateActivationCode(inputCode);
+            
+            if (!validationResult.success) {
+                throw new Error(validationResult.message);
+            }
+            
+            // 执行激活
+            await this.performActivation(inputCode);
+            
+            // 显示成功消息
+            this.showSuccess('激活成功！正在跳转...');
+            
+            // 延迟跳转
+            setTimeout(() => {
+                this.redirectToApp();
+            }, 1500);
+            
+        } catch (error) {
+            console.error('激活失败:', error);
+            this.showError(error.message || '激活失败，请重试');
+            
+            // 恢复界面
+            activationButton.disabled = false;
+            activationInput.disabled = false;
+            activationButton.innerHTML = '<i class="fas fa-check"></i> 激活';
+            this.updateButtonState();
+        }
+    }
+    
+    /**
+     * 验证激活码
+     */
+    async validateActivationCode(code) {
+        try {
+            console.log('验证激活码:', code);
+            
+            // 检查开发者激活码
+            if (code === this.DEVELOPER_CODE) {
+                // 检查当前设备是否已经激活
+                const currentActivation = JSON.parse(localStorage.getItem('currentActivation') || '{"activated": false}');
+                if (currentActivation.activated && currentActivation.code === this.DEVELOPER_CODE) {
+                    return {
+                        success: false,
+                        message: '开发者激活码已在当前设备激活，无需重复激活'
+                    };
+                }
+                
+                return {
+                    success: true,
+                    message: '开发者激活码验证通过'
+                };
+            }
+            
+            // 检查普通激活码
+            const codes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
+            const codeData = codes[code];
+            
+            if (!codeData) {
+                return {
+                    success: false,
+                    message: '无效的激活码，请检查输入是否正确'
+                };
+            }
+            
+            if (codeData.used) {
+                const usedTime = new Date(codeData.usedAt).toLocaleString('zh-CN');
+                const deviceInfo = codeData.deviceFingerprint ? 
+                    `设备ID: ${codeData.deviceFingerprint}` : '未知设备';
+                
+                // 检查是否是同一设备
+                if (codeData.deviceFingerprint === this.deviceFingerprint) {
+                    return {
+                        success: false,
+                        message: `该激活码已在当前设备激活\\n激活时间: ${usedTime}\\n如需重新激活，请联系管理员重置`
+                    };
+                } else {
+                    return {
+                        success: false,
+                        message: `该激活码已被其他设备使用\\n使用时间: ${usedTime}\\n使用设备: ${deviceInfo}\\n每个激活码只能使用一次`
+                    };
+                }
+            }
+            
+            // 检查当前设备是否已有其他激活码激活
+            const currentActivation = JSON.parse(localStorage.getItem('currentActivation') || '{"activated": false}');
+            if (currentActivation.activated && currentActivation.code !== code) {
+                return {
+                    success: false,
+                    message: `当前设备已使用激活码 "${currentActivation.code}" 激活\\n一个设备只能使用一个激活码`
+                };
+            }
+            
+            return {
+                success: true,
+                message: '激活码验证通过'
+            };
+            
+        } catch (error) {
+            console.error('激活码验证错误:', error);
+            return {
+                success: false,
+                message: '验证过程中发生错误，请重试'
+            };
+        }
+    }
+    
+    /**
+     * 执行激活
+     */
+    async performActivation(code) {
+        try {
+            console.log('执行激活:', code);
+            
+            // 如果是普通激活码，标记为已使用
+            if (code !== this.DEVELOPER_CODE) {
+                await this.markCodeAsUsed(code);
+            }
+            
+            // 设置当前激活状态
+            const activationData = {
+                activated: true,
+                code: code,
+                activatedAt: Date.now(),
+                deviceFingerprint: this.deviceFingerprint,
+                version: '3.0'
+            };
+            
+            localStorage.setItem('currentActivation', JSON.stringify(activationData));
+            
+            // 记录激活日志
+            this.logActivation(code);
+            
+            console.log('激活完成');
+            
+        } catch (error) {
+            console.error('激活执行失败:', error);
+            throw error;
+        }
+    }
+    
+    /**
+     * 标记激活码为已使用
+     */
+    async markCodeAsUsed(code) {
+        try {
+            const codes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
+            const codeData = codes[code];
+            
+            if (!codeData) {
+                throw new Error('激活码不存在');
+            }
+            
+            if (codeData.used) {
+                throw new Error('激活码已被使用');
+            }
+            
+            // 更新激活码状态
+            codes[code] = {
+                ...codeData,
+                used: true,
+                usedAt: Date.now(),
+                usedBy: this.getClientInfo(),
+                deviceFingerprint: this.deviceFingerprint,
+                status: 'used'
+            };
+            
+            // 原子性保存
+            localStorage.setItem('activationCodes', JSON.stringify(codes));
+            
+            // 验证保存结果
+            const savedCodes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
+            if (!savedCodes[code] || !savedCodes[code].used) {
+                throw new Error('激活码状态保存失败');
+            }
+            
+            console.log('激活码已标记为已使用:', code);
+            
+        } catch (error) {
+            console.error('标记激活码失败:', error);
+            throw error;
+        }
+    }
+    
+    /**
+     * 记录激活日志
+     */
+    logActivation(code) {
+        try {
+            const logs = JSON.parse(localStorage.getItem('activationLogs') || '[]');
+            
+            const logEntry = {
+                code: code,
+                timestamp: Date.now(),
+                deviceFingerprint: this.deviceFingerprint,
+                clientInfo: this.getClientInfo(),
+                type: code === this.DEVELOPER_CODE ? 'developer' : 'user',
+                action: 'activation',
+                version: '3.0'
+            };
+            
+            logs.push(logEntry);
+            localStorage.setItem('activationLogs', JSON.stringify(logs));
+            
+            console.log('激活日志已记录');
+            
+        } catch (error) {
+            console.error('记录激活日志失败:', error);
+        }
+    }
+    
+    /**
+     * 获取客户端信息
+     */
+    getClientInfo() {
+        return {
+            userAgent: navigator.userAgent,
+            language: navigator.language,
+            platform: navigator.platform,
+            screenResolution: `${screen.width}x${screen.height}`,
+            colorDepth: screen.colorDepth,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            timestamp: new Date().toLocaleString('zh-CN'),
+            cookieEnabled: navigator.cookieEnabled,
+            onlineStatus: navigator.onLine
+        };
+    }
+    
+    /**
+     * 跳转到主应用
+     */
+    redirectToApp() {
+        console.log('跳转到智能导员主页面');
+        window.location.href = './advisor.html';
+    }
+    
+    /**
+     * 显示成功消息
+     */
+    showSuccess(message) {
+        this.showMessage(message, 'success');
+    }
+    
+    /**
+     * 显示错误消息
+     */
+    showError(message) {
+        this.showMessage(message, 'error');
+    }
+    
+    /**
+     * 显示消息
+     */
+    showMessage(message, type = 'info') {
+        const messageElement = document.getElementById('activationMessage');
+        if (!messageElement) {
+            console.log(`[${type.toUpperCase()}] ${message}`);
+            return;
+        }
+        
+        messageElement.textContent = message;
+        messageElement.className = `activation-message ${type}`;
+        
+        // 自动清除消息
         setTimeout(() => {
-            element.textContent = '';
-            element.className = 'activation-message';
-        }, 3000);
+            this.clearMessage();
+        }, type === 'success' ? 5000 : 8000);
+    }
+    
+    /**
+     * 清除消息
+     */
+    clearMessage() {
+        const messageElement = document.getElementById('activationMessage');
+        if (messageElement) {
+            messageElement.textContent = '';
+            messageElement.className = 'activation-message';
+        }
     }
 }
 
-// 页面加载完成后初始化激活码管理器
+// 页面加载完成后初始化激活系统
 document.addEventListener('DOMContentLoaded', () => {
-    new ActivationManager();
+    console.log('页面加载完成，初始化激活系统...');
+    window.activationSystem = new ActivationSystem();
 });
+
+// 导出类供其他模块使用
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = ActivationSystem;
+}
