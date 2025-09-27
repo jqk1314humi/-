@@ -243,7 +243,7 @@ class AdminSystem {
      * 显示激活码列表
      */
     displayActivationCodes() {
-        const container = document.getElementById('codesContainer');
+        const container = document.getElementById('codesList');
         if (!container) return;
         
         const codes = this.currentData.codes;
@@ -325,7 +325,7 @@ class AdminSystem {
      * 显示日志
      */
     displayLogs() {
-        const container = document.getElementById('logsContainer');
+        const container = document.getElementById('logsList');
         if (!container) return;
         
         const logs = this.currentData.logs;
