@@ -848,6 +848,16 @@ body {
     opacity: 0.3;
 }
 
+.app-locked .header {
+    filter: blur(5px);
+    opacity: 0.3;
+}
+
+.app-locked .footer {
+    filter: blur(5px);
+    opacity: 0.3;
+}
+
 /* 确保模态框在锁定状态下仍然清晰可见 */
 .app-locked .modal {
     filter: none !important;
@@ -857,6 +867,30 @@ body {
 .app-locked .modal .modal-content {
     filter: none !important;
     pointer-events: auto !important;
+}
+
+/* 手机端锁定状态优化 */
+@media (max-width: 768px) {
+    .app-locked .main-content {
+        filter: blur(8px);
+        opacity: 0.2;
+    }
+    
+    .app-locked .header {
+        filter: blur(8px);
+        opacity: 0.2;
+    }
+    
+    .app-locked .footer {
+        filter: blur(8px);
+        opacity: 0.2;
+    }
+    
+    .app-locked .modal {
+        filter: none !important;
+        pointer-events: auto !important;
+        z-index: 10000 !important;
+    }
 }
 
 /* Success Animation */
@@ -874,14 +908,19 @@ body {
 @media (max-width: 768px) {
     .modal {
         padding: 0.5rem;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
     }
     
     .modal-content {
         width: 100%;
         max-width: 95vw;
         margin: 0;
-        max-height: 95vh;
+        max-height: 90vh;
         border-radius: 0.5rem;
+        position: relative;
+        z-index: 10001;
     }
     
     .modal-header {

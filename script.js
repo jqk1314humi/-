@@ -799,20 +799,6 @@ class ActivationManager {
                 return { valid: false, message: '该激活码已被使用' };
             }
             
-            // 检查是否在当前设备上已使用过
-            const currentDeviceId = this.getDeviceId();
-            const activationData = localStorage.getItem('smartAdvisorActivation');
-            if (activationData) {
-                try {
-                    const data = JSON.parse(activationData);
-                    if (data.code === trimmedCode && data.deviceId === currentDeviceId) {
-                        return { valid: false, message: '该激活码已在此设备上使用过' };
-                    }
-                } catch (e) {
-                    // 忽略解析错误
-                }
-            }
-            
             return { valid: true, message: '激活码验证成功', isDeveloper: false };
         }
 
