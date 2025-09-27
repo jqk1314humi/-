@@ -10,6 +10,9 @@ body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
     color: #333;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
 }
 
 /* Header Styles */
@@ -617,11 +620,16 @@ body {
     justify-content: center;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     padding: 2rem;
+    position: relative;
+    width: 100%;
 }
 
 .activation-container {
     width: 100%;
     max-width: 400px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
 }
 
 .activation-card {
@@ -719,6 +727,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    text-align: center;
+    word-wrap: break-word;
 }
 
 .activation-message.success {
@@ -739,6 +749,9 @@ body {
     min-height: 100vh;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     padding: 2rem;
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .admin-header {
@@ -786,6 +799,8 @@ body {
 .admin-content {
     max-width: 1200px;
     margin: 0 auto;
+    position: relative;
+    z-index: 1;
 }
 
 .admin-stats {
