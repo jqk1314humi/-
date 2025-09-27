@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>快速API测试</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 600px; 
+            margin: 50px auto; 
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .loading { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover { background: #0056b3; }
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 快速API测试</h1>
+        <div class="status loading" id="status">准备测试API连接...</div>
+        
+        <div>
+            <button class="test-button" onclick="testAPI('/api/test')">测试基础API</button>
+            <button class="test-button" onclick="testAPI('/api/health')">健康检查</button>
+            <button class="test-button" onclick="testAPI('/api/codes')">激活码API</button>
+        </div>
+        
+        <div id="result" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        async function testAPI(endpoint) {
+            const status = document.getElementById('status');
+            const result = document.getElementById('result');
+            
+            status.className = 'status loading';
+            status.textContent = `正在测试 ${endpoint}...`;
+            result.style.display = 'block';
+            result.textContent = '请求中...';
+            
+            try {
+                console.log(`测试API: ${endpoint}`);
+                const startTime = Date.now();
+                
+                const response = await fetch(endpoint, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const responseTime = Date.now() - startTime;
+                console.log(`响应时间: ${responseTime}ms`);
+                console.log(`响应状态: ${response.status}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('响应数据:', data);
+                    
+                    status.className = 'status success';
+                    status.textContent = `✅ ${endpoint} 测试成功！(${responseTime}ms)`;
+                    
+                    result.textContent = `API测试成功！
+端点: ${endpoint}
+响应时间: ${responseTime}ms
+状态码: ${response.status} ${response.statusText}
+
+响应数据:
+${JSON.stringify(data, null, 2)}`;
+                    
+                } else {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                
+            } catch (error) {
+                console.error('API测试失败:', error);
+                
+                status.className = 'status error';
+                status.textContent = `❌ ${endpoint} 测试失败`;
+                
+                result.textContent = `API测试失败
+端点: ${endpoint}
+错误: ${error.message}
+
+可能的原因:
+1. Vercel部署尚未完成
+2. API服务器配置错误  
+3. 网络连接问题
+4. 数据库连接失败
+
+解决方案:
+1. 等待2-3分钟让Vercel部署完成
+2. 检查Vercel部署日志
+3. 刷新页面重试`;
+            }
+        }
+        
+        // 页面加载时自动测试基础API
+        window.addEventListener('load', () => {
+            setTimeout(() => testAPI('/api/test'), 1000);
+        });
+    </script>
+</body>
+</html>
