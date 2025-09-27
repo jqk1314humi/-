@@ -38,8 +38,11 @@ class AdminSystem {
             // 初始化数据
             await this.loadData();
             
-            // 设置事件监听器
-            this.setupEventListeners();
+        // 设置事件监听器
+        this.setupEventListeners();
+        
+        // 初始化云端同步界面
+        this.initializeSyncInterface();
             
             // 更新界面
             this.updateInterface();
@@ -184,6 +187,9 @@ class AdminSystem {
         
         // 激活码操作事件委托
         this.setupCodeActionsEventListeners();
+        
+        // 设置云端同步事件监听器
+        this.setupSyncEventListeners();
     }
     
     /**
@@ -865,6 +871,338 @@ class AdminSystem {
 }
 
 // 全局初始化函数
+    /**
+     * 初始化云端同步界面
+     */
+    initializeSyncInterface() {
+        this.updateSyncStatus();
+        this.updateSyncInfo();
+        
+        // 定期更新同步状态
+        setInterval(() => {
+            this.updateSyncStatus();
+            this.updateSyncInfo();
+        }, 5000);
+    }
+
+    /**
+     * 设置云端同步事件监听器
+     */
+    setupSyncEventListeners() {
+        // 从云端获取数据
+        document.getElementById('syncFromCloud')?.addEventListener('click', () => {
+            this.syncFromCloud();
+        });
+        
+        // 推送到云端
+        document.getElementById('syncToCloud')?.addEventListener('click', () => {
+            this.syncToCloud();
+        });
+        
+        // 强制同步
+        document.getElementById('forceSync')?.addEventListener('click', () => {
+            this.forceSync();
+        });
+        
+        // 关闭结果面板
+        document.getElementById('closeResults')?.addEventListener('click', () => {
+            document.getElementById('syncResults').style.display = 'none';
+        });
+    }
+
+    /**
+     * 更新同步状态
+     */
+    updateSyncStatus() {
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+        
+        if (!statusIndicator || !statusText) return;
+        
+        if (this.cloudStorage) {
+            statusIndicator.className = 'status-indicator connected';
+            statusText.textContent = '云端已连接';
+        } else {
+            statusIndicator.className = 'status-indicator error';
+            statusText.textContent = '本地模式';
+        }
+    }
+
+    /**
+     * 更新同步信息
+     */
+    updateSyncInfo() {
+        const lastSyncTime = document.getElementById('lastSyncTime');
+        const syncMode = document.getElementById('syncMode');
+        
+        if (lastSyncTime && this.cloudStorage && this.cloudStorage.localCache.lastSync) {
+            const time = new Date(this.cloudStorage.localCache.lastSync).toLocaleString('zh-CN');
+            lastSyncTime.textContent = time;
+        }
+        
+        if (syncMode) {
+            syncMode.textContent = this.cloudStorage ? '云端模式' : '本地模式';
+        }
+    }
+
+    /**
+     * 从云端获取数据
+     */
+    async syncFromCloud() {
+        if (!this.cloudStorage) {
+            this.showSyncError('云存储未初始化');
+            return;
+        }
+        
+        this.showSyncProgress('正在从云端获取数据...');
+        
+        try {
+            const beforeCount = Object.keys(this.currentData.codes).length;
+            const beforeLogs = this.currentData.logs.length;
+            
+            // 从云端同步
+            const success = await this.cloudStorage.syncFromCloud();
+            
+            if (success) {
+                // 重新加载数据
+                await this.loadData();
+                this.updateInterface();
+                
+                const afterCount = Object.keys(this.currentData.codes).length;
+                const afterLogs = this.currentData.logs.length;
+                
+                this.showSyncResults('从云端获取', {
+                    '同步状态': { value: '成功', type: 'success' },
+                    '激活码数量': { value: `${afterCount} (${afterCount - beforeCount >= 0 ? '+' : ''}${afterCount - beforeCount})`, type: afterCount !== beforeCount ? 'warning' : 'success' },
+                    '日志条数': { value: `${afterLogs} (${afterLogs - beforeLogs >= 0 ? '+' : ''}${afterLogs - beforeLogs})`, type: afterLogs !== beforeLogs ? 'warning' : 'success' },
+                    '同步时间': { value: new Date().toLocaleString('zh-CN'), type: 'success' }
+                });
+                
+                this.showNotification('数据已从云端同步完成', 'success');
+            } else {
+                throw new Error('同步失败');
+            }
+            
+        } catch (error) {
+            console.error('从云端同步失败:', error);
+            this.showSyncError('从云端获取数据失败: ' + error.message);
+            this.showNotification('从云端同步失败: ' + error.message, 'error');
+        }
+    }
+
+    /**
+     * 推送数据到云端
+     */
+    async syncToCloud() {
+        if (!this.cloudStorage) {
+            this.showSyncError('云存储未初始化');
+            return;
+        }
+        
+        this.showSyncProgress('正在推送数据到云端...');
+        
+        try {
+            // 构建要同步的数据
+            const syncData = {
+                codes: this.currentData.codes,
+                logs: this.currentData.logs,
+                lastSync: Date.now()
+            };
+            
+            const success = await this.cloudStorage.syncToCloud(syncData);
+            
+            if (success) {
+                this.showSyncResults('推送到云端', {
+                    '同步状态': { value: '成功', type: 'success' },
+                    '激活码数量': { value: Object.keys(this.currentData.codes).length.toString(), type: 'success' },
+                    '日志条数': { value: this.currentData.logs.length.toString(), type: 'success' },
+                    '数据大小': { value: `${Math.round(JSON.stringify(syncData).length / 1024)} KB`, type: 'success' },
+                    '推送时间': { value: new Date().toLocaleString('zh-CN'), type: 'success' }
+                });
+                
+                this.showNotification('数据已推送到云端', 'success');
+            } else {
+                throw new Error('推送失败');
+            }
+            
+        } catch (error) {
+            console.error('推送到云端失败:', error);
+            this.showSyncError('推送到云端失败: ' + error.message);
+            this.showNotification('推送到云端失败: ' + error.message, 'error');
+        }
+    }
+
+    /**
+     * 强制双向同步
+     */
+    async forceSync() {
+        if (!this.cloudStorage) {
+            this.showSyncError('云存储未初始化');
+            return;
+        }
+        
+        this.showSyncProgress('正在执行强制同步...');
+        
+        try {
+            const beforeCount = Object.keys(this.currentData.codes).length;
+            const beforeLogs = this.currentData.logs.length;
+            
+            // 先从云端获取
+            await this.cloudStorage.syncFromCloud();
+            
+            // 重新加载本地数据
+            await this.loadData();
+            
+            // 再推送到云端
+            const syncData = {
+                codes: this.currentData.codes,
+                logs: this.currentData.logs,
+                lastSync: Date.now()
+            };
+            
+            const success = await this.cloudStorage.syncToCloud(syncData);
+            
+            if (success) {
+                this.updateInterface();
+                
+                const afterCount = Object.keys(this.currentData.codes).length;
+                const afterLogs = this.currentData.logs.length;
+                
+                this.showSyncResults('强制同步', {
+                    '同步状态': { value: '完成', type: 'success' },
+                    '同步方向': { value: '双向', type: 'success' },
+                    '激活码数量': { value: `${afterCount} (${afterCount - beforeCount >= 0 ? '+' : ''}${afterCount - beforeCount})`, type: 'success' },
+                    '日志条数': { value: `${afterLogs} (${afterLogs - beforeLogs >= 0 ? '+' : ''}${afterLogs - beforeLogs})`, type: 'success' },
+                    '完成时间': { value: new Date().toLocaleString('zh-CN'), type: 'success' }
+                });
+                
+                this.showNotification('强制同步完成', 'success');
+            } else {
+                throw new Error('同步失败');
+            }
+            
+        } catch (error) {
+            console.error('强制同步失败:', error);
+            this.showSyncError('强制同步失败: ' + error.message);
+            this.showNotification('强制同步失败: ' + error.message, 'error');
+        }
+    }
+
+    /**
+     * 显示同步进度
+     */
+    showSyncProgress(message) {
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+        
+        if (statusIndicator) {
+            statusIndicator.className = 'status-indicator syncing';
+        }
+        
+        if (statusText) {
+            statusText.textContent = message;
+        }
+        
+        // 禁用同步按钮
+        this.setSyncButtonsEnabled(false);
+        
+        setTimeout(() => {
+            this.updateSyncStatus();
+            this.setSyncButtonsEnabled(true);
+        }, 3000);
+    }
+
+    /**
+     * 显示同步结果
+     */
+    showSyncResults(operation, results) {
+        const syncResults = document.getElementById('syncResults');
+        const resultsContent = document.getElementById('resultsContent');
+        
+        if (!syncResults || !resultsContent) return;
+        
+        let html = `
+            <div class="sync-result-header">
+                <h5><i class="fas fa-check-circle"></i> ${operation} 完成</h5>
+            </div>
+        `;
+        
+        Object.entries(results).forEach(([label, data]) => {
+            html += `
+                <div class="sync-result-item">
+                    <span class="result-label">${label}:</span>
+                    <span class="result-value ${data.type}">${data.value}</span>
+                </div>
+            `;
+        });
+        
+        // 添加同步日志
+        html += `
+            <div class="sync-log">
+                <div class="sync-log-entry">
+                    <span class="sync-log-time">${new Date().toLocaleTimeString()}</span>
+                    <span class="sync-log-message success">${operation} 操作成功完成</span>
+                </div>
+            </div>
+        `;
+        
+        resultsContent.innerHTML = html;
+        syncResults.style.display = 'block';
+        
+        // 5秒后自动隐藏
+        setTimeout(() => {
+            syncResults.style.display = 'none';
+        }, 5000);
+    }
+
+    /**
+     * 显示同步错误
+     */
+    showSyncError(message) {
+        const syncResults = document.getElementById('syncResults');
+        const resultsContent = document.getElementById('resultsContent');
+        
+        if (!syncResults || !resultsContent) return;
+        
+        const html = `
+            <div class="sync-result-header">
+                <h5><i class="fas fa-exclamation-triangle"></i> 同步失败</h5>
+            </div>
+            <div class="sync-result-item">
+                <span class="result-label">错误信息:</span>
+                <span class="result-value error">${message}</span>
+            </div>
+            <div class="sync-log">
+                <div class="sync-log-entry">
+                    <span class="sync-log-time">${new Date().toLocaleTimeString()}</span>
+                    <span class="sync-log-message error">同步操作失败: ${message}</span>
+                </div>
+            </div>
+        `;
+        
+        resultsContent.innerHTML = html;
+        syncResults.style.display = 'block';
+        
+        // 10秒后自动隐藏
+        setTimeout(() => {
+            syncResults.style.display = 'none';
+        }, 10000);
+    }
+
+    /**
+     * 设置同步按钮可用状态
+     */
+    setSyncButtonsEnabled(enabled) {
+        const buttons = ['syncFromCloud', 'syncToCloud', 'forceSync'];
+        buttons.forEach(id => {
+            const button = document.getElementById(id);
+            if (button) {
+                button.disabled = !enabled;
+            }
+        });
+    }
+}
+
 function initializeAdminSystem() {
     try {
         console.log('初始化管理员系统...');

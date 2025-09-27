@@ -67,6 +67,63 @@
                 </button>
             </div>
 
+            <!-- 云端同步控制面板 -->
+            <div class="cloud-sync-panel">
+                <div class="sync-header">
+                    <h3><i class="fas fa-cloud"></i> 云端数据同步</h3>
+                    <div class="sync-status" id="syncStatus">
+                        <span class="status-indicator" id="statusIndicator"></span>
+                        <span class="status-text" id="statusText">检查中...</span>
+                    </div>
+                </div>
+                
+                <div class="sync-actions">
+                    <button id="syncFromCloud" class="sync-button pull-button">
+                        <i class="fas fa-cloud-download-alt"></i>
+                        <span>从云端获取</span>
+                        <small>拉取最新数据</small>
+                    </button>
+                    <button id="syncToCloud" class="sync-button push-button">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span>推送到云端</span>
+                        <small>上传本地数据</small>
+                    </button>
+                    <button id="forceSync" class="sync-button force-button">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>强制同步</span>
+                        <small>双向完全同步</small>
+                    </button>
+                </div>
+
+                <div class="sync-info">
+                    <div class="sync-stat">
+                        <span class="sync-label">上次同步:</span>
+                        <span class="sync-value" id="lastSyncTime">未知</span>
+                    </div>
+                    <div class="sync-stat">
+                        <span class="sync-label">同步状态:</span>
+                        <span class="sync-value" id="syncMode">本地模式</span>
+                    </div>
+                    <div class="sync-stat">
+                        <span class="sync-label">数据版本:</span>
+                        <span class="sync-value" id="dataVersion">v4.0</span>
+                    </div>
+                </div>
+
+                <!-- 同步结果显示 -->
+                <div class="sync-results" id="syncResults" style="display: none;">
+                    <div class="results-header">
+                        <h4><i class="fas fa-chart-line"></i> 同步结果</h4>
+                        <button class="close-results" id="closeResults">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="results-content" id="resultsContent">
+                        <!-- 动态填充同步结果 -->
+                    </div>
+                </div>
+            </div>
+
             <div class="admin-tabs">
                 <button class="tab-button active" data-tab="codes">激活码列表</button>
                 <button class="tab-button" data-tab="logs">使用日志</button>
