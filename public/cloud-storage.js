@@ -157,33 +157,44 @@ class CloudStorage {
      */
     async fetchFromDatabase() {
         try {
-            console.log('从MySQL数据库获取数据...');
+            console.log('🔗 连接MySQL云数据库...');
+            console.log('📊 数据库信息: mysql2.sqlpub.com:3307/jihuoma (用户: author)');
             
             const response = await fetch(`${this.API_BASE}${this.API_ENDPOINTS.codes}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
-                }
+                },
+                cache: 'no-cache'
             });
+            
+            console.log(`📡 API响应状态: ${response.status} ${response.statusText}`);
             
             if (response.ok) {
                 const result = await response.json();
                 if (result.success && result.data) {
-                    console.log('MySQL数据获取成功');
+                    console.log('✅ MySQL云数据库连接成功！');
+                    console.log(`📋 获取激活码: ${Object.keys(result.data.codes).length} 个`);
+                    console.log(`📝 获取日志: ${result.data.logs.length} 条`);
+                    console.log(`🕒 数据源时间: ${result.data.timestamp}`);
                     return result.data;
+                } else {
+                    console.warn('⚠️ MySQL API返回数据格式错误:', result);
                 }
             } else {
-                console.warn(`MySQL API响应失败: ${response.status} ${response.statusText}`);
+                const errorText = await response.text();
+                console.warn(`❌ MySQL API HTTP错误: ${response.status} ${response.statusText}`);
+                console.warn(`错误详情: ${errorText}`);
             }
             
             // 如果MySQL API失败，使用本地模拟数据
-            console.warn('MySQL API访问失败，使用本地模拟云数据');
+            console.warn('🔄 MySQL云数据库访问失败，启用本地降级模式');
             return this.getLocalCloudData();
             
         } catch (error) {
-            console.error('MySQL数据库获取失败:', error);
-            // 降级到本地模拟数据
+            console.error('💥 MySQL云数据库连接异常:', error);
+            console.log('🔄 启用本地降级模式...');
             return this.getLocalCloudData();
         }
     }
