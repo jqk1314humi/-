@@ -1,3 +1,195 @@
+// 激活码管理系统
+class ActivationManager {
+    constructor() {
+        this.developerCode = 'jqkkf0922';
+        this.activationCodes = [
+            'j6si0f26cig0',
+            'polex311eo4e',
+            'gwhfntmgol8l',
+            'sej5z1hhleqf',
+            '2ta1zchbuj8v',
+            '6uwqby0nk0fv',
+            'jza4m0okaflj',
+            '5n51yax303tm',
+            'by8fahc1taa3',
+            'v61g1yyvbgg6'
+        ];
+        this.usedCodesKey = 'smartAdvisor_usedCodes';
+        this.activationStatusKey = 'smartAdvisor_activated';
+        
+        this.initializeActivation();
+    }
+
+    initializeActivation() {
+        // 检查是否已经激活
+        const isActivated = localStorage.getItem(this.activationStatusKey);
+        if (isActivated === 'true') {
+            this.showMainApp();
+        } else {
+            this.showActivationPage();
+        }
+    }
+
+    showActivationPage() {
+        document.getElementById('activationPage').style.display = 'block';
+        document.getElementById('mainApp').style.display = 'none';
+        this.setupActivationEvents();
+    }
+
+    showMainApp() {
+        document.getElementById('activationPage').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+        // 初始化主应用
+        if (window.smartAdvisor) {
+            window.smartAdvisor.destroy();
+        }
+        window.smartAdvisor = new SmartAdvisor();
+    }
+
+    setupActivationEvents() {
+        const activationInput = document.getElementById('activationInput');
+        const activateButton = document.getElementById('activateButton');
+        const activationMessage = document.getElementById('activationMessage');
+
+        // 激活按钮点击事件
+        activateButton.addEventListener('click', () => this.verifyActivationCode());
+
+        // 输入框回车事件
+        activationInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.verifyActivationCode();
+            }
+        });
+
+        // 输入框输入事件
+        activationInput.addEventListener('input', () => {
+            this.updateActivateButtonState();
+        });
+
+        // 初始化按钮状态
+        this.updateActivateButtonState();
+    }
+
+    updateActivateButtonState() {
+        const activationInput = document.getElementById('activationInput');
+        const activateButton = document.getElementById('activateButton');
+        const hasText = activationInput.value.trim().length > 0;
+        activateButton.disabled = !hasText;
+    }
+
+    verifyActivationCode() {
+        const activationInput = document.getElementById('activationInput');
+        const activationMessage = document.getElementById('activationMessage');
+        const activateButton = document.getElementById('activateButton');
+        
+        const inputCode = activationInput.value.trim();
+        
+        if (!inputCode) {
+            this.showMessage('请输入激活码', 'error');
+            return;
+        }
+
+        // 禁用按钮防止重复提交
+        activateButton.disabled = true;
+        activateButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>验证中...</span>';
+
+        // 模拟验证延迟
+        setTimeout(() => {
+            const result = this.checkActivationCode(inputCode);
+            
+            if (result.success) {
+                this.showMessage(result.message, 'success');
+                // 保存激活状态
+                localStorage.setItem(this.activationStatusKey, 'true');
+                // 延迟跳转到主应用
+                setTimeout(() => {
+                    this.showMainApp();
+                }, 1500);
+            } else {
+                this.showMessage(result.message, 'error');
+                // 重新启用按钮
+                activateButton.disabled = false;
+                activateButton.innerHTML = '<i class="fas fa-check"></i><span>激活</span>';
+            }
+        }, 1000);
+    }
+
+    checkActivationCode(inputCode) {
+        // 检查开发者激活码
+        if (inputCode === this.developerCode) {
+            return {
+                success: true,
+                message: '开发者激活码验证成功！欢迎使用智能导员！'
+            };
+        }
+
+        // 检查普通激活码
+        if (this.activationCodes.includes(inputCode)) {
+            // 检查是否已经使用过
+            const usedCodes = this.getUsedCodes();
+            if (usedCodes.includes(inputCode)) {
+                return {
+                    success: false,
+                    message: '该激活码已被使用，请使用其他激活码'
+                };
+            }
+
+            // 标记为已使用
+            this.markCodeAsUsed(inputCode);
+            return {
+                success: true,
+                message: '激活码验证成功！欢迎使用智能导员！'
+            };
+        }
+
+        return {
+            success: false,
+            message: '激活码无效，请检查后重试'
+        };
+    }
+
+    getUsedCodes() {
+        try {
+            const usedCodes = localStorage.getItem(this.usedCodesKey);
+            return usedCodes ? JSON.parse(usedCodes) : [];
+        } catch (error) {
+            console.error('获取已使用激活码失败:', error);
+            return [];
+        }
+    }
+
+    markCodeAsUsed(code) {
+        try {
+            const usedCodes = this.getUsedCodes();
+            if (!usedCodes.includes(code)) {
+                usedCodes.push(code);
+                localStorage.setItem(this.usedCodesKey, JSON.stringify(usedCodes));
+            }
+        } catch (error) {
+            console.error('标记激活码为已使用失败:', error);
+        }
+    }
+
+    showMessage(message, type) {
+        const activationMessage = document.getElementById('activationMessage');
+        activationMessage.textContent = message;
+        activationMessage.className = `activation-message ${type}`;
+        
+        // 3秒后清除消息
+        setTimeout(() => {
+            activationMessage.textContent = '';
+            activationMessage.className = 'activation-message';
+        }, 3000);
+    }
+
+    // 重置激活状态（用于测试）
+    resetActivation() {
+        localStorage.removeItem(this.activationStatusKey);
+        localStorage.removeItem(this.usedCodesKey);
+        this.showActivationPage();
+    }
+}
+
 // 智能导员聊天应用
 class SmartAdvisor {
     constructor() {
@@ -17,17 +209,9 @@ class SmartAdvisor {
         // 用于保存原始消息内容的数组
         this.messageHistory = [];
         
-        // 激活码管理
-        this.activationManager = new ActivationManager();
-        
         this.initializeEventListeners();
         this.loadChatHistory();
         this.initializeMarkdown();
-        
-        // 延迟检查激活状态，确保DOM完全加载
-        setTimeout(() => {
-            this.checkActivation();
-        }, 100);
     }
 
     initializeMarkdown() {
@@ -143,11 +327,6 @@ class SmartAdvisor {
         // 快速提问事件
         this.questionItems.forEach(item => {
             item.addEventListener('click', () => {
-                // 检查激活状态
-                if (!this.activationManager.isActivated) {
-                    this.showActivationModal();
-                    return;
-                }
                 const questionText = item.querySelector('span').textContent;
                 this.chatInput.value = questionText;
                 this.handleSendMessage();
@@ -158,9 +337,6 @@ class SmartAdvisor {
         this.chatInput.addEventListener('input', () => {
             this.updateSendButtonState();
         });
-
-        // 激活码模态框事件
-        this.initializeActivationModal();
     }
 
     updateSendButtonState() {
@@ -169,12 +345,6 @@ class SmartAdvisor {
     }
 
     async handleSendMessage() {
-        // 检查激活状态
-        if (!this.activationManager.isActivated) {
-            this.showActivationModal();
-            return;
-        }
-
         const userInput = this.chatInput.value.trim();
         if (!userInput) return;
 
@@ -528,467 +698,27 @@ class SmartAdvisor {
         }
     }
 
-    // 检查激活状态
-    checkActivation() {
-        console.log('检查激活状态，当前状态:', this.activationManager.isActivated);
-        if (!this.activationManager.isActivated) {
-            console.log('未激活，显示激活码模态框');
-            this.showActivationModal();
-            this.lockApp();
-        } else {
-            console.log('已激活，无需显示激活码模态框');
-        }
-    }
-
-    // 显示激活码模态框
-    showActivationModal() {
-        const modal = document.getElementById('activationModal');
-        const activationCodeInput = document.getElementById('activationCode');
-        const errorMessage = document.getElementById('errorMessage');
-        const activateButton = document.getElementById('activateButton');
-        
-        console.log('尝试显示激活码模态框，模态框元素:', modal);
-        if (modal) {
-            // 清除之前的内容
-            if (activationCodeInput) {
-                activationCodeInput.value = '';
-            }
-            if (errorMessage) {
-                errorMessage.textContent = '';
-            }
-            if (activateButton) {
-                activateButton.disabled = false;
-                activateButton.textContent = '激活';
-            }
-            
-            // 强制重置样式和类名
-            modal.className = 'modal';
-            modal.style.cssText = '';
-            
-            // 移除隐藏类
-            modal.classList.remove('hidden');
-            
-            // 添加显示类名
-            modal.classList.add('show', 'force-show');
-            
-            // 强制设置显示样式
-            modal.style.display = 'flex';
-            modal.style.visibility = 'visible';
-            modal.style.opacity = '1';
-            modal.style.pointerEvents = 'auto';
-            modal.style.position = 'fixed';
-            modal.style.top = '0';
-            modal.style.left = '0';
-            modal.style.width = '100%';
-            modal.style.height = '100%';
-            modal.style.zIndex = '9999';
-            modal.style.alignItems = 'center';
-            modal.style.justifyContent = 'center';
-            modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-            modal.style.backdropFilter = 'blur(5px)';
-            modal.style.webkitBackdropFilter = 'blur(5px)';
-            
-            document.body.classList.add('app-locked');
-            
-            // 强制重新计算样式
-            modal.offsetHeight;
-            
-            console.log('激活码模态框已显示');
-        } else {
-            console.error('未找到激活码模态框元素');
-        }
-    }
-
-    // 隐藏激活码模态框
-    hideActivationModal() {
-        const modal = document.getElementById('activationModal');
-        if (modal) {
-            console.log('开始隐藏模态框');
-            
-            // 添加隐藏类
-            modal.classList.add('hidden');
-            
-            // 强制移除显示类
-            modal.classList.remove('show', 'force-show');
-            
-            // 强制设置样式 - 使用多种方式确保隐藏
-            modal.style.display = 'none';
-            modal.style.visibility = 'hidden';
-            modal.style.opacity = '0';
-            modal.style.pointerEvents = 'none';
-            modal.style.zIndex = '-1';
-            
-            // 移除body锁定状态
-            document.body.classList.remove('app-locked');
-            
-            // 强制重新计算样式
-            modal.offsetHeight;
-            
-            // 延迟再次确保隐藏
-            setTimeout(() => {
-                modal.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; z-index: -1 !important;';
-            }, 100);
-            
-            console.log('激活码模态框已隐藏');
-        } else {
-            console.error('未找到模态框元素');
-        }
-    }
-
-    // 锁定应用
-    lockApp() {
-        document.body.classList.add('app-locked');
-        this.chatInput.disabled = true;
-        this.sendButton.disabled = true;
-        this.clearButton.style.pointerEvents = 'none';
-        this.questionItems.forEach(item => {
-            item.style.pointerEvents = 'none';
-        });
-        
-        // 确保模态框本身不被锁定
-        const modal = document.getElementById('activationModal');
-        if (modal) {
-            modal.style.pointerEvents = 'auto';
-            modal.style.filter = 'none';
-        }
-    }
-
-    // 解锁应用
-    unlockApp() {
-        document.body.classList.remove('app-locked');
-        this.chatInput.disabled = false;
-        this.updateSendButtonState();
-        this.clearButton.style.pointerEvents = 'auto';
-        this.questionItems.forEach(item => {
-            item.style.pointerEvents = 'auto';
-        });
-        console.log('应用已解锁');
-    }
-
-    // 初始化激活码模态框事件
-    initializeActivationModal() {
-        const modal = document.getElementById('activationModal');
-        const activationCodeInput = document.getElementById('activationCode');
-        const activateButton = document.getElementById('activateButton');
-        const cancelButton = document.getElementById('cancelButton');
-        const errorMessage = document.getElementById('errorMessage');
-
-        if (!modal || !activationCodeInput || !activateButton || !cancelButton || !errorMessage) {
-            console.error('激活码模态框元素未找到');
-            return;
-        }
-
-        // 激活按钮点击事件
-        activateButton.addEventListener('click', () => {
-            this.handleActivation();
-        });
-
-        // 取消按钮点击事件
-        cancelButton.addEventListener('click', () => {
-            this.hideActivationModal();
-        });
-
-        // 输入框回车事件
-        activationCodeInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                this.handleActivation();
-            }
-        });
-
-        // 输入框输入事件
-        activationCodeInput.addEventListener('input', () => {
-            this.clearErrorMessage();
-        });
-
-        // 点击模态框背景关闭
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                this.hideActivationModal();
-            }
-        });
-    }
-
-    // 处理激活
-    handleActivation() {
-        const activationCodeInput = document.getElementById('activationCode');
-        const activateButton = document.getElementById('activateButton');
-        const errorMessage = document.getElementById('errorMessage');
-
-        if (!activationCodeInput || !activateButton || !errorMessage) {
-            return;
-        }
-
-        const code = activationCodeInput.value.trim();
-        if (!code) {
-            this.showErrorMessage('请输入激活码');
-            return;
-        }
-
-        // 禁用按钮防止重复提交
-        activateButton.disabled = true;
-        activateButton.textContent = '激活中...';
-
-        // 模拟网络延迟
-        setTimeout(() => {
-            const result = this.activationManager.activate(code);
-            
-            if (result.valid) {
-                this.showSuccessMessage('激活成功！');
-                // 重置按钮状态
-                activateButton.disabled = false;
-                activateButton.textContent = '激活';
-                // 更新激活状态
-                this.activationManager.isActivated = true;
-                
-                // 立即关闭模态框并解锁应用
-                console.log('激活成功，开始关闭模态框');
-                this.hideActivationModal();
-                this.unlockApp();
-                
-                // 多重保险：确保模态框关闭
-                setTimeout(() => {
-                    const modal = document.getElementById('activationModal');
-                    if (modal) {
-                        console.log('第一次强制关闭检查');
-                        modal.classList.add('hidden');
-                        modal.style.display = 'none';
-                        modal.style.visibility = 'hidden';
-                        modal.style.opacity = '0';
-                    }
-                }, 200);
-                
-                setTimeout(() => {
-                    const modal = document.getElementById('activationModal');
-                    if (modal) {
-                        console.log('第二次强制关闭检查');
-                        modal.className = 'modal hidden';
-                        modal.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; z-index: -1 !important;';
-                    }
-                }, 500);
-            } else {
-                this.showErrorMessage(result.message);
-                activateButton.disabled = false;
-                activateButton.textContent = '激活';
-            }
-        }, 500);
-    }
-
-    // 显示错误消息
-    showErrorMessage(message) {
-        const errorMessage = document.getElementById('errorMessage');
-        if (errorMessage) {
-            errorMessage.textContent = message;
-            errorMessage.style.color = '#ef4444';
-        }
-    }
-
-    // 显示成功消息
-    showSuccessMessage(message) {
-        const errorMessage = document.getElementById('errorMessage');
-        if (errorMessage) {
-            errorMessage.textContent = message;
-            errorMessage.style.color = '#10b981';
-        }
-    }
-
-    // 清除错误消息
-    clearErrorMessage() {
-        const errorMessage = document.getElementById('errorMessage');
-        if (errorMessage) {
-            errorMessage.textContent = '';
-        }
+    destroy() {
+        // 清理事件监听器和其他资源
+        // 注意：由于使用了箭头函数，无法直接移除事件监听器
+        // 在实际应用中，应该保存事件处理函数的引用
+        console.log('SmartAdvisor destroyed');
     }
 }
 
-// 激活码管理类
-class ActivationManager {
-    constructor() {
-        this.developerCode = 'jqkkf0922';
-        this.activationCodes = [
-            'j6si0f26cig0',
-            'polex311eo4e',
-            'gwhfntmgol8l',
-            'sej5z1hhleqf',
-            '2ta1zchbuj8v',
-            '6uwqby0nk0fv',
-            'jza4m0okaflj',
-            '5n51yax303tm',
-            'by8fahc1taa3',
-            'v61g1yyvbgg6'
-        ];
-        this.usedCodes = this.loadUsedCodes();
-        this.isActivated = this.checkActivationStatus();
-    }
-
-    // 检查激活状态
-    checkActivationStatus() {
-        const activationData = localStorage.getItem('smartAdvisorActivation');
-        if (activationData) {
-            try {
-                const data = JSON.parse(activationData);
-                return data.activated === true;
-            } catch (e) {
-                return false;
-            }
-        }
-        return false;
-    }
-
-    // 加载已使用的激活码
-    loadUsedCodes() {
-        const usedCodes = localStorage.getItem('smartAdvisorUsedCodes');
-        if (usedCodes) {
-            try {
-                return JSON.parse(usedCodes);
-            } catch (e) {
-                return [];
-            }
-        }
-        return [];
-    }
-
-    // 保存已使用的激活码
-    saveUsedCodes() {
-        localStorage.setItem('smartAdvisorUsedCodes', JSON.stringify(this.usedCodes));
-    }
-
-    // 验证激活码
-    validateActivationCode(code) {
-        if (!code || typeof code !== 'string') {
-            return { valid: false, message: '请输入有效的激活码' };
-        }
-
-        const trimmedCode = code.trim();
-        
-        // 检查开发者激活码
-        if (trimmedCode === this.developerCode) {
-            return { valid: true, message: '开发者激活码验证成功', isDeveloper: true };
-        }
-
-        // 检查普通激活码
-        if (this.activationCodes.includes(trimmedCode)) {
-            // 检查是否已被使用
-            if (this.usedCodes.includes(trimmedCode)) {
-                return { valid: false, message: '该激活码已被使用' };
-            }
-            
-            return { valid: true, message: '激活码验证成功', isDeveloper: false };
-        }
-
-        return { valid: false, message: '无效的激活码' };
-    }
-
-    // 激活应用
-    activate(code) {
-        const validation = this.validateActivationCode(code);
-        if (!validation.valid) {
-            return validation;
-        }
-
-        // 如果不是开发者激活码，标记为已使用
-        if (!validation.isDeveloper) {
-            this.usedCodes.push(code.trim());
-            this.saveUsedCodes();
-        }
-
-        // 保存激活状态，包含设备标识
-        const deviceId = this.getDeviceId();
-        const activationData = {
-            activated: true,
-            code: code.trim(),
-            activatedAt: new Date().toISOString(),
-            isDeveloper: validation.isDeveloper,
-            deviceId: deviceId,
-            activationCount: this.getActivationCount(code.trim()) + 1
-        };
-        localStorage.setItem('smartAdvisorActivation', JSON.stringify(activationData));
-        
-        this.isActivated = true;
-        return { valid: true, message: '激活成功！' };
-    }
-
-    // 获取设备唯一标识
-    getDeviceId() {
-        let deviceId = localStorage.getItem('smartAdvisorDeviceId');
-        if (!deviceId) {
-            // 生成基于浏览器指纹的设备ID
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            ctx.textBaseline = 'top';
-            ctx.font = '14px Arial';
-            ctx.fillText('Device fingerprint', 2, 2);
-            
-            const fingerprint = [
-                navigator.userAgent,
-                navigator.language,
-                screen.width + 'x' + screen.height,
-                new Date().getTimezoneOffset(),
-                canvas.toDataURL()
-            ].join('|');
-            
-            deviceId = this.hashCode(fingerprint);
-            localStorage.setItem('smartAdvisorDeviceId', deviceId);
-        }
-        return deviceId;
-    }
-
-    // 简单的哈希函数
-    hashCode(str) {
-        let hash = 0;
-        if (str.length === 0) return hash;
-        for (let i = 0; i < str.length; i++) {
-            const char = str.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash; // Convert to 32bit integer
-        }
-        return Math.abs(hash).toString(36);
-    }
-
-    // 获取激活码使用次数
-    getActivationCount(code) {
-        const activationHistory = JSON.parse(localStorage.getItem('smartAdvisorActivationHistory') || '{}');
-        return activationHistory[code] || 0;
-    }
-
-    // 保存激活码使用次数
-    saveActivationCount(code) {
-        const activationHistory = JSON.parse(localStorage.getItem('smartAdvisorActivationHistory') || '{}');
-        activationHistory[code] = (activationHistory[code] || 0) + 1;
-        localStorage.setItem('smartAdvisorActivationHistory', JSON.stringify(activationHistory));
-    }
-
-    // 重置激活状态（仅开发者）
-    resetActivation() {
-        if (this.isActivated) {
-            const activationData = JSON.parse(localStorage.getItem('smartAdvisorActivation') || '{}');
-            if (activationData.isDeveloper) {
-                localStorage.removeItem('smartAdvisorActivation');
-                this.isActivated = false;
-                return true;
-            }
-        }
-        return false;
-    }
-}
-
-// 页面加载完成后初始化应用
+// 页面加载完成后初始化激活码管理器
 document.addEventListener('DOMContentLoaded', () => {
-    const app = new SmartAdvisor();
+    window.activationManager = new ActivationManager();
     
-    // 添加全局方法用于调试
-    window.showActivationModal = () => {
-        app.showActivationModal();
+    // 添加全局测试方法
+    window.resetActivation = () => {
+        window.activationManager.resetActivation();
     };
     
-    window.clearActivation = () => {
-        localStorage.removeItem('smartAdvisorActivation');
-        localStorage.removeItem('smartAdvisorUsedCodes');
-        location.reload();
-    };
-    
-    window.testModal = () => {
-        app.showActivationModal();
+    window.testActivation = (code) => {
+        const result = window.activationManager.checkActivationCode(code);
+        console.log('激活码测试结果:', result);
+        return result;
     };
 });
 

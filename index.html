@@ -2,33 +2,58 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="format-detection" content="telephone=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-touch-fullscreen" content="yes">
-    <meta name="x5-orientation" content="portrait">
-    <meta name="x5-fullscreen" content="true">
-    <meta name="x5-page-mode" content="app">
-    <title>智能导员 by JQK Group</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能导员 by jqk Group</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="header-left">
-            <i class="fas fa-graduation-cap header-icon"></i>
-            <h1 class="header-title">智能导员v2.0.10</h1>
+    <!-- Activation Code Page -->
+    <div id="activationPage" class="activation-page">
+        <div class="activation-container">
+            <div class="activation-card">
+                <div class="activation-header">
+                    <i class="fas fa-graduation-cap activation-icon"></i>
+                    <h1 class="activation-title">智能导员v2.0.13</h1>
+                    <p class="activation-subtitle">请输入激活码以继续使用</p>
+                </div>
+                
+                <div class="activation-form">
+                    <div class="input-group">
+                        <i class="fas fa-key input-icon"></i>
+                        <input type="text" id="activationInput" class="activation-input" placeholder="请输入激活码" maxlength="20">
+                    </div>
+                    <button id="activateButton" class="activate-button">
+                        <i class="fas fa-check"></i>
+                        <span>激活</span>
+                    </button>
+                </div>
+                
+                <div id="activationMessage" class="activation-message"></div>
+                
+                <div class="activation-footer">
+                    <p class="footer-text">jqk开发团队</p>
+                </div>
+            </div>
         </div>
-        <div class="header-right">
-            <i class="fas fa-redo-alt clear-icon"></i>
-            <span class="clear-text">清空聊天</span>
-        </div>
-    </header>
+    </div>
 
-    <!-- Main Content -->
-    <main class="main-content">
+    <!-- Main Application (Hidden by default) -->
+    <div id="mainApp" class="main-app" style="display: none;">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <i class="fas fa-graduation-cap header-icon"></i>
+                <h1 class="header-title">智能导员v2.0.13</h1>
+            </div>
+            <div class="header-right">
+                <i class="fas fa-redo-alt clear-icon"></i>
+                <span class="clear-text">清空聊天</span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
         <!-- Left Sidebar -->
         <aside class="sidebar">
             <!-- Quick Questions Card -->
@@ -73,10 +98,9 @@
             <div class="card advisor-card">
                 <h3 class="card-title">智能导员</h3>
                 <p class="advisor-description">
-                    智能导员是一款jgk研发团队专为大学生设计的智能助手，能够提供学习、生活、职业规划等方面的建议和指导。
-                    <br>当前模型最高思索时间为180秒，若超时还未给出回答请重新提问或向管理员反馈
-                    <br>目前版本：v2.0.10
-                    <br>管理员微信：humi0922
+                   智能导员是一款jgk研发团队专为大学生设计的智能助手，能够提供学习、生活、职业规划等方面的建议和指导。<br>
+                   当前模型最高思索时间为180秒，若超时还未给出回答请重新提问或向管理员反馈<br>目前版本：v2.0.13
+                   <br>管理员微信：humi0922
                 </p>
             </div>
         </aside>
@@ -85,7 +109,7 @@
         <section class="chat-window">
             <div class="chat-header">
                 <i class="fas fa-comments chat-icon"></i>
-                <h3 class="chat-title">你的智能导员~</h3>
+                <h3 class="chat-title">对话窗口</h3>
             </div>
             
             <div class="chat-messages" id="chatMessages">
@@ -107,40 +131,12 @@
             </div>
             <div class="input-hint">按Enter 键快速发送消息</div>
         </section>
-    </main>
+        </main>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <span>jqk开发团队</span>
-    </footer>
-
-    <!-- Activation Modal -->
-    <div id="activationModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>激活智能导员</h2>
-                <p class="modal-subtitle">请输入激活码以使用智能导员服务</p>
-            </div>
-            <div class="modal-body">
-                <div class="input-group">
-                    <label for="activationCode">激活码</label>
-                    <input type="text" id="activationCode" placeholder="请输入激活码" maxlength="20">
-                    <div class="error-message" id="errorMessage"></div>
-                </div>
-                <div class="activation-info">
-                    <h4>激活码说明：</h4>
-                    <ul>
-                        <li>每个激活码限用一次</li>
-                        <li>激活后即可正常使用所有功能</li>
-                        <li>请妥善保管您的激活码</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button id="activateButton" class="btn-primary">激活</button>
-                <button id="cancelButton" class="btn-secondary">取消</button>
-            </div>
-        </div>
+        <!-- Footer -->
+        <footer class="footer">
+            <span>jqk开发团队</span>
+        </footer>
     </div>
 
     <script src="script.js"></script>

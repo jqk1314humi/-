@@ -3,20 +3,6 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-}
-
-/* 微信浏览器特殊优化 */
-body {
-    -webkit-overflow-scrolling: touch;
-    -webkit-text-size-adjust: 100%;
-    -ms-text-size-adjust: 100%;
-    text-size-adjust: 100%;
 }
 
 body {
@@ -375,95 +361,24 @@ body {
 @media (max-width: 768px) {
     .main-content {
         flex-direction: column;
-        padding: 0.5rem;
-        gap: 0.75rem;
-        min-height: calc(100vh - 100px);
+        padding: 1rem;
+        gap: 1rem;
     }
     
     .sidebar {
         width: 100%;
-        order: 2;
-    }
-    
-    .chat-window {
-        order: 1;
-        min-height: 60vh;
     }
     
     .header {
-        padding: 0.75rem 1rem;
-    }
-    
-    .header-title {
-        font-size: 1.2rem;
+        padding: 1rem;
     }
     
     .chat-messages {
-        max-height: 50vh;
-        min-height: 40vh;
-        padding: 1rem;
+        max-height: 300px;
     }
     
     .message-bubble {
         max-width: 85%;
-        font-size: 0.9rem;
-    }
-    
-    .chat-input-container {
-        padding: 1rem;
-    }
-    
-    .chat-input {
-        font-size: 16px; /* 防止iOS缩放 */
-        padding: 0.875rem 1rem;
-    }
-    
-    .send-button {
-        width: 44px;
-        height: 44px;
-    }
-    
-    .card {
-        padding: 1rem;
-    }
-    
-    .question-item {
-        padding: 0.5rem;
-        font-size: 0.85rem;
-    }
-}
-
-/* 超小屏幕优化 */
-@media (max-width: 480px) {
-    .main-content {
-        padding: 0.25rem;
-        gap: 0.5rem;
-    }
-    
-    .header {
-        padding: 0.5rem;
-    }
-    
-    .header-title {
-        font-size: 1.1rem;
-    }
-    
-    .chat-messages {
-        padding: 0.75rem;
-        max-height: 45vh;
-    }
-    
-    .chat-input-container {
-        padding: 0.75rem;
-    }
-    
-    .card {
-        padding: 0.75rem;
-    }
-    
-    .question-item {
-        padding: 0.4rem;
-        font-size: 0.8rem;
     }
 }
 
@@ -659,545 +574,237 @@ body {
     background: #9ca3af;
 }
 
-/* Activation Modal Styles */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 9999;
-    left: 0;
-    top: 0;
+/* Activation Page Styles */
+.activation-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 2rem;
+    position: relative;
+}
+
+.activation-container {
     width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(5px);
-}
-
-.modal.show {
-    display: flex !important;
+    max-width: 450px;
+    display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
 }
 
-/* 强制显示模态框（用于调试） */
-.modal.force-show {
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    z-index: 10000 !important;
-}
-
-/* 确保模态框始终在最顶层 */
-.modal.show {
-    z-index: 10000 !important;
-}
-
-.modal-content {
-    background: white;
-    border-radius: 1rem;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    max-width: 500px;
-    width: 90%;
-    max-height: 90vh;
-    overflow-y: auto;
-    animation: modalSlideIn 0.3s ease-out;
-}
-
-@keyframes modalSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-50px) scale(0.9);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-.modal-header {
-    padding: 2rem 2rem 1rem 2rem;
+.activation-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 1.5rem;
+    padding: 3rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     text-align: center;
-    border-bottom: 1px solid #e5e7eb;
+    width: 100%;
+    position: relative;
 }
 
-.modal-header h2 {
-    font-size: 1.5rem;
-    font-weight: 600;
+.activation-header {
+    margin-bottom: 2rem;
+}
+
+.activation-icon {
+    font-size: 3rem;
+    color: #6366f1;
+    margin-bottom: 1rem;
+}
+
+.activation-title {
+    font-size: 2rem;
+    font-weight: 700;
     color: #1f2937;
     margin-bottom: 0.5rem;
 }
 
-.modal-subtitle {
+.activation-subtitle {
+    font-size: 1rem;
     color: #6b7280;
-    font-size: 0.9rem;
+    margin: 0;
 }
 
-.modal-body {
-    padding: 2rem;
+.activation-form {
+    margin-bottom: 2rem;
+    width: 100%;
+    max-width: 350px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .input-group {
-    margin-bottom: 1.5rem;
+    position: relative;
+    margin-bottom: 2rem;
 }
 
-.input-group label {
-    display: block;
-    font-weight: 500;
-    color: #374151;
-    margin-bottom: 0.5rem;
+.input-icon {
+    position: absolute;
+    left: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6366f1;
+    font-size: 1.2rem;
+    z-index: 1;
 }
 
-.input-group input {
+.activation-input {
     width: 100%;
-    padding: 0.75rem 1rem;
-    border: 2px solid #e5e7eb;
-    border-radius: 0.5rem;
-    font-size: 1rem;
+    padding: 1.25rem 1.25rem 1.25rem 3.5rem;
+    border: 3px solid #e5e7eb;
+    border-radius: 1rem;
+    font-size: 1.1rem;
+    outline: none;
     transition: all 0.3s;
     background: #f9fafb;
+    text-align: center;
+    letter-spacing: 0.15em;
+    font-family: 'Courier New', monospace;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-.input-group input:focus {
-    outline: none;
+.activation-input:focus {
     border-color: #6366f1;
     background: white;
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
-.error-message {
-    color: #ef4444;
-    font-size: 0.875rem;
-    margin-top: 0.5rem;
-    min-height: 1.25rem;
+.activation-input::placeholder {
+    color: #9ca3af;
+    letter-spacing: normal;
+    font-family: inherit;
 }
 
-.activation-info {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.5rem;
-    padding: 1rem;
-}
-
-.activation-info h4 {
-    color: #1f2937;
-    font-size: 0.9rem;
+.activate-button {
+    width: 100%;
+    padding: 1.25rem 2rem;
+    border: none;
+    border-radius: 1rem;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    font-size: 1.1rem;
     font-weight: 600;
-    margin-bottom: 0.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    transition: all 0.3s;
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
-.activation-info ul {
-    list-style: none;
-    padding: 0;
+.activate-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+.activate-button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.activate-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
+}
+
+.activation-message {
+    margin-top: 1.5rem;
+    padding: 1rem 1.5rem;
+    border-radius: 0.75rem;
+    font-size: 1rem;
+    font-weight: 500;
+    min-height: 2rem;
+    transition: all 0.3s;
+    text-align: center;
+    max-width: 350px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.activation-message.success {
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.activation-message.error {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.activation-footer {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(229, 231, 235, 0.5);
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    text-align: center;
+}
+
+.footer-text {
+    color: #9ca3af;
+    font-size: 0.9rem;
     margin: 0;
 }
 
-.activation-info li {
-    color: #6b7280;
-    font-size: 0.85rem;
-    line-height: 1.5;
-    margin-bottom: 0.25rem;
-    padding-left: 1rem;
-    position: relative;
-}
-
-.activation-info li::before {
-    content: "•";
-    color: #6366f1;
-    position: absolute;
-    left: 0;
-}
-
-.modal-footer {
-    padding: 1rem 2rem 2rem 2rem;
+/* Main App Styles */
+.main-app {
+    min-height: 100vh;
     display: flex;
-    gap: 1rem;
-    justify-content: center;
-}
-
-.btn-primary, .btn-secondary {
-    padding: 0.75rem 2rem;
-    border: none;
-    border-radius: 0.5rem;
-    font-size: 0.9rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s;
-    min-width: 100px;
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    color: white;
-}
-
-.btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
-}
-
-.btn-primary:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.btn-secondary {
-    background: #f3f4f6;
-    color: #6b7280;
-    border: 1px solid #d1d5db;
-}
-
-.btn-secondary:hover {
-    background: #e5e7eb;
-    color: #374151;
-}
-
-/* App Locked State */
-.app-locked {
-    pointer-events: none;
-    user-select: none;
-}
-
-.app-locked .main-content {
-    filter: blur(5px);
-    opacity: 0.3;
-}
-
-.app-locked .header {
-    filter: blur(5px);
-    opacity: 0.3;
-}
-
-.app-locked .footer {
-    filter: blur(5px);
-    opacity: 0.3;
-}
-
-/* 确保模态框在锁定状态下仍然清晰可见 */
-.app-locked .modal {
-    filter: none !important;
-    pointer-events: auto !important;
-}
-
-.app-locked .modal .modal-content {
-    filter: none !important;
-    pointer-events: auto !important;
-}
-
-/* 手机端锁定状态优化 */
-@media (max-width: 768px) {
-    .app-locked .main-content {
-        filter: blur(8px);
-        opacity: 0.2;
-    }
-    
-    .app-locked .header {
-        filter: blur(8px);
-        opacity: 0.2;
-    }
-    
-    .app-locked .footer {
-        filter: blur(8px);
-        opacity: 0.2;
-    }
-    
-    .app-locked .modal {
-        filter: none !important;
-        pointer-events: auto !important;
-        z-index: 10000 !important;
-    }
-}
-
-/* 统一模态框样式 - 所有浏览器内核兼容 */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 9999;
-    background-color: rgba(0, 0, 0, 0.5);
-    -webkit-backdrop-filter: blur(5px);
-    backdrop-filter: blur(5px);
-    -webkit-box-align: center;
-    -webkit-box-pack: center;
-    -ms-flex-align: center;
-    -ms-flex-pack: center;
-    align-items: center;
-    justify-content: center;
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-    -webkit-perspective: 1000;
-    perspective: 1000;
-}
-
-.modal.show,
-.modal.force-show {
-    display: -webkit-box !important;
-    display: -ms-flexbox !important;
-    display: flex !important;
-    -webkit-box-orient: vertical;
-    -webkit-box-direction: normal;
-    -ms-flex-direction: column;
     flex-direction: column;
 }
 
-.modal-content {
-    position: relative;
-    width: 90%;
-    max-width: 400px;
-    max-height: 80vh;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    margin: 0 auto;
-    background: white;
-    border-radius: 1rem;
-    -webkit-box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-}
-
-/* 强制隐藏模态框 */
-.modal.hidden {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-}
-
-/* 移动端和微信浏览器特殊优化 */
-@media (max-width: 768px) {
-    .modal {
-        -webkit-transform: translate3d(0, 0, 0);
-        transform: translate3d(0, 0, 0);
-        -webkit-backface-visibility: hidden;
-        backface-visibility: hidden;
-    }
-    
-    .modal.show,
-    .modal.force-show {
-        display: -webkit-box !important;
-        display: -ms-flexbox !important;
-        display: flex !important;
-        -webkit-box-orient: vertical;
-        -webkit-box-direction: normal;
-        -ms-flex-direction: column;
-        flex-direction: column;
-        -webkit-box-align: center;
-        -webkit-box-pack: center;
-        -ms-flex-align: center;
-        -ms-flex-pack: center;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .modal-content {
-        -webkit-transform: translate3d(0, 0, 0);
-        transform: translate3d(0, 0, 0);
-        -webkit-backface-visibility: hidden;
-        backface-visibility: hidden;
-        width: 95% !important;
-        max-width: 350px !important;
-    }
-    
-    .input-group input {
-        -webkit-appearance: none !important;
-        -moz-appearance: none !important;
-        appearance: none !important;
-        border-radius: 0.5rem !important;
-        font-size: 16px !important;
-        padding: 0.875rem 1rem !important;
-        border: 2px solid #e5e7eb !important;
-        background: #f9fafb !important;
-        -webkit-box-sizing: border-box;
-        -moz-box-sizing: border-box;
-        box-sizing: border-box;
-    }
-    
-    .input-group input:focus {
-        border-color: #6366f1 !important;
-        background: white !important;
-        outline: none !important;
-        -webkit-box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
-    }
-    
-    .btn-primary, .btn-secondary {
-        -webkit-appearance: none !important;
-        -moz-appearance: none !important;
-        appearance: none !important;
-        border-radius: 0.5rem !important;
-        font-size: 16px !important;
-        padding: 0.875rem 1rem !important;
-        border: none !important;
-        cursor: pointer !important;
-        -webkit-box-sizing: border-box;
-        -moz-box-sizing: border-box;
-        box-sizing: border-box;
-        -webkit-tap-highlight-color: transparent;
-        -webkit-touch-callout: none;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-    }
-    
-    .btn-primary {
-        background: -webkit-linear-gradient(135deg, #6366f1, #8b5cf6) !important;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
-        color: white !important;
-    }
-    
-    .btn-secondary {
-        background: #f3f4f6 !important;
-        color: #6b7280 !important;
-        border: 1px solid #d1d5db !important;
-    }
-}
-
-/* 微信浏览器特殊修复 */
-@media screen and (-webkit-min-device-pixel-ratio: 0) {
-    .modal {
-        -webkit-transform: translateZ(0);
-        transform: translateZ(0);
-        -webkit-perspective: 1000;
-        perspective: 1000;
-    }
-    
-    .modal.show,
-    .modal.force-show {
-        display: -webkit-box !important;
-        display: -ms-flexbox !important;
-        display: flex !important;
-    }
-    
-    .modal.hidden {
-        display: none !important;
-        visibility: hidden !important;
-        opacity: 0 !important;
-        -webkit-transform: scale(0);
-        transform: scale(0);
-    }
-}
-
-/* Success Animation */
-@keyframes successPulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-}
-
-.success-animation {
-    animation: successPulse 0.6s ease-in-out;
-}
-
-/* Responsive Modal */
-@media (max-width: 768px) {
-    .modal {
-        padding: 0.5rem;
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .modal-content {
-        width: 100%;
-        max-width: 95vw;
-        margin: 0;
-        max-height: 90vh;
-        border-radius: 0.5rem;
-        position: relative;
-        z-index: 10001;
-    }
-    
-    .modal-header {
-        padding: 1rem;
-        border-bottom: 1px solid #e5e7eb;
-    }
-    
-    .modal-header h2 {
-        font-size: 1.2rem;
-        margin-bottom: 0.25rem;
-    }
-    
-    .modal-subtitle {
-        font-size: 0.8rem;
-    }
-    
-    .modal-body {
-        padding: 1rem;
-        max-height: 60vh;
-        overflow-y: auto;
-    }
-    
-    .input-group input {
-        font-size: 16px; /* 防止iOS缩放 */
-        padding: 0.875rem 1rem;
-    }
-    
-    .activation-info {
-        padding: 0.75rem;
-        font-size: 0.8rem;
-    }
-    
-    .activation-info h4 {
-        font-size: 0.85rem;
-        margin-bottom: 0.5rem;
-    }
-    
-    .activation-info li {
-        font-size: 0.75rem;
-        margin-bottom: 0.2rem;
-    }
-    
-    .modal-footer {
-        padding: 1rem;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-    
-    .btn-primary,
-    .btn-secondary {
-        width: 100%;
-        padding: 0.875rem 1rem;
-        font-size: 0.9rem;
-    }
-    
-    .error-message {
-        font-size: 0.8rem;
-        margin-top: 0.5rem;
-    }
-}
-
-/* 超小屏幕优化 */
+/* Responsive Design for Activation Page */
 @media (max-width: 480px) {
-    .modal {
-        padding: 0.25rem;
-    }
-    
-    .modal-content {
-        max-width: 98vw;
-        max-height: 98vh;
-    }
-    
-    .modal-header {
-        padding: 0.75rem;
-    }
-    
-    .modal-body {
-        padding: 0.75rem;
-        max-height: 65vh;
-    }
-    
-    .modal-footer {
-        padding: 0.75rem;
-    }
-    
-    .input-group input {
-        font-size: 16px;
+    .activation-page {
         padding: 1rem;
+    }
+    
+    .activation-card {
+        padding: 2rem 1.5rem;
+        margin-bottom: 4rem; /* 为底部页脚留出空间 */
+    }
+    
+    .activation-title {
+        font-size: 1.5rem;
+    }
+    
+    .activation-icon {
+        font-size: 2.5rem;
+    }
+    
+    .activation-form {
+        max-width: 100%;
+    }
+    
+    .activation-input {
+        font-size: 1rem;
+        padding: 1rem 1rem 1rem 3rem;
+    }
+    
+    .activate-button {
+        font-size: 1rem;
+        padding: 1rem 1.5rem;
+    }
+    
+    .activation-footer {
+        position: relative;
+        bottom: auto;
+        left: auto;
+        transform: none;
+        margin-top: 2rem;
     }
 }
