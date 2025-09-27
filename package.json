@@ -17,7 +17,7 @@
     "express-rate-limit": "^7.1.5"
   },
   "engines": {
-    "node": "18.x"
+    "node": "22.x"
   },
   "devDependencies": {
     "serve": "^14.0.0",
