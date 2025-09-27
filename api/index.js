@@ -201,13 +201,5 @@ app.use((req, res) => {
     });
 });
 
-const PORT = process.env.PORT || 3001;
-
-if (require.main === module) {
-    app.listen(PORT, () => {
-        console.log(`API服务器运行在端口 ${PORT}`);
-        console.log(`健康检查: http://localhost:${PORT}/api/health`);
-    });
-}
-
+// Vercel Serverless Functions 导出
 module.exports = app;

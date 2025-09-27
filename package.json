@@ -16,12 +16,12 @@
     "cors": "^2.8.5",
     "express-rate-limit": "^7.1.5"
   },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "devDependencies": {
     "serve": "^14.0.0",
     "nodemon": "^3.0.2"
-  },
-  "engines": {
-    "node": ">=16.0.0"
   },
   "keywords": [
     "advisor",

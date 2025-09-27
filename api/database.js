@@ -416,13 +416,31 @@ async function deleteActivationCode(code) {
  */
 async function testConnection() {
     try {
+        console.log('开始测试数据库连接...');
+        console.log('连接配置:', {
+            host: dbConfig.host,
+            port: dbConfig.port,
+            user: dbConfig.user,
+            database: dbConfig.database
+        });
+        
         const connection = await pool.getConnection();
-        await connection.execute('SELECT 1');
+        console.log('获取数据库连接成功');
+        
+        const [rows] = await connection.execute('SELECT 1 as test');
+        console.log('执行测试查询成功:', rows);
+        
         connection.release();
         console.log('数据库连接测试成功');
         return true;
     } catch (error) {
-        console.error('数据库连接测试失败:', error);
+        console.error('数据库连接测试失败:', {
+            message: error.message,
+            code: error.code,
+            errno: error.errno,
+            sqlState: error.sqlState,
+            sqlMessage: error.sqlMessage
+        });
         return false;
     }
 }
