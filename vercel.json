@@ -1,42 +1,45 @@
 {
-  "version": 2,
-  "builds": [
+  "functions": {
+    "api/*.js": {
+      "runtime": "nodejs22.x"
+    }
+  },
+  "outputDirectory": "public",
+  "rewrites": [
     {
-      "src": "public/**",
-      "use": "@vercel/static"
+      "source": "/advisor",
+      "destination": "/advisor.html"
     },
     {
-      "src": "api/*.js",
-      "use": "@vercel/node",
-      "config": {
-        "runtime": "nodejs22.x"
-      }
+      "source": "/admin", 
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/api-test",
+      "destination": "/api-test.html"
+    },
+    {
+      "source": "/quick-test",
+      "destination": "/quick-test.html"
     }
   ],
-  "routes": [
+  "headers": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
-      "src": "/advisor",
-      "dest": "/public/advisor.html"
-    },
-    {
-      "src": "/admin",
-      "dest": "/public/admin.html"
-    },
-    {
-      "src": "/api-test",
-      "dest": "/public/api-test.html"
-    },
-    {
-      "src": "/quick-test",
-      "dest": "/public/quick-test.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/public/$1"
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
     }
   ]
 }
