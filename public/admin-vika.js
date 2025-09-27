@@ -83,10 +83,17 @@ class AdminSystem {
     verifyAdminAccess() {
         const userCode = localStorage.getItem('userActivationCode');
         const userDevice = localStorage.getItem('userDeviceId');
+        const adminPassword = sessionStorage.getItem('adminPasswordVerified');
         
         // 检查是否使用管理员激活码激活
         if (userCode === this.ADMIN_CODE && userDevice) {
-            console.log('✅ 管理员权限验证通过');
+            console.log('✅ 管理员权限验证通过 (激活码)');
+            return true;
+        }
+        
+        // 检查是否通过开发者密码验证
+        if (adminPassword === 'jqkkf0922' && userDevice) {
+            console.log('✅ 管理员权限验证通过 (开发者密码)');
             return true;
         }
         

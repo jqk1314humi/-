@@ -258,10 +258,10 @@ class SmartAdvisor {
                         
                         // 优先使用output2，如果没有则使用output
                         let content = '';
-                        if (parsedData.output2 && parsedData.output2.trim()) {
-                            content = parsedData.output2;
-                        } else if (parsedData.output && parsedData.output.trim()) {
+                        if (parsedData.output2 && parsedData.output.trim()) {
                             content = parsedData.output;
+                        } else if (parsedData.output && parsedData.output2.trim()) {
+                            content = parsedData.output2;
                         }
                         
                         if (content) {
@@ -481,6 +481,8 @@ class SmartAdvisor {
     showAdminPasswordPrompt() {
         const password = prompt('请输入管理员密码：');
         if (password === 'jqkkf0922') {
+            // 设置管理员密码验证标记
+            sessionStorage.setItem('adminPasswordVerified', 'jqkkf0922');
             // 跳转到管理员页面
             window.location.href = './admin.html';
         } else if (password !== null) {

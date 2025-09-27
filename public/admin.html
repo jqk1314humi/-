@@ -157,12 +157,13 @@
     <script src="cloud-storage-vika-v2.js"></script>
     <script src="admin-vika.js?v=5.0"></script>
     <script>
-        // 在admin.js加载后检查激活状态
+        // 返回智能导员界面按钮事件
         document.addEventListener('DOMContentLoaded', () => {
-            const currentActivation = JSON.parse(localStorage.getItem('currentActivation') || '{"activated": false}');
-            if (!currentActivation.activated) {
-                window.location.href = './index.html';
-                return;
+            const backButton = document.getElementById('backToMainApp');
+            if (backButton) {
+                backButton.addEventListener('click', () => {
+                    window.location.href = './advisor.html';
+                });
             }
         });
     </script>
