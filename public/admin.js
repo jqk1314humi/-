@@ -1,6 +1,7 @@
 /**
- * 智能导员管理员系统 v3.0
+ * 智能导员管理员系统 v3.0.1
  * 完全重写版本 - 完善的激活码管理和状态显示
+ * 更新时间: 2025/9/27 23:30
  */
 
 class AdminSystem {
@@ -21,7 +22,9 @@ class AdminSystem {
     
     async init() {
         try {
-            console.log('管理员系统初始化开始...');
+            console.log('管理员系统 v3.0.1 初始化开始...');
+            console.log('当前时间:', new Date().toLocaleString());
+            console.log('浏览器:', navigator.userAgent);
             
             // 验证访问权限
             if (!this.validateAccess()) {
