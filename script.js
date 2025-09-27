@@ -561,10 +561,23 @@ class SmartAdvisor {
                 activateButton.textContent = '激活';
             }
             
-            // 统一处理所有浏览器
+            // 强制重置样式
+            modal.className = 'modal';
+            modal.style.cssText = '';
+            
+            // 添加显示类名和样式
             modal.classList.add('show', 'force-show');
             modal.style.display = 'flex';
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
             modal.style.zIndex = '9999';
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
+            modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+            modal.style.backdropFilter = 'blur(5px)';
             
             document.body.classList.add('app-locked');
             console.log('激活码模态框已显示');
@@ -577,22 +590,23 @@ class SmartAdvisor {
     hideActivationModal() {
         const modal = document.getElementById('activationModal');
         if (modal) {
-            // 统一处理所有浏览器
-            modal.classList.remove('show', 'force-show', 'wechat-modal');
-            modal.style.display = 'none';
-            modal.style.position = '';
-            modal.style.top = '';
-            modal.style.left = '';
-            modal.style.width = '';
-            modal.style.height = '';
-            modal.style.zIndex = '';
-            modal.style.alignItems = '';
-            modal.style.justifyContent = '';
-            modal.style.backgroundColor = '';
-            modal.style.backdropFilter = '';
+            console.log('开始隐藏模态框');
             
+            // 强制移除所有类名
+            modal.className = 'modal';
+            
+            // 强制设置样式
+            modal.style.cssText = 'display: none !important; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;';
+            
+            // 移除body锁定状态
             document.body.classList.remove('app-locked');
+            
+            // 强制重新计算样式
+            modal.offsetHeight;
+            
             console.log('激活码模态框已隐藏');
+        } else {
+            console.error('未找到模态框元素');
         }
     }
 
@@ -701,11 +715,21 @@ class SmartAdvisor {
                 activateButton.textContent = '激活';
                 // 更新激活状态
                 this.activationManager.isActivated = true;
+                
                 // 立即关闭模态框并解锁应用
+                console.log('激活成功，开始关闭模态框');
+                this.hideActivationModal();
+                this.unlockApp();
+                
+                // 额外保险：再次确保模态框关闭
                 setTimeout(() => {
-                    this.hideActivationModal();
-                    this.unlockApp();
-                }, 1500);
+                    const modal = document.getElementById('activationModal');
+                    if (modal && modal.style.display !== 'none') {
+                        console.log('强制关闭模态框');
+                        modal.style.display = 'none';
+                        modal.className = 'modal';
+                    }
+                }, 500);
             } else {
                 this.showErrorMessage(result.message);
                 activateButton.disabled = false;
