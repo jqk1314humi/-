@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>云存储连接测试 - jqk Group</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #667eea;
+        }
+        
+        .test-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+        }
+        
+        .status {
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .log {
+            background: #f1f3f4;
+            border: 1px solid #dadce0;
+            border-radius: 6px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 15px 0;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔗 云存储连接测试</h1>
+            <p>测试和验证云端数据同步功能</p>
+        </div>
+        
+        <div class="test-section">
+            <h3>🚀 连接状态</h3>
+            <div id="connectionStatus" class="status info">
+                <span class="spinner"></span> 正在初始化云存储...
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🔧 功能测试</h3>
+            <button class="btn" onclick="testConnection()">测试连接</button>
+            <button class="btn" onclick="testDataSync()">测试数据同步</button>
+            <button class="btn" onclick="testDataSave()">测试数据保存</button>
+            <button class="btn" onclick="clearLogs()">清除日志</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>📊 数据概览</h3>
+            <div id="dataOverview" class="status info">等待数据加载...</div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📝 测试日志</h3>
+            <div id="testLogs" class="log">等待测试开始...</div>
+        </div>
+    </div>
+
+    <script src="cloud-storage.js"></script>
+    <script>
+        let testLogs = [];
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
+            testLogs.push(logEntry);
+            updateLogDisplay();
+            console.log(logEntry);
+        }
+        
+        function updateLogDisplay() {
+            document.getElementById('testLogs').textContent = testLogs.join('\n');
+        }
+        
+        function clearLogs() {
+            testLogs = [];
+            updateLogDisplay();
+        }
+        
+        async function waitForCloudStorage() {
+            let attempts = 0;
+            while (attempts < 50) {
+                if (window.cloudStorage && window.cloudStorage.localCache) {
+                    return window.cloudStorage;
+                }
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+            }
+            return null;
+        }
+        
+        async function testConnection() {
+            log('开始连接测试', 'info');
+            
+            const storage = await waitForCloudStorage();
+            if (!storage) {
+                log('云存储连接失败 - 未找到cloudStorage实例', 'error');
+                updateConnectionStatus('error', '❌ 连接失败 - 云存储未初始化');
+                return;
+            }
+            
+            log('云存储实例已找到', 'success');
+            updateConnectionStatus('success', '✅ 云存储已连接');
+            
+            // 测试基本功能
+            try {
+                const codes = await storage.getActivationCodes();
+                log(`获取激活码成功，共 ${Object.keys(codes).length} 个`, 'success');
+                
+                const logs = await storage.getLogs();
+                log(`获取日志成功，共 ${logs.length} 条`, 'success');
+                
+                updateDataOverview(codes, logs);
+                
+            } catch (error) {
+                log(`功能测试失败: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testDataSync() {
+            log('开始数据同步测试', 'info');
+            
+            const storage = await waitForCloudStorage();
+            if (!storage) {
+                log('云存储未连接', 'error');
+                return;
+            }
+            
+            try {
+                // 测试从云端同步
+                log('测试从云端同步数据...', 'info');
+                const syncResult = await storage.syncFromCloud();
+                
+                if (syncResult) {
+                    log('从云端同步数据成功', 'success');
+                } else {
+                    log('从云端同步数据失败，但系统正常运行', 'warning');
+                }
+                
+                // 更新数据概览
+                const codes = await storage.getActivationCodes();
+                const logs = await storage.getLogs();
+                updateDataOverview(codes, logs);
+                
+            } catch (error) {
+                log(`数据同步测试失败: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testDataSave() {
+            log('开始数据保存测试', 'info');
+            
+            const storage = await waitForCloudStorage();
+            if (!storage) {
+                log('云存储未连接', 'error');
+                return;
+            }
+            
+            try {
+                // 创建测试数据
+                const testData = {
+                    codes: await storage.getActivationCodes(),
+                    logs: await storage.getLogs(),
+                    testEntry: {
+                        timestamp: Date.now(),
+                        message: '测试数据保存',
+                        type: 'test'
+                    }
+                };
+                
+                log('测试数据保存到云端...', 'info');
+                const saveResult = await storage.syncToCloud(testData);
+                
+                if (saveResult) {
+                    log('数据保存到云端成功', 'success');
+                } else {
+                    log('数据保存到云端失败', 'error');
+                }
+                
+            } catch (error) {
+                log(`数据保存测试失败: ${error.message}`, 'error');
+            }
+        }
+        
+        function updateConnectionStatus(type, message) {
+            const statusEl = document.getElementById('connectionStatus');
+            statusEl.className = `status ${type}`;
+            statusEl.innerHTML = message;
+        }
+        
+        function updateDataOverview(codes, logs) {
+            const totalCodes = Object.keys(codes).length;
+            const usedCodes = Object.values(codes).filter(code => code.used).length;
+            const availableCodes = totalCodes - usedCodes;
+            
+            const overview = `
+                📊 数据统计：
+                • 总激活码：${totalCodes} 个
+                • 已使用：${usedCodes} 个  
+                • 可用：${availableCodes} 个
+                • 日志条数：${logs.length} 条
+                • 最后更新：${new Date().toLocaleString('zh-CN')}
+            `;
+            
+            document.getElementById('dataOverview').innerHTML = overview.replace(/\n/g, '<br>');
+        }
+        
+        // 页面加载时自动测试连接
+        document.addEventListener('DOMContentLoaded', async () => {
+            log('页面加载完成，开始自动测试', 'info');
+            
+            // 等待云存储初始化
+            setTimeout(async () => {
+                await testConnection();
+            }, 1000);
+        });
+        
+        // 监听云存储初始化事件
+        window.addEventListener('cloudStorageReady', () => {
+            log('收到云存储就绪事件', 'success');
+            testConnection();
+        });
+    </script>
+</body>
+</html>
