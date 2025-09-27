@@ -798,6 +798,21 @@ class ActivationManager {
             if (this.usedCodes.includes(trimmedCode)) {
                 return { valid: false, message: '该激活码已被使用' };
             }
+            
+            // 检查是否在当前设备上已使用过
+            const currentDeviceId = this.getDeviceId();
+            const activationData = localStorage.getItem('smartAdvisorActivation');
+            if (activationData) {
+                try {
+                    const data = JSON.parse(activationData);
+                    if (data.code === trimmedCode && data.deviceId === currentDeviceId) {
+                        return { valid: false, message: '该激活码已在此设备上使用过' };
+                    }
+                } catch (e) {
+                    // 忽略解析错误
+                }
+            }
+            
             return { valid: true, message: '激活码验证成功', isDeveloper: false };
         }
 
@@ -817,17 +832,70 @@ class ActivationManager {
             this.saveUsedCodes();
         }
 
-        // 保存激活状态
+        // 保存激活状态，包含设备标识
+        const deviceId = this.getDeviceId();
         const activationData = {
             activated: true,
             code: code.trim(),
             activatedAt: new Date().toISOString(),
-            isDeveloper: validation.isDeveloper
+            isDeveloper: validation.isDeveloper,
+            deviceId: deviceId,
+            activationCount: this.getActivationCount(code.trim()) + 1
         };
         localStorage.setItem('smartAdvisorActivation', JSON.stringify(activationData));
         
         this.isActivated = true;
         return { valid: true, message: '激活成功！' };
+    }
+
+    // 获取设备唯一标识
+    getDeviceId() {
+        let deviceId = localStorage.getItem('smartAdvisorDeviceId');
+        if (!deviceId) {
+            // 生成基于浏览器指纹的设备ID
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.textBaseline = 'top';
+            ctx.font = '14px Arial';
+            ctx.fillText('Device fingerprint', 2, 2);
+            
+            const fingerprint = [
+                navigator.userAgent,
+                navigator.language,
+                screen.width + 'x' + screen.height,
+                new Date().getTimezoneOffset(),
+                canvas.toDataURL()
+            ].join('|');
+            
+            deviceId = this.hashCode(fingerprint);
+            localStorage.setItem('smartAdvisorDeviceId', deviceId);
+        }
+        return deviceId;
+    }
+
+    // 简单的哈希函数
+    hashCode(str) {
+        let hash = 0;
+        if (str.length === 0) return hash;
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Convert to 32bit integer
+        }
+        return Math.abs(hash).toString(36);
+    }
+
+    // 获取激活码使用次数
+    getActivationCount(code) {
+        const activationHistory = JSON.parse(localStorage.getItem('smartAdvisorActivationHistory') || '{}');
+        return activationHistory[code] || 0;
+    }
+
+    // 保存激活码使用次数
+    saveActivationCount(code) {
+        const activationHistory = JSON.parse(localStorage.getItem('smartAdvisorActivationHistory') || '{}');
+        activationHistory[code] = (activationHistory[code] || 0) + 1;
+        localStorage.setItem('smartAdvisorActivationHistory', JSON.stringify(activationHistory));
     }
 
     // 重置激活状态（仅开发者）
