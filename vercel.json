@@ -1,20 +1,16 @@
 {
-  "routes": [
+  "rewrites": [
     {
-      "src": "/",
-      "dest": "/index.html"
+      "source": "/",
+      "destination": "/index.html"
     },
     {
-      "src": "/advisor",
-      "dest": "/advisor.html"
+      "source": "/advisor",
+      "destination": "/advisor.html"
     },
     {
-      "src": "/admin",
-      "dest": "/admin.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "source": "/admin",
+      "destination": "/admin.html"
     }
   ],
   "headers": [
