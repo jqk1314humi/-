@@ -154,17 +154,37 @@ class AdminSystem {
             console.log('📊 从云端加载数据...');
             this.showNotification('正在从云端获取数据...', 'info');
             
+            // 检查云存储连接状态
+            console.log('🔍 检查云存储状态:', {
+                vikaStorage: !!this.vikaStorage,
+                isInitialized: this.vikaStorage ? this.vikaStorage.isInitialized : false,
+                connectionStatus: this.vikaStorage ? this.vikaStorage.getConnectionStatus() : null
+            });
+            
             if (this.vikaStorage && this.vikaStorage.isInitialized) {
-                console.log('从维格表云存储加载数据...');
-                this.currentData.codes = await this.vikaStorage.getActivationCodes();
-                this.currentData.logs = await this.vikaStorage.getLogs();
+                console.log('✅ 从维格表云存储加载数据...');
+                
+                // 获取激活码数据
+                const cloudCodes = await this.vikaStorage.getActivationCodes();
+                console.log('🔍 从云端获取的激活码:', cloudCodes);
+                console.log('🔍 激活码数量:', Object.keys(cloudCodes || {}).length);
+                
+                // 获取日志数据
+                const cloudLogs = await this.vikaStorage.getLogs();
+                console.log('🔍 从云端获取的日志:', cloudLogs);
+                console.log('🔍 日志数量:', (cloudLogs || []).length);
+                
+                // 更新当前数据
+                this.currentData.codes = cloudCodes || {};
+                this.currentData.logs = cloudLogs || [];
                 
                 // 同步到本地存储
                 localStorage.setItem('activationCodes', JSON.stringify(this.currentData.codes));
                 localStorage.setItem('activationLogs', JSON.stringify(this.currentData.logs));
                 
                 this.calculateStats();
-                console.log('云端数据加载完成:', this.currentData.stats);
+                console.log('🔍 重新计算的统计数据:', this.currentData.stats);
+                console.log('🔍 当前完整数据:', this.currentData);
                 this.showNotification('云端数据获取成功', 'success');
                 
                 // 刷新界面显示
@@ -174,7 +194,33 @@ class AdminSystem {
                 this.updateSyncInfo();
                 
             } else {
-                this.showNotification('云存储未连接，无法获取数据', 'warning');
+                console.log('❌ 云存储未连接，尝试重新连接...');
+                this.showNotification('云存储未连接，尝试重新连接...', 'warning');
+                
+                // 尝试重新初始化云存储
+                if (window.VikaCloudStorage && !window.vikaCloudStorage) {
+                    console.log('🔄 创建新的维格表连接...');
+                    try {
+                        window.vikaCloudStorage = new VikaCloudStorage();
+                        this.vikaStorage = window.vikaCloudStorage;
+                        
+                        // 等待初始化完成
+                        setTimeout(async () => {
+                            if (this.vikaStorage && this.vikaStorage.isInitialized) {
+                                console.log('✅ 重新连接成功，再次尝试获取数据...');
+                                await this.loadDataFromCloud();
+                            } else {
+                                this.showNotification('重新连接失败，使用本地数据', 'error');
+                            }
+                        }, 3000);
+                        
+                    } catch (error) {
+                        console.error('❌ 重新连接失败:', error);
+                        this.showNotification('重新连接失败: ' + error.message, 'error');
+                    }
+                } else {
+                    this.showNotification('云存储未连接，无法获取数据', 'warning');
+                }
             }
             
         } catch (error) {
