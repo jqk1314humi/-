@@ -126,24 +126,15 @@
             </div>
 
             <div class="admin-tabs">
-                <button class="tab-button active" data-tab="codes">激活码列表</button>
-                <button class="tab-button" data-tab="logs">使用日志</button>
+                <button class="tab-button active" data-tab="logs">使用日志</button>
             </div>
 
             <div class="tab-content">
-                <div id="codesTab" class="tab-panel active">
+                <div id="logsTab" class="tab-panel active">
                     <div class="admin-notice">
                         <i class="fas fa-info-circle"></i>
-                        <span>管理说明：已使用的激活码可以重置，所有激活码都可以删除。重置或删除操作会自动清除相关设备的激活状态。</span>
+                        <span>日志说明：这里显示智能导员的使用记录，包括用户交互和系统事件。</span>
                     </div>
-                    <div class="codes-list" id="codesList">
-                        <div class="loading-placeholder">
-                            <i class="fas fa-spinner fa-spin"></i>
-                            <span>正在加载激活码数据...</span>
-                        </div>
-                    </div>
-                </div>
-                <div id="logsTab" class="tab-panel">
                     <div class="logs-list" id="logsList">
                         <div class="loading-placeholder">
                             <i class="fas fa-spinner fa-spin"></i>
@@ -163,7 +154,7 @@
             const backButton = document.getElementById('backToMainApp');
             if (backButton) {
                 backButton.addEventListener('click', () => {
-                    window.location.href = './advisor.html';
+                    window.location.href = './index.html';
                 });
             }
         });
