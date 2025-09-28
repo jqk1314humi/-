@@ -173,17 +173,12 @@ class ActivationSystem {
                 return false;
             }
 
-            // 同时检查isUsed和situation字段
+            // 同时检查isUsed和situation字段（移除设备ID验证）
             const isUsed = codeInfo.isUsed || (codeInfo.situation === 1);
             if (!isUsed) {
                 return false;
             }
 
-            // 验证设备ID
-            if (codeInfo.usedBy && codeInfo.usedBy.deviceId !== deviceId) {
-                return false;
-            }
-            
             return true;
             
         } catch (error) {
@@ -328,17 +323,12 @@ class ActivationSystem {
             // 同时检查isUsed和situation字段
             const isUsed = codeInfo.isUsed || (codeInfo.situation === 1);
 
-            // 检查是否已被使用
+            // 检查是否已被使用（移除设备绑定限制）
             if (isUsed) {
-                // 检查是否是当前设备使用的
-                if (codeInfo.usedBy && codeInfo.usedBy.deviceId === this.deviceFingerprint) {
-                    return { success: true, message: '欢迎回来！激活码验证成功' };
-                } else {
-                    return {
-                        success: false,
-                        message: '该激活码已在其他设备上使用，每个激活码只能激活一台设备'
-                    };
-                }
+                return {
+                    success: false,
+                    message: '该激活码已被使用'
+                };
             }
             
             // 激活码可用，标记为已使用
@@ -465,26 +455,8 @@ class ActivationSystem {
      * 生成设备指纹
      */
     generateDeviceFingerprint() {
-        const components = [
-            navigator.userAgent,
-            navigator.language,
-            navigator.platform,
-            screen.width + 'x' + screen.height,
-            screen.colorDepth,
-            new Date().getTimezoneOffset(),
-            navigator.hardwareConcurrency || 'unknown',
-            navigator.deviceMemory || 'unknown'
-        ];
-
-        // 对于手机端，避免使用可能不稳定的navigator.plugins
-        // 只在桌面端添加插件信息
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        if (!isMobile && navigator.plugins && navigator.plugins.length > 0) {
-            components.push(Array.from(navigator.plugins).map(p => p.name).join(','));
-        }
-
-        const fingerprint = this.hashString(components.join('|'));
-        return fingerprint.substring(0, 16); // 取前16位作为设备ID
+        // 简化为固定设备ID，允许激活码在任何设备上使用
+        return 'universal-device';
     }
     
     /**

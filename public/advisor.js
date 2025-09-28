@@ -561,28 +561,10 @@ class SmartAdvisor {
     }
 }
 
-// 生成设备ID的函数（优化版，更适合手机端）
+// 生成设备ID的函数（简化版，允许跨设备使用）
 function generateDeviceId() {
-    const components = [
-        navigator.userAgent,
-        navigator.language,
-        navigator.platform,
-        screen.width + 'x' + screen.height,
-        screen.colorDepth,
-        new Date().getTimezoneOffset(),
-        navigator.hardwareConcurrency || 'unknown',
-        navigator.deviceMemory || 'unknown'
-    ];
-
-    // 对于手机端，避免使用可能不稳定的navigator.plugins
-    // 只在桌面端添加插件信息
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    if (!isMobile && navigator.plugins && navigator.plugins.length > 0) {
-        components.push(Array.from(navigator.plugins).map(p => p.name).join(','));
-    }
-
-    const fingerprint = hashString(components.join('|'));
-    return fingerprint.substring(0, 16); // 取前16位作为设备ID
+    // 简化为固定设备ID，允许激活码在任何设备上使用
+    return 'universal-device';
 }
 
 // 简单哈希函数
@@ -631,95 +613,21 @@ function checkActivationStatus() {
             console.log('✅ 使用开发者/管理员激活码，激活状态有效');
             return true;
         }
-        
-        // 验证当前设备ID是否与保存的一致
-        const currentDeviceId = generateDeviceId();
-        if (userDeviceId !== currentDeviceId) {
-            console.log('❌ 设备ID不匹配，可能是设备指纹算法变化');
-            console.log('保存的设备ID:', userDeviceId);
-            console.log('当前设备ID:', currentDeviceId);
 
-            // 对于设备ID不匹配的情况，我们给予一定的容错
-            // 检查激活时间是否在合理范围内
-            const activationDate = new Date(activationTime);
-            const now = new Date();
-            const timeDiff = now - activationDate;
-            const hoursDiff = timeDiff / (1000 * 60 * 60);
+        // 简化为时间检查，移除设备绑定限制
+        const activationDate = new Date(activationTime);
+        const now = new Date();
+        const timeDiff = now - activationDate;
+        const hoursDiff = timeDiff / (1000 * 60 * 60);
 
-            // 检测是否为手机端，对手机端更宽容
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-            if (hoursDiff > (isMobile ? 72 : 48)) { // 手机端给予72小时，桌面端48小时
-                console.log(`❌ 激活时间过久且设备ID不匹配，需要重新激活 (手机端容错: ${isMobile})`);
-                if (isMobile) {
-                    setTimeout(() => {
-                        redirectToActivation('激活信息已过期，请重新激活');
-                    }, 1500);
-                } else {
-                    redirectToActivation('激活信息已过期，请重新激活');
-                }
-                return false;
-            } else {
-                console.log(`⚠️ 设备ID不匹配但激活时间在${isMobile ? 72 : 48}小时内，更新设备ID (手机端容错: ${isMobile})`);
-                localStorage.setItem('userDeviceId', currentDeviceId);
-                return true;
-            }
-        }
-        
-        // 对于其他激活码，进行基本的本地验证
-        const codes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
-        const codeInfo = codes[userActivationCode];
-        
-        // 如果本地没有激活码信息，但用户有激活记录，可能是云端同步问题
-        if (!codeInfo) {
-            console.log('⚠️ 本地没有激活码信息，但用户有激活记录，可能是云端同步问题');
-            // 检查激活时间，如果是最近激活的，给予通过
-            const activationDate = new Date(activationTime);
-            const now = new Date();
-            const timeDiff = now - activationDate;
-            const hoursDiff = timeDiff / (1000 * 60 * 60);
-            
-            if (hoursDiff <= 24) {
-                console.log('✅ 激活时间在24小时内，允许通过');
-                return true;
-            } else {
-                console.log('❌ 激活时间过久且本地无激活码信息');
-                redirectToActivation('激活信息验证失败，请重新激活');
-                return false;
-            }
-        }
-        
-        // 检查激活码是否被标记为已使用
-        if (!codeInfo.isUsed) {
-            console.log('❌ 激活码未被标记为已使用');
-            redirectToActivation('激活码状态异常，请重新激活');
+        // 检查激活时间是否过期（设置为30天）
+        if (hoursDiff > 720) { // 30天 = 720小时
+            console.log('❌ 激活时间已过期（超过30天）');
+            redirectToActivation('激活码已过期，请重新激活');
             return false;
         }
-        
-        // 验证设备ID是否匹配（如果有记录的话）
-        if (codeInfo.usedBy && codeInfo.usedBy.deviceId) {
-            if (codeInfo.usedBy.deviceId !== currentDeviceId) {
-                console.log('❌ 激活码绑定的设备ID不匹配');
-                console.log('激活码绑定的设备ID:', codeInfo.usedBy.deviceId);
-                console.log('当前设备ID:', currentDeviceId);
-                
-                // 检查激活时间，给予一定容错
-                const activationDate = new Date(activationTime);
-                const now = new Date();
-                const timeDiff = now - activationDate;
-                const hoursDiff = timeDiff / (1000 * 60 * 60);
-                
-                if (hoursDiff <= 1) {
-                    console.log('⚠️ 设备ID不匹配但激活时间在1小时内，可能是指纹算法问题，允许通过');
-                    return true;
-                } else {
-                    redirectToActivation('检测到激活码已被其他设备使用，请重新激活');
-                    return false;
-                }
-            }
-        }
-        
-        console.log('✅ 激活状态验证通过');
+
+        console.log('✅ 激活状态验证通过（已激活超过30天将过期）');
         return true;
         
     } catch (error) {
