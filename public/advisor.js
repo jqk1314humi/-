@@ -753,6 +753,10 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             if (checkActivationStatus()) {
                 new SmartAdvisor();
+            } else {
+                console.log('⚠️ 激活状态检查失败，显示欢迎页面');
+                // 显示欢迎页面，不重定向
+                showWelcomePage();
             }
         }, 500);
     } else {
@@ -765,6 +769,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // 移除定期检查激活状态，避免死循环
 // 激活状态只在页面加载时检查一次，之后由用户手动触发
+
+/**
+ * 显示欢迎页面（激活失败时使用）
+ */
+function showWelcomePage() {
+    const chatMessages = document.getElementById('chatMessages');
+    if (chatMessages) {
+        chatMessages.innerHTML = `
+            <div class="welcome-container">
+                <div class="welcome-message">
+                    <h2>🤖 欢迎使用智能导员</h2>
+                    <p>您需要先激活才能使用智能导员服务。</p>
+                    <div class="welcome-actions">
+                        <button onclick="window.location.href='index.html'" class="welcome-button">
+                            <i class="fas fa-key"></i> 前往激活
+                        </button>
+                        <button onclick="window.location.reload()" class="welcome-button secondary">
+                            <i class="fas fa-refresh"></i> 重试
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+}
 
 // 添加一些实用功能
 document.addEventListener('DOMContentLoaded', () => {

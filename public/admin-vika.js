@@ -107,8 +107,17 @@ class AdminSystem {
             for (const [code, info] of Object.entries(codes)) {
                 if (!info.situation) {
                     console.log(`📝 为激活码 ${code} 添加situation字段`);
-                    info.situation = '未使用';
+                    // 根据isUsed状态设置正确的situation值
+                    info.situation = info.isUsed ? '已使用' : '未使用';
                     needsUpdate = true;
+                } else {
+                    // 确保situation值与isUsed状态一致
+                    const expectedSituation = info.isUsed ? '已使用' : '未使用';
+                    if (info.situation !== expectedSituation) {
+                        console.log(`🔧 修正激活码 ${code} 的situation字段: ${info.situation} -> ${expectedSituation}`);
+                        info.situation = expectedSituation;
+                        needsUpdate = true;
+                    }
                 }
             }
 
