@@ -563,31 +563,33 @@ class VikaCloudStorage {
                 throw new Error('激活码已被使用');
             }
 
-            // 更新激活码状态 - 尝试多种字段名
-            const updateFields = {};
-            
-            // 尝试不同的字段名来更新状态
-            const usedFields = ['isUsed', 'IsUsed', 'used', 'Used'];
-            const usedAtFields = ['usedAt', 'UsedAt', 'used_at', 'UsedAt'];
-            const usedByFields = ['usedBy', 'UsedBy', 'used_by', 'UsedBy'];
-            
-            // 设置已使用状态
-            updateFields[usedFields[0]] = true;
-            updateFields[usedAtFields[0]] = new Date().toISOString();
-            updateFields[usedByFields[0]] = JSON.stringify(deviceInfo);
+            // 按照模板直接使用Vika SDK更新situation字段
+            const { Vika } = window; // 从全局获取Vika SDK
+            if (!Vika) {
+                throw new Error('Vika SDK未加载');
+            }
 
-            // 尝试多种situation字段名
-            const situationFields = ['situation', 'Situation', 'SITUATION', 'status', 'Status', 'STATUS'];
-            updateFields[situationFields[0]] = 1;  // 设置situation为1表示已使用
-            
-            console.log('🔄 更新激活码状态:', code, updateFields);
-            
-            const updateData = [{
+            const vika = new Vika({ token: this.VIKA_CONFIG.token, fieldKey: "name" });
+            const datasheet = vika.datasheet(this.VIKA_CONFIG.datasheetId);
+
+            console.log('🔄 使用Vika SDK更新激活码状态:', code);
+
+            // 直接更新记录，按照模板格式
+            const updateResponse = await datasheet.records.update([{
                 recordId: codeInfo.recordId,
-                fields: updateFields
-            }];
+                fields: {
+                    "isUsed": true,
+                    "usedAt": new Date().toISOString(),
+                    "usedBy": JSON.stringify(deviceInfo),
+                    "situation": "1"  // 按照模板设置为字符串"1"
+                }
+            }]);
 
-            await this.updateRecords(updateData);
+            if (!updateResponse.success) {
+                throw new Error('更新维格表记录失败: ' + JSON.stringify(updateResponse));
+            }
+
+            console.log('✅ 激活码状态更新成功:', code, updateResponse.data);
             
             // 添加使用日志
             await this.addLog(code, 'used', deviceInfo);
@@ -598,7 +600,7 @@ class VikaCloudStorage {
                 isUsed: true,
                 usedAt: new Date().toISOString(),
                 usedBy: deviceInfo,
-                situation: 1  // 本地缓存也设置situation为1
+                situation: "1"  // 本地缓存也设置situation为字符串"1"
             };
             
             this.saveToLocalStorage('activationCodes', codes);
@@ -627,23 +629,33 @@ class VikaCloudStorage {
                 throw new Error('激活码不存在');
             }
 
-            // 重置激活码状态
-            const updateData = [{
+            // 按照模板使用Vika SDK重置situation字段
+            const { Vika } = window; // 从全局获取Vika SDK
+            if (!Vika) {
+                throw new Error('Vika SDK未加载');
+            }
+
+            const vika = new Vika({ token: this.VIKA_CONFIG.token, fieldKey: "name" });
+            const datasheet = vika.datasheet(this.VIKA_CONFIG.datasheetId);
+
+            console.log('🔄 使用Vika SDK重置激活码状态:', code);
+
+            // 直接更新记录，重置situation字段为空
+            const resetResponse = await datasheet.records.update([{
                 recordId: codeInfo.recordId,
                 fields: {
-                    isUsed: false,
-                    usedAt: null,
-                    usedBy: null,
-                    situation: '',  // 重置时将situation设为空
-                    Situation: '',  // 尝试多种字段名
-                    SITUATION: '',
-                    status: '',
-                    Status: '',
-                    STATUS: ''
+                    "isUsed": false,
+                    "usedAt": null,
+                    "usedBy": null,
+                    "situation": ""  // 重置时将situation设为空字符串
                 }
-            }];
+            }]);
 
-            await this.updateRecords(updateData);
+            if (!resetResponse.success) {
+                throw new Error('重置维格表记录失败: ' + JSON.stringify(resetResponse));
+            }
+
+            console.log('✅ 激活码重置成功:', code, resetResponse.data);
             
             // 添加重置日志
             await this.addLog(code, 'reset', null);
@@ -654,7 +666,7 @@ class VikaCloudStorage {
                 isUsed: false,
                 usedAt: null,
                 usedBy: null,
-                situation: ''  // 本地缓存也重置situation为空
+                situation: ''  // 本地缓存也重置situation为空字符串
             };
             
             this.saveToLocalStorage('activationCodes', codes);
