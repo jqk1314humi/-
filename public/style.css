@@ -339,7 +339,6 @@ html {
     font-size: 0.9rem;
 }
 
-.admin-button-main {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.3);
     color: rgba(255, 255, 255, 0.8);
@@ -353,7 +352,6 @@ html {
     gap: 0.5rem;
 }
 
-.admin-button-main:hover {
     background: rgba(255, 255, 255, 0.2);
     border-color: rgba(255, 255, 255, 0.5);
     color: white;
@@ -423,7 +421,6 @@ html {
         padding: 1rem;
     }
     
-    .admin-button-main {
         font-size: 0.9rem;
         padding: 0.75rem 1.5rem;
     }
@@ -834,7 +831,6 @@ html {
 
 
 /* Admin Panel Styles */
-.admin-panel {
     min-height: 100vh;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     padding: 2rem;
@@ -847,7 +843,6 @@ html {
     overflow-y: auto;
 }
 
-.admin-header {
     max-width: 1200px;
     margin: 0 auto 2rem;
     display: flex;
@@ -861,7 +856,6 @@ html {
     width: 100%;
 }
 
-.admin-title {
     font-size: 1.5rem;
     font-weight: 600;
     color: #1f2937;
@@ -890,7 +884,6 @@ html {
     background: rgba(99, 102, 241, 0.05);
 }
 
-.admin-content {
     max-width: 1200px;
     margin: 0 auto;
     position: relative;
@@ -898,7 +891,6 @@ html {
     width: 100%;
 }
 
-.admin-stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1.5rem;
@@ -953,7 +945,6 @@ html {
     margin-top: 0.25rem;
 }
 
-.admin-actions {
     display: flex;
     gap: 1rem;
     margin-bottom: 2rem;
@@ -1003,7 +994,6 @@ html {
     box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
 }
 
-.admin-tabs {
     display: flex;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
@@ -1046,7 +1036,7 @@ html {
     padding: 1.5rem;
     max-height: 600px;
     overflow-y: auto;
-    /* 强制显示滚动条 */
+    /* 强制显示滚动�?*/
     scrollbar-width: auto;
     -webkit-overflow-scrolling: touch;
 }
@@ -1074,7 +1064,6 @@ html {
     display: block;
 }
 
-.admin-notice {
     background: linear-gradient(135deg, #dbeafe, #bfdbfe);
     border: 1px solid #93c5fd;
     border-radius: 0.5rem;
@@ -1087,7 +1076,6 @@ html {
     font-size: 0.9rem;
 }
 
-.admin-notice i {
     color: #3b82f6;
     font-size: 1rem;
 }
@@ -1620,21 +1608,17 @@ html {
         font-size: 1.1rem;
     }
     
-    .admin-panel {
         padding: 1rem;
     }
     
-    .admin-header {
         flex-direction: column;
         gap: 1rem;
         text-align: center;
     }
     
-    .admin-stats {
         grid-template-columns: 1fr;
     }
     
-    .admin-actions {
         flex-direction: column;
     }
     
@@ -1981,7 +1965,7 @@ html {
     color: #f59e0b;
 }
 
-/* 响应式设计 */
+/* 响应式设�?*/
 @media (max-width: 768px) {
     .sync-actions {
         grid-template-columns: 1fr;
