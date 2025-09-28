@@ -470,8 +470,7 @@ body::after {
 
 /* 主要内容布局 */
 .main-content {
-    display: grid;
-    grid-template-columns: 300px 1fr 300px;
+    display: flex;
     gap: 2rem;
     padding: 2rem;
     max-width: 1600px;
@@ -507,19 +506,20 @@ body::after {
     50% { transform: scale(1.05); opacity: 0.4; }
 }
 
-/* 左侧边栏样式 */
-.left-sidebar {
+/* 左侧内容区域 */
+.left-content {
+    width: 400px;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
     z-index: 10;
 }
 
-/* 右侧边栏样式 */
-.right-sidebar {
+/* 右侧对话窗口 */
+.right-content {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
     z-index: 10;
 }
 
@@ -1206,9 +1206,12 @@ body::after {
 /* 响应式设计 */
 @media (max-width: 1200px) {
     .main-content {
-        grid-template-columns: 250px 1fr 250px;
         gap: 1rem;
         padding: 1rem;
+    }
+
+    .left-content {
+        width: 350px;
     }
 
     .hugging-character {
@@ -1219,16 +1222,20 @@ body::after {
 
 @media (max-width: 1024px) {
     .main-content {
-        grid-template-columns: 1fr;
+        flex-direction: column;
         gap: 1.5rem;
         padding: 1rem;
     }
 
-    .left-sidebar,
-    .right-sidebar {
+    .left-content {
+        width: 100%;
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 1.5rem;
+    }
+
+    .right-content {
+        width: 100%;
     }
 
     .hugging-background {
@@ -1254,12 +1261,8 @@ body::after {
         font-size: 1.5rem;
     }
     
-    .sidebar {
-        flex-direction: column;
-    }
-    
-    .sidebar .card {
-        min-width: auto;
+    .left-content {
+        grid-template-columns: 1fr;
     }
     
     .chat-input-container {

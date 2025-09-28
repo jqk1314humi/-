@@ -104,8 +104,8 @@
             <div class="hugging-character"></div>
         </div>
 
-        <!-- Left Sidebar -->
-        <aside class="left-sidebar">
+        <!-- Left Content Area -->
+        <div class="left-content">
             <!-- Quick Questions Card -->
             <div class="card quick-questions-card">
                 <h3 class="card-title">🌟 快速提问</h3>
@@ -143,37 +143,7 @@
                     当前模型在调试过程中发现针对学校政策的相关检索存在不准确的情况，在提问学校相关政策时最好在前面加上西北政法大学
                 </p>
             </div>
-        </aside>
 
-        <!-- Chat Window (Center) -->
-        <section class="chat-window">
-            <div class="chat-header">
-                <i class="fas fa-comments chat-icon"></i>
-                <h3 class="chat-title">💬 智能对话</h3>
-            </div>
-
-            <div class="chat-messages" id="chatMessages">
-                <div class="message advisor-message">
-                    <div class="message-avatar">
-                        <i class="fas fa-graduation-cap"></i>
-                    </div>
-                    <div class="message-bubble">
-                        你好!我是你的智能导员,很高兴为你服务。有什么学习、生活或职业规划方面的问题,都可以随时问我哦!
-                    </div>
-                </div>
-            </div>
-
-            <div class="chat-input-container">
-                <input type="text" class="chat-input" id="chatInput" placeholder="💭 在这里输入你的问题...">
-                <button class="send-button" id="sendButton">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
-            </div>
-            <div class="input-hint">✨ 按Enter 键快速发送消息</div>
-        </section>
-
-        <!-- Right Sidebar -->
-        <aside class="right-sidebar">
             <!-- Advisor Introduction Card -->
             <div class="card advisor-card">
                 <h3 class="card-title">🤖 智能导员</h3>
@@ -202,7 +172,36 @@
                     <span class="status-value">98%</span>
                 </div>
             </div>
-        </aside>
+        </div>
+
+        <!-- Chat Window (Right Side) -->
+        <div class="right-content">
+            <section class="chat-window">
+                <div class="chat-header">
+                    <i class="fas fa-comments chat-icon"></i>
+                    <h3 class="chat-title">💬 智能对话</h3>
+                </div>
+
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message advisor-message">
+                        <div class="message-avatar">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <div class="message-bubble">
+                            你好!我是你的智能导员,很高兴为你服务。有什么学习、生活或职业规划方面的问题,都可以随时问我哦!
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-input-container">
+                    <input type="text" class="chat-input" id="chatInput" placeholder="💭 在这里输入你的问题...">
+                    <button class="send-button" id="sendButton">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+                <div class="input-hint">✨ 按Enter 键快速发送消息</div>
+            </section>
+        </div>
     </main>
 
     <!-- Footer -->

@@ -635,12 +635,12 @@ function checkActivationStatus() {
             const timeDiff = now - activationDate;
             const hoursDiff = timeDiff / (1000 * 60 * 60);
             
-            if (hoursDiff > 24) {
+            if (hoursDiff > 48) {
                 console.log('❌ 激活时间过久且设备ID不匹配，需要重新激活');
                 redirectToActivation('激活信息已过期，请重新激活');
                 return false;
             } else {
-                console.log('⚠️ 设备ID不匹配但激活时间在24小时内，更新设备ID');
+                console.log('⚠️ 设备ID不匹配但激活时间在48小时内，更新设备ID');
                 localStorage.setItem('userDeviceId', currentDeviceId);
                 return true;
             }
@@ -763,10 +763,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// 定期检查激活状态（每30分钟检查一次，降低频率避免循环）
-setInterval(() => {
-    checkActivationStatus();
-}, 30 * 60 * 1000);
+// 移除定期检查激活状态，避免死循环
+// 激活状态只在页面加载时检查一次，之后由用户手动触发
 
 // 添加一些实用功能
 document.addEventListener('DOMContentLoaded', () => {
