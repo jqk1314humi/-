@@ -370,16 +370,16 @@ class SmartAdvisor {
     addMessage(content, sender) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${sender}-message`;
-        
+
         const avatarDiv = document.createElement('div');
         avatarDiv.className = 'message-avatar';
-        avatarDiv.innerHTML = sender === 'user' ? 
-            '<i class="fas fa-user"></i>' : 
+        avatarDiv.innerHTML = sender === 'user' ?
+            '<i class="fas fa-user"></i>' :
             '<i class="fas fa-graduation-cap"></i>';
-        
+
         const bubbleDiv = document.createElement('div');
         bubbleDiv.className = 'message-bubble';
-        
+
         // 根据发送者决定是否渲染Markdown
         if (sender === 'advisor') {
             // AI回复使用Markdown渲染
@@ -388,20 +388,47 @@ class SmartAdvisor {
             // 用户消息使用纯文本（转义HTML）
             bubbleDiv.textContent = content;
         }
-        
+
         messageDiv.appendChild(avatarDiv);
         messageDiv.appendChild(bubbleDiv);
-        
+
         this.chatMessages.appendChild(messageDiv);
         this.scrollToBottom();
-        
+
+        // 添加可爱的跳跳动画
+        setTimeout(() => {
+            messageDiv.classList.add('message-bounce');
+            setTimeout(() => {
+                messageDiv.classList.remove('message-bounce');
+            }, 800);
+        }, 100);
+
+        // 随机添加表情符号装饰
+        if (Math.random() < 0.3) { // 30%概率添加表情符号
+            const emojis = ['✨', '💫', '⭐', '🌟', '💖', '🎉', '🎊', '🌈'];
+            const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+
+            setTimeout(() => {
+                const emojiDiv = document.createElement('div');
+                emojiDiv.className = 'message-emoji';
+                emojiDiv.textContent = emoji;
+                messageDiv.appendChild(emojiDiv);
+
+                setTimeout(() => {
+                    if (emojiDiv.parentNode) {
+                        emojiDiv.parentNode.removeChild(emojiDiv);
+                    }
+                }, 3000);
+            }, 500 + Math.random() * 1000);
+        }
+
         // 保存原始消息内容到历史数组
         this.messageHistory.push({
             sender: sender,
             content: content,
             timestamp: Date.now()
         });
-        
+
         return messageDiv;
     }
 
@@ -782,6 +809,14 @@ function addCuteInteractions() {
         item.addEventListener('mouseenter', function() {
             createHoverSparkle(this);
         });
+
+        item.addEventListener('click', function() {
+            // 添加点击反馈效果
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                this.style.transform = '';
+            }, 150);
+        });
     });
     
     // 添加消息发送成功的庆祝效果
@@ -802,6 +837,9 @@ function addCuteInteractions() {
  */
 function createClickEffect(element) {
     const ripple = document.createElement('div');
+    const heart = document.createElement('div');
+
+    // 水波纹效果
     ripple.style.cssText = `
         position: absolute;
         border-radius: 50%;
@@ -811,13 +849,25 @@ function createClickEffect(element) {
         pointer-events: none;
         z-index: 1000;
     `;
-    
+
     const rect = element.getBoundingClientRect();
     const size = Math.max(rect.width, rect.height);
     ripple.style.width = ripple.style.height = size + 'px';
     ripple.style.left = (rect.left + rect.width / 2 - size / 2) + 'px';
     ripple.style.top = (rect.top + rect.height / 2 - size / 2) + 'px';
-    
+
+    // 心形效果
+    heart.textContent = '💖';
+    heart.style.cssText = `
+        position: absolute;
+        font-size: 1.5rem;
+        pointer-events: none;
+        z-index: 1001;
+        animation: heartFloat 1.2s ease-out forwards;
+    `;
+    heart.style.left = (rect.left + rect.width / 2 - 10) + 'px';
+    heart.style.top = (rect.top + rect.height / 2 - 10) + 'px';
+
     // 添加动画样式
     if (!document.getElementById('ripple-animation-style')) {
         const style = document.createElement('style');
@@ -829,17 +879,35 @@ function createClickEffect(element) {
                     opacity: 0;
                 }
             }
+            @keyframes heartFloat {
+                0% {
+                    transform: scale(0) rotate(0deg);
+                    opacity: 1;
+                }
+                50% {
+                    transform: scale(1.2) rotate(180deg);
+                    opacity: 1;
+                }
+                100% {
+                    transform: scale(0.8) rotate(360deg);
+                    opacity: 0;
+                }
+            }
         `;
         document.head.appendChild(style);
     }
-    
+
     document.body.appendChild(ripple);
-    
+    document.body.appendChild(heart);
+
     setTimeout(() => {
         if (ripple.parentNode) {
             ripple.parentNode.removeChild(ripple);
         }
-    }, 600);
+        if (heart.parentNode) {
+            heart.parentNode.removeChild(heart);
+        }
+    }, 1200);
 }
 
 /**

@@ -6,6 +6,78 @@
     <title>智能导员v2.2.1 - jqk Group</title>
     <link rel="stylesheet" href="cute-style.css?v=3.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- 可爱的装饰元素 -->
+    <div class="cute-decorations">
+        <div class="sticker">🌟</div>
+        <div class="sticker">✨</div>
+        <div class="sticker">💫</div>
+        <div class="sticker">⭐</div>
+        <div class="sticker">🌙</div>
+        <div class="sticker">☀️</div>
+    </div>
+
+    <div class="stars">
+        <div class="star"></div>
+        <div class="star"></div>
+        <div class="star"></div>
+        <div class="star"></div>
+        <div class="star"></div>
+        <div class="star"></div>
+        <div class="star"></div>
+        <div class="star"></div>
+    </div>
+
+    <div class="doll"></div>
+    <div class="doll"></div>
+
+    <div class="heart">❤️</div>
+    <div class="heart">💖</div>
+
+    <div class="magic-particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <!-- 更多可爱的装饰元素 -->
+    <div class="floating-hearts">
+        <div class="floating-heart">💖</div>
+        <div class="floating-heart">💕</div>
+        <div class="floating-heart">💗</div>
+        <div class="floating-heart">💓</div>
+    </div>
+
+    <div class="rainbow-glow"></div>
+
+    <div class="magic-runes">
+        <div class="rune">✨</div>
+        <div class="rune">🌟</div>
+        <div class="rune">💫</div>
+        <div class="rune">⭐</div>
+        <div class="rune">🌙</div>
+        <div class="rune">☀️</div>
+    </div>
+
+    <div class="floating-clouds">
+        <div class="cloud"></div>
+        <div class="cloud"></div>
+        <div class="cloud"></div>
+        <div class="cloud"></div>
+        <div class="cloud"></div>
+        <div class="cloud"></div>
+        <div class="cloud"></div>
+        <div class="cloud"></div>
+        <div class="cloud"></div>
+        <div class="cloud"></div>
+        <div class="cloud"></div>
+        <div class="cloud"></div>
+        <div class="cloud"></div>
+        <div class="cloud"></div>
+        <div class="cloud"></div>
+        <div class="cloud"></div>
+    </div>
 </head>
 <body>
     <!-- Header -->
@@ -22,11 +94,16 @@
 
     <!-- Main Content -->
     <main class="main-content">
+        <!-- Hugging Character Background -->
+        <div class="hugging-background">
+            <div class="hugging-character"></div>
+        </div>
+
         <!-- Left Sidebar -->
-        <aside class="sidebar">
+        <aside class="left-sidebar">
             <!-- Quick Questions Card -->
             <div class="card quick-questions-card">
-                <h3 class="card-title">快速提问</h3>
+                <h3 class="card-title">🌟 快速提问</h3>
                 <ul class="question-list">
                     <li class="question-item">
                         <i class="fas fa-file-alt question-icon"></i>
@@ -61,25 +138,15 @@
                     当前模型在调试过程中发现针对学校政策的相关检索存在不准确的情况，在提问学校相关政策时最好在前面加上西北政法大学
                 </p>
             </div>
-
-            <!-- Advisor Introduction Card -->
-            <div class="card advisor-card">
-                <h3 class="card-title">智能导员</h3>
-                <p class="advisor-description">
-                    智能导员是一款jgk研发团队专为大学生设计的智能助手，能够提供学习、生活、职业规划等方面的建议和指导。
-                    <br>当前模型最高思索时间为180秒，若超时还未给出回答请重新提问或向管理员反馈<br>目前版本：v2..1
-                    <br>管理员微信：humi0922
-                </p>
-            </div>
         </aside>
 
-        <!-- Chat Window -->
+        <!-- Chat Window (Center) -->
         <section class="chat-window">
             <div class="chat-header">
                 <i class="fas fa-comments chat-icon"></i>
-                <h3 class="chat-title">对话窗口</h3>
+                <h3 class="chat-title">💬 智能对话</h3>
             </div>
-            
+
             <div class="chat-messages" id="chatMessages">
                 <div class="message advisor-message">
                     <div class="message-avatar">
@@ -92,13 +159,45 @@
             </div>
 
             <div class="chat-input-container">
-                <input type="text" class="chat-input" id="chatInput" placeholder="请输入你的问题...">
+                <input type="text" class="chat-input" id="chatInput" placeholder="💭 在这里输入你的问题...">
                 <button class="send-button" id="sendButton">
                     <i class="fas fa-paper-plane"></i>
                 </button>
             </div>
-            <div class="input-hint">按Enter 键快速发送消息</div>
+            <div class="input-hint">✨ 按Enter 键快速发送消息</div>
         </section>
+
+        <!-- Right Sidebar -->
+        <aside class="right-sidebar">
+            <!-- Advisor Introduction Card -->
+            <div class="card advisor-card">
+                <h3 class="card-title">🤖 智能导员</h3>
+                <p class="advisor-description">
+                    智能导员是一款jgk研发团队专为大学生设计的智能助手，能够提供学习、生活、职业规划等方面的建议和指导。
+                    <br><br>✨ 当前模型最高思索时间为180秒
+                    <br>🔄 若超时还未给出回答请重新提问或向管理员反馈
+                    <br>📱 目前版本：v2.2.1
+                    <br>👨‍💼 管理员微信：humi0922
+                </p>
+            </div>
+
+            <!-- System Status Card -->
+            <div class="card system-status-card">
+                <h3 class="card-title">📊 系统状态</h3>
+                <div class="status-item">
+                    <span class="status-label">🟢 在线状态:</span>
+                    <span class="status-value">正常</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">⚡ 响应速度:</span>
+                    <span class="status-value">快速</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">🎯 准确率:</span>
+                    <span class="status-value">98%</span>
+                </div>
+            </div>
+        </aside>
     </main>
 
     <!-- Footer -->
