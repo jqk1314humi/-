@@ -318,9 +318,13 @@ class VikaCloudStorage {
                 }
                 
                 if (codeValue) {
+                    // 优先使用situation字段，兼容旧的isUsed字段
+                    const situation = fields.situation || (this.parseBoolean(fields.isUsed || fields.IsUsed || fields.used || fields.Used) ? 2 : 1);
+                    const isUsed = situation === 2;
+
                     codes[codeValue] = {
-                        isUsed: this.parseBoolean(fields.isUsed || fields.IsUsed || fields.used || fields.Used) || false,
-                        situation: fields.situation || fields.Situation || fields.status || fields.Status || '未使用',  // 读取situation字段
+                        isUsed: isUsed,
+                        situation: situation,
                         usedAt: fields.usedAt || fields.UsedAt || fields.used_at || null,
                         usedBy: this.parseJSON(fields.usedBy || fields.UsedBy || fields.used_by) || null,
                         createdAt: fields.createdAt || fields.CreatedAt || fields.created_at || new Date().toISOString(),
@@ -564,18 +568,18 @@ class VikaCloudStorage {
 
             // 更新激活码状态 - 尝试多种字段名
             const updateFields = {};
-
+            
             // 尝试不同的字段名来更新状态
             const usedFields = ['isUsed', 'IsUsed', 'used', 'Used'];
             const usedAtFields = ['usedAt', 'UsedAt', 'used_at', 'UsedAt'];
             const usedByFields = ['usedBy', 'UsedBy', 'used_by', 'UsedBy'];
-            const situationFields = ['situation', 'Situation', 'status', 'Status'];
+            const situationFields = ['situation', 'Situation'];
 
             // 设置已使用状态
             updateFields[usedFields[0]] = true;
+            updateFields[situationFields[0]] = 2;  // 2=已使用
             updateFields[usedAtFields[0]] = new Date().toISOString();
             updateFields[usedByFields[0]] = JSON.stringify(deviceInfo);
-            updateFields[situationFields[0]] = '已使用';  // 更新situation状态
             
             console.log('🔄 更新激活码状态:', code, updateFields);
             
@@ -593,7 +597,7 @@ class VikaCloudStorage {
             codes[code] = {
                 ...codeInfo,
                 isUsed: true,
-                situation: '已使用',  // 更新situation状态
+                situation: 2,  // 2=已使用
                 usedAt: new Date().toISOString(),
                 usedBy: deviceInfo
             };
@@ -629,7 +633,7 @@ class VikaCloudStorage {
                 recordId: codeInfo.recordId,
                 fields: {
                     isUsed: false,
-                    situation: '未使用',  // 重置时更新situation状态
+                    situation: 1,  // 1=未使用
                     usedAt: null,
                     usedBy: null
                 }
@@ -644,7 +648,7 @@ class VikaCloudStorage {
             codes[code] = {
                 ...codeInfo,
                 isUsed: false,
-                situation: '未使用',  // 重置时更新situation状态
+                situation: 1,  // 1=未使用
                 usedAt: null,
                 usedBy: null
             };
@@ -713,6 +717,7 @@ class VikaCloudStorage {
                 type: 'activation_code',
                 code: code,
                 isUsed: false,
+                situation: 1,  // 1=未使用
                 usedAt: null,
                 usedBy: null,
                 createdAt: new Date().toISOString()
@@ -727,6 +732,7 @@ class VikaCloudStorage {
                 // 更新本地缓存
                 codes[code] = {
                     isUsed: false,
+                    situation: 1,  // 1=未使用
                     usedAt: null,
                     usedBy: null,
                     createdAt: new Date().toISOString(),
@@ -782,7 +788,7 @@ class VikaCloudStorage {
         try {
             console.log('🔧 初始化默认激活码数据...');
             
-            const defaultCodes = [ 'jqkkf0922'];
+            const defaultCodes = ['ADMIN2024', 'STUDENT001', 'TEACHER001'];
             const records = [];
             
             // 创建默认激活码记录
@@ -790,7 +796,7 @@ class VikaCloudStorage {
                 records.push({
                     code: code,  // 使用 code 字段而不是 type
                     isUsed: false,
-                    situation: '未使用',  // 添加situation字段
+                    situation: 1,  // 1=未使用, 2=已使用
                     usedAt: '',
                     usedBy: '',
                     createdAt: new Date().toISOString()
@@ -959,7 +965,7 @@ class VikaCloudStorage {
         codes[code] = {
             ...codeInfo,
             isUsed: true,
-            situation: '已使用',  // 更新situation状态
+            situation: 2,  // 2=已使用
             usedAt: new Date().toISOString(),
             usedBy: deviceInfo
         };
@@ -979,7 +985,7 @@ class VikaCloudStorage {
         codes[code] = {
             ...codes[code],
             isUsed: false,
-            situation: '未使用',  // 重置时更新situation状态
+            situation: 1,  // 1=未使用
             usedAt: null,
             usedBy: null
         };

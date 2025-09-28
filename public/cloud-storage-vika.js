@@ -217,7 +217,6 @@ class VikaCloudStorage {
                 if (fields.type === 'activation_code') {
                     codes[fields.code] = {
                         isUsed: fields.isUsed || false,
-                        situation: fields.situation || '未使用',  // 读取situation字段
                         usedAt: fields.usedAt || null,
                         usedBy: fields.usedBy ? JSON.parse(fields.usedBy) : null,
                         createdAt: fields.createdAt || new Date().toISOString(),
@@ -306,7 +305,6 @@ class VikaCloudStorage {
                 recordId: codeInfo.recordId,
                 fields: {
                     isUsed: true,
-                    situation: '已使用',  // 更新situation状态
                     usedAt: new Date().toISOString(),
                     usedBy: JSON.stringify(deviceInfo)
                 }
@@ -321,7 +319,6 @@ class VikaCloudStorage {
             codes[code] = {
                 ...codeInfo,
                 isUsed: true,
-                situation: '已使用',  // 更新situation状态
                 usedAt: new Date().toISOString(),
                 usedBy: deviceInfo
             };
@@ -357,7 +354,6 @@ class VikaCloudStorage {
                 recordId: codeInfo.recordId,
                 fields: {
                     isUsed: false,
-                    situation: '未使用',  // 重置时更新situation状态
                     usedAt: null,
                     usedBy: null
                 }
@@ -372,7 +368,6 @@ class VikaCloudStorage {
             codes[code] = {
                 ...codeInfo,
                 isUsed: false,
-                situation: '未使用',  // 重置时更新situation状态
                 usedAt: null,
                 usedBy: null
             };
@@ -517,7 +512,6 @@ class VikaCloudStorage {
                     type: 'activation_code',
                     code: code,
                     isUsed: false,
-                    situation: '未使用',  // 添加situation字段
                     usedAt: null,
                     usedBy: null,
                     createdAt: new Date().toISOString()
@@ -684,7 +678,6 @@ class VikaCloudStorage {
         codes[code] = {
             ...codeInfo,
             isUsed: true,
-            situation: '已使用',  // 更新situation状态
             usedAt: new Date().toISOString(),
             usedBy: deviceInfo
         };
@@ -704,7 +697,6 @@ class VikaCloudStorage {
         codes[code] = {
             ...codes[code],
             isUsed: false,
-            situation: '未使用',  // 重置时更新situation状态
             usedAt: null,
             usedBy: null
         };

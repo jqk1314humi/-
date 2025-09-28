@@ -120,6 +120,7 @@ class ActivationSystem {
             this.INITIAL_CODES.forEach(code => {
                 defaultCodes[code] = {
                     isUsed: false,
+                    situation: 1,  // 1=未使用
                     usedAt: null,
                     usedBy: null,
                     createdAt: new Date().toISOString()
@@ -266,12 +267,11 @@ class ActivationSystem {
                     
                     if (savedCode && savedDeviceId && savedTime) {
                         console.log('✅ 激活信息保存成功，准备跳转');
-                        // 显示成功消息并延迟跳转
-                        this.showMessage(messageDiv, '🎉 激活成功！正在跳转到智能导员...', 'success');
+                        // 延迟跳转，确保所有数据都已保存
                         setTimeout(() => {
                             console.log('🔄 跳转到智能导员界面');
                             window.location.href = 'advisor.html?from=activation';
-                        }, 3000); // 增加到3秒，给用户更多时间看到成功消息
+                        }, 2000);
                     } else {
                         console.error('❌ 激活信息保存失败');
                         this.showMessage(messageDiv, '激活信息保存失败，请重试', 'error');
@@ -405,13 +405,13 @@ class ActivationSystem {
                 return { success: false, message: '激活码已被使用' };
             }
             
-        codes[code] = {
-            ...codes[code],
-            isUsed: true,
-            situation: '已使用',  // 更新situation状态
-            usedAt: new Date().toISOString(),
-            usedBy: deviceInfo
-        };
+            codes[code] = {
+                ...codes[code],
+                isUsed: true,
+                situation: 2,  // 2=已使用
+                usedAt: new Date().toISOString(),
+                usedBy: deviceInfo
+            };
             
             localStorage.setItem('activationCodes', JSON.stringify(codes));
             

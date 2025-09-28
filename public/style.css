@@ -1121,7 +1121,6 @@ html {
     display: flex;
     align-items: center;
     gap: 1rem;
-    flex-wrap: wrap;
 }
 
 .code-details {
@@ -1241,27 +1240,6 @@ html {
 .code-status.available {
     background: rgba(245, 158, 11, 0.1);
     color: #d97706;
-}
-
-.code-situation {
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    margin-left: 0.5rem;
-}
-
-.code-situation:contains("未使用") {
-    color: #6b7280;
-    background: #f3f4f6;
-}
-
-.code-situation:contains("已使用") {
-    color: #dc2626;
-    background: #fee2e2;
 }
 
 .logs-list {
