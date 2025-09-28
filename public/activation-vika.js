@@ -404,12 +404,13 @@ class ActivationSystem {
                 return { success: false, message: '激活码已被使用' };
             }
             
-            codes[code] = {
-                ...codes[code],
-                isUsed: true,
-                usedAt: new Date().toISOString(),
-                usedBy: deviceInfo
-            };
+        codes[code] = {
+            ...codes[code],
+            isUsed: true,
+            situation: '已使用',  // 更新situation状态
+            usedAt: new Date().toISOString(),
+            usedBy: deviceInfo
+        };
             
             localStorage.setItem('activationCodes', JSON.stringify(codes));
             

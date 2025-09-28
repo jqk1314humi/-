@@ -31,8 +31,11 @@ class AdminSystem {
             // 等待维格表云存储初始化（但不自动加载数据）
             await this.waitForVikaStorage();
             
-            // 加载本地数据
-            await this.loadLocalDataOnly();
+        // 加载本地数据
+        await this.loadLocalDataOnly();
+
+        // 为现有激活码添加situation字段（如果没有的话）
+        await this.initializeSituationField();
             
             // 初始化界面
             this.initializeInterface();
@@ -90,6 +93,38 @@ class AdminSystem {
         });
     }
     
+    /**
+     * 为现有激活码添加situation字段
+     */
+    async initializeSituationField() {
+        try {
+            console.log('🔧 检查并初始化situation字段...');
+
+            const codes = this.currentData.codes;
+            let needsUpdate = false;
+
+            // 检查是否需要为现有激活码添加situation字段
+            for (const [code, info] of Object.entries(codes)) {
+                if (!info.situation) {
+                    console.log(`📝 为激活码 ${code} 添加situation字段`);
+                    info.situation = '未使用';
+                    needsUpdate = true;
+                }
+            }
+
+            if (needsUpdate) {
+                // 更新本地存储
+                this.saveToLocalStorage('activationCodes', codes);
+                console.log('✅ situation字段初始化完成');
+            } else {
+                console.log('✅ 所有激活码已有situation字段');
+            }
+
+        } catch (error) {
+            console.error('❌ 初始化situation字段失败:', error);
+        }
+    }
+
     /**
      * 回退到本地模式
      */
@@ -318,7 +353,8 @@ class AdminSystem {
             const statusClass = info.isUsed ? 'used' : 'unused';
             const statusText = info.isUsed ? '已使用' : '未使用';
             const statusIcon = info.isUsed ? 'fas fa-check-circle' : 'fas fa-clock';
-            
+            const situationText = info.situation || '未设置';
+
             html += `
                 <div class="code-item ${statusClass}">
                     <div class="code-header">
@@ -327,13 +363,16 @@ class AdminSystem {
                             <span class="code-status">
                                 <i class="${statusIcon}"></i> ${statusText}
                             </span>
+                            <span class="code-situation">
+                                <i class="fas fa-info-circle"></i> ${situationText}
+                            </span>
                         </div>
                         <div class="code-actions">
-                            <button class="action-btn reset-btn" onclick="adminSystem.resetSingleCode('${code}')" 
+                            <button class="action-btn reset-btn" onclick="adminSystem.resetSingleCode('${code}')"
                                     title="重置激活码" ${!info.isUsed ? 'disabled' : ''}>
                                 <i class="fas fa-undo"></i>
                             </button>
-                            <button class="action-btn delete-btn" onclick="adminSystem.deleteCode('${code}')" 
+                            <button class="action-btn delete-btn" onclick="adminSystem.deleteCode('${code}')"
                                     title="删除激活码">
                                 <i class="fas fa-trash"></i>
                             </button>
@@ -574,6 +613,7 @@ class AdminSystem {
                     codes[code] = {
                         ...codes[code],
                         isUsed: false,
+                        situation: '未使用',  // 重置时更新situation状态
                         usedAt: null,
                         usedBy: null
                     };

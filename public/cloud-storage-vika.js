@@ -357,6 +357,7 @@ class VikaCloudStorage {
                 recordId: codeInfo.recordId,
                 fields: {
                     isUsed: false,
+                    situation: '未使用',  // 重置时更新situation状态
                     usedAt: null,
                     usedBy: null
                 }
@@ -371,6 +372,7 @@ class VikaCloudStorage {
             codes[code] = {
                 ...codeInfo,
                 isUsed: false,
+                situation: '未使用',  // 重置时更新situation状态
                 usedAt: null,
                 usedBy: null
             };
@@ -702,6 +704,7 @@ class VikaCloudStorage {
         codes[code] = {
             ...codes[code],
             isUsed: false,
+            situation: '未使用',  // 重置时更新situation状态
             usedAt: null,
             usedBy: null
         };
