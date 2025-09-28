@@ -1,12 +1,12 @@
 /**
  * 维格表云存储系统 v3.0
  * 简化的日志管理存储系统
- * @author jqk开发团�? * @version 3.0.0
+ * @author jqk开发团�? * @version 3.0.0
  */
 
 class VikaCloudStorage {
     constructor() {
-        // 维格表配�?        this.VIKA_CONFIG = {
+        // 维格表配�?        this.VIKA_CONFIG = {
             token: "uskNUrvWvJoD3VuQ5zW7GYH",
             baseUrl: "https://api.vika.cn/fusion/v1/",
             datasheetId: "dstVZvdm5sqCs9NFY4",
@@ -16,7 +16,7 @@ class VikaCloudStorage {
         this.isOnline = navigator.onLine;
         this.isInitialized = false;
 
-        // 数据缓存（只保留日志�?        this.cache = {
+        // 数据缓存（只保留日志�?        this.cache = {
             logs: []
         };
 
@@ -26,12 +26,12 @@ class VikaCloudStorage {
 
     async initializeVika() {
         try {
-            console.log('🔗 连接维格�?..');
+            console.log('🔗 连接维格�?..');
 
             // 测试连接
             const testResponse = await this.makeVikaRequest('GET', 'datasheets');
             if (testResponse.success) {
-                console.log('�?维格表连接成�?);
+                console.log('�?维格表连接成�?);
                 this.isInitialized = true;
 
                 window.dispatchEvent(new CustomEvent('vikaStorageReady', {
@@ -41,7 +41,7 @@ class VikaCloudStorage {
                 throw new Error('连接测试失败');
             }
         } catch (error) {
-            console.error('�?维格表初始化失败:', error);
+            console.error('�?维格表初始化失败:', error);
             this.isInitialized = false;
 
             window.dispatchEvent(new CustomEvent('vikaStorageReady', {
@@ -85,7 +85,7 @@ class VikaCloudStorage {
 
             return { success: true, data: result.data || result };
         } catch (error) {
-            console.error('维格表请求失�?', error);
+            console.error('维格表请求失�?', error);
             return { success: false, error: error.message };
         }
     }
@@ -116,7 +116,7 @@ class VikaCloudStorage {
             for (const record of response.data.records || []) {
                 const fields = record.fields;
 
-                // 检查是否是日志记录（有timestamp和action字段�?                if (fields.timestamp && fields.action) {
+                // 检查是否是日志记录（有timestamp和action字段�?                if (fields.timestamp && fields.action) {
                     logs.push({
                         id: record.recordId,
                         timestamp: fields.timestamp,
@@ -129,7 +129,7 @@ class VikaCloudStorage {
 
             logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-            console.log('📋 获取到日志数�?', logs.length);
+            console.log('📋 获取到日志数�?', logs.length);
 
             // 更新缓存
             this.cache.logs = logs;
@@ -138,7 +138,7 @@ class VikaCloudStorage {
             return logs;
 
         } catch (error) {
-            console.error('�?获取日志失败:', error);
+            console.error('�?获取日志失败:', error);
             return this.getLocalLogs();
         }
     }
@@ -146,7 +146,7 @@ class VikaCloudStorage {
     getLocalLogs() {
         try {
             const logs = JSON.parse(localStorage.getItem('activationLogs') || '[]');
-            console.log('📋 从本地获取日�?', logs.length, '�?);
+            console.log('📋 从本地获取日�?', logs.length, '�?);
             return logs;
         } catch (error) {
             console.error('读取本地日志失败:', error);
@@ -177,25 +177,25 @@ class VikaCloudStorage {
                 const response = await this.makeVikaRequest('POST', `datasheets/${this.VIKA_CONFIG.datasheetId}/records`, recordData);
 
                 if (response.success) {
-                    console.log('�?日志已保存到云端');
+                    console.log('�?日志已保存到云端');
                 } else {
-                    console.warn('⚠️ 云端日志保存失败，将保存在本�?);
+                    console.warn('⚠️ 云端日志保存失败，将保存在本�?);
                 }
             }
 
-            // 同时保存到本�?            this.addLocalLog(logEntry);
+            // 同时保存到本�?            this.addLocalLog(logEntry);
 
         } catch (error) {
             console.error('添加日志失败:', error);
-            // 确保至少本地有日�?            this.addLocalLog(logEntry);
+            // 确保至少本地有日�?            this.addLocalLog(logEntry);
         }
     }
 
     addLocalLog(logEntry) {
         try {
             const logs = this.getLocalLogs();
-            logs.unshift(logEntry); // 添加到开�?
-            // 只保留最�?000条日�?            if (logs.length > 1000) {
+            logs.unshift(logEntry); // 添加到开�?
+            // 只保留最�?000条日�?            if (logs.length > 1000) {
                 logs.splice(1000);
             }
 
@@ -212,7 +212,7 @@ class VikaCloudStorage {
         try {
             localStorage.setItem(key, JSON.stringify(data));
         } catch (error) {
-            console.error('保存到本地存储失�?', error);
+            console.error('保存到本地存储失�?', error);
         }
     }
 
@@ -234,13 +234,13 @@ function initializeVikaStorage() {
     return vikaCloudStorage;
 }
 
-// 自动初始�?initializeVikaStorage();
+// 自动初始�?initializeVikaStorage();
 
     /**
      * 初始化维格表连接
      */
     async initializeVika() {
         try {
-            console.log('🔧 初始化维格表云存�?..');
+            console.log('🔧 初始化维格表云存�?..');
             
             // 测试连接 - 获取记录
