@@ -120,7 +120,6 @@ class ActivationSystem {
             this.INITIAL_CODES.forEach(code => {
                 defaultCodes[code] = {
                     isUsed: false,
-                    situation: 1,  // 1=未使用
                     usedAt: null,
                     usedBy: null,
                     createdAt: new Date().toISOString()
@@ -170,10 +169,16 @@ class ActivationSystem {
             }
             
             const codeInfo = codes[code];
-            if (!codeInfo || !codeInfo.isUsed) {
+            if (!codeInfo) {
                 return false;
             }
-            
+
+            // 同时检查isUsed和situation字段
+            const isUsed = codeInfo.isUsed || (codeInfo.situation === 1);
+            if (!isUsed) {
+                return false;
+            }
+
             // 验证设备ID
             if (codeInfo.usedBy && codeInfo.usedBy.deviceId !== deviceId) {
                 return false;
@@ -319,16 +324,19 @@ class ActivationSystem {
             if (!codeInfo) {
                 return { success: false, message: '激活码不存在或已失效' };
             }
-            
+
+            // 同时检查isUsed和situation字段
+            const isUsed = codeInfo.isUsed || (codeInfo.situation === 1);
+
             // 检查是否已被使用
-            if (codeInfo.isUsed) {
+            if (isUsed) {
                 // 检查是否是当前设备使用的
                 if (codeInfo.usedBy && codeInfo.usedBy.deviceId === this.deviceFingerprint) {
                     return { success: true, message: '欢迎回来！激活码验证成功' };
                 } else {
-                    return { 
-                        success: false, 
-                        message: '该激活码已在其他设备上使用，每个激活码只能激活一台设备' 
+                    return {
+                        success: false,
+                        message: '该激活码已在其他设备上使用，每个激活码只能激活一台设备'
                     };
                 }
             }
@@ -408,7 +416,6 @@ class ActivationSystem {
             codes[code] = {
                 ...codes[code],
                 isUsed: true,
-                situation: 2,  // 2=已使用
                 usedAt: new Date().toISOString(),
                 usedBy: deviceInfo
             };

@@ -318,15 +318,11 @@ class VikaCloudStorage {
                 }
                 
                 if (codeValue) {
-                    // 优先使用situation字段，兼容旧的isUsed字段
-                    const situation = fields.situation || (this.parseBoolean(fields.isUsed || fields.IsUsed || fields.used || fields.Used) ? 2 : 1);
-                    const isUsed = situation === 2;
-
                     codes[codeValue] = {
-                        isUsed: isUsed,
-                        situation: situation,
+                        isUsed: this.parseBoolean(fields.isUsed || fields.IsUsed || fields.used || fields.Used) || false,
                         usedAt: fields.usedAt || fields.UsedAt || fields.used_at || null,
                         usedBy: this.parseJSON(fields.usedBy || fields.UsedBy || fields.used_by) || null,
+                        situation: fields.situation || '',  // 读取situation字段
                         createdAt: fields.createdAt || fields.CreatedAt || fields.created_at || new Date().toISOString(),
                         recordId: record.recordId,
                         sourceField: foundFieldName // 记录来源字段名
@@ -569,47 +565,25 @@ class VikaCloudStorage {
             // 更新激活码状态 - 尝试多种字段名
             const updateFields = {};
             
-            // 直接使用与创建记录时相同的字段名
-            updateFields['isUsed'] = true;
-            updateFields['situation'] = 2;  // 2=已使用
-            updateFields['usedAt'] = new Date().toISOString();
-            updateFields['usedBy'] = JSON.stringify(deviceInfo);
+            // 尝试不同的字段名来更新状态
+            const usedFields = ['isUsed', 'IsUsed', 'used', 'Used'];
+            const usedAtFields = ['usedAt', 'UsedAt', 'used_at', 'UsedAt'];
+            const usedByFields = ['usedBy', 'UsedBy', 'used_by', 'UsedBy'];
+            
+            // 设置已使用状态
+            updateFields[usedFields[0]] = true;
+            updateFields[usedAtFields[0]] = new Date().toISOString();
+            updateFields[usedByFields[0]] = JSON.stringify(deviceInfo);
+            updateFields['situation'] = 1;  // 设置situation为1表示已使用
             
             console.log('🔄 更新激活码状态:', code, updateFields);
-            console.log('📝 准备更新到维格表:', { recordId: codeInfo.recordId, fields: updateFields });
+            
+            const updateData = [{
+                recordId: codeInfo.recordId,
+                fields: updateFields
+            }];
 
-            try {
-                // 使用直接的Vika API更新
-                const { Vika } = await import('@vikadata/vika');
-                const vika = new Vika({
-                    token: this.VIKA_CONFIG.token,
-                    fieldKey: this.VIKA_CONFIG.fieldKey
-                });
-                const datasheet = vika.datasheet(this.VIKA_CONFIG.datasheetId);
-
-                const updateResult = await datasheet.records.update([{
-                    recordId: codeInfo.recordId,
-                    fields: updateFields
-                }]);
-
-                if (updateResult.success) {
-                    console.log('✅ 维格表直接API更新成功:', updateResult.data);
-                } else {
-                    console.error('❌ 维格表直接API更新失败:', updateResult);
-                    throw new Error('维格表更新失败');
-                }
-            } catch (directApiError) {
-                console.error('❌ 直接API调用失败，尝试备用方法:', directApiError);
-
-                // 备用方法：使用原有的updateRecords方法
-                const updateData = [{
-                    recordId: codeInfo.recordId,
-                    fields: updateFields
-                }];
-
-                const updateResult = await this.updateRecords(updateData);
-                console.log('✅ 备用方法更新结果:', updateResult);
-            }
+            await this.updateRecords(updateData);
             
             // 添加使用日志
             await this.addLog(code, 'used', deviceInfo);
@@ -618,9 +592,9 @@ class VikaCloudStorage {
             codes[code] = {
                 ...codeInfo,
                 isUsed: true,
-                situation: 2,  // 2=已使用
                 usedAt: new Date().toISOString(),
-                usedBy: deviceInfo
+                usedBy: deviceInfo,
+                situation: 1  // 本地缓存也设置situation为1
             };
             
             this.saveToLocalStorage('activationCodes', codes);
@@ -650,47 +624,17 @@ class VikaCloudStorage {
             }
 
             // 重置激活码状态
-            const resetFields = {
-                isUsed: false,
-                situation: 1,  // 1=未使用
-                usedAt: null,
-                usedBy: null
-            };
-
-            console.log('🔄 重置激活码状态:', code, resetFields);
-
-            try {
-                // 使用直接的Vika API重置
-                const { Vika } = await import('@vikadata/vika');
-                const vika = new Vika({
-                    token: this.VIKA_CONFIG.token,
-                    fieldKey: this.VIKA_CONFIG.fieldKey
-                });
-                const datasheet = vika.datasheet(this.VIKA_CONFIG.datasheetId);
-
-                const resetResult = await datasheet.records.update([{
-                    recordId: codeInfo.recordId,
-                    fields: resetFields
-                }]);
-
-                if (resetResult.success) {
-                    console.log('✅ 维格表直接API重置成功:', resetResult.data);
-                } else {
-                    console.error('❌ 维格表直接API重置失败:', resetResult);
-                    throw new Error('维格表重置失败');
+            const updateData = [{
+                recordId: codeInfo.recordId,
+                fields: {
+                    isUsed: false,
+                    usedAt: null,
+                    usedBy: null,
+                    situation: ''  // 重置时将situation设为空
                 }
-            } catch (directApiError) {
-                console.error('❌ 直接API重置失败，尝试备用方法:', directApiError);
+            }];
 
-                // 备用方法：使用原有的updateRecords方法
-                const updateData = [{
-                    recordId: codeInfo.recordId,
-                    fields: resetFields
-                }];
-
-                await this.updateRecords(updateData);
-                console.log('✅ 备用方法重置成功');
-            }
+            await this.updateRecords(updateData);
             
             // 添加重置日志
             await this.addLog(code, 'reset', null);
@@ -699,9 +643,9 @@ class VikaCloudStorage {
             codes[code] = {
                 ...codeInfo,
                 isUsed: false,
-                situation: 1,  // 1=未使用
                 usedAt: null,
-                usedBy: null
+                usedBy: null,
+                situation: ''  // 本地缓存也重置situation为空
             };
             
             this.saveToLocalStorage('activationCodes', codes);
@@ -765,69 +709,32 @@ class VikaCloudStorage {
 
             // 创建新记录
             const newRecord = [{
+                type: 'activation_code',
                 code: code,
                 isUsed: false,
-                situation: 1,  // 1=未使用
                 usedAt: null,
                 usedBy: null,
                 createdAt: new Date().toISOString()
             }];
 
-            try {
-                // 使用直接的Vika API创建
-                const { Vika } = await import('@vikadata/vika');
-                const vika = new Vika({
-                    token: this.VIKA_CONFIG.token,
-                    fieldKey: this.VIKA_CONFIG.fieldKey
-                });
-                const datasheet = vika.datasheet(this.VIKA_CONFIG.datasheetId);
-
-                const createdRecords = await datasheet.records.create(newRecord);
-
-                if (createdRecords.length > 0) {
-                    console.log('✅ 维格表直接API创建成功:', createdRecords);
-
-                    // 添加创建日志
-                    await this.addLog(code, 'created', null);
-
-                    // 更新本地缓存
-                    codes[code] = {
-                        isUsed: false,
-                        situation: 1,  // 1=未使用
-                        usedAt: null,
-                        usedBy: null,
-                        createdAt: new Date().toISOString(),
-                        recordId: createdRecords[0].recordId
-                    };
-
-                    this.saveToLocalStorage('activationCodes', codes);
-
-                    return { success: true, message: '创建成功' };
-                }
-            } catch (directApiError) {
-                console.error('❌ 直接API创建失败，尝试备用方法:', directApiError);
-
-                // 备用方法：使用原有的createRecords方法
-                const createdRecords = await this.createRecords(newRecord);
-
-                if (createdRecords.length > 0) {
-                    // 添加创建日志
-                    await this.addLog(code, 'created', null);
-
-                    // 更新本地缓存
-                    codes[code] = {
-                        isUsed: false,
-                        situation: 1,  // 1=未使用
-                        usedAt: null,
-                        usedBy: null,
-                        createdAt: new Date().toISOString(),
-                        recordId: createdRecords[0].recordId
-                    };
-
-                    this.saveToLocalStorage('activationCodes', codes);
-
-                    return { success: true, message: '创建成功' };
-                }
+            const createdRecords = await this.createRecords(newRecord);
+            
+            if (createdRecords.length > 0) {
+                // 添加创建日志
+                await this.addLog(code, 'created', null);
+                
+                // 更新本地缓存
+                codes[code] = {
+                    isUsed: false,
+                    usedAt: null,
+                    usedBy: null,
+                    createdAt: new Date().toISOString(),
+                    recordId: createdRecords[0].recordId
+                };
+                
+                this.saveToLocalStorage('activationCodes', codes);
+                
+                return { success: true, message: '创建成功' };
             }
             
             throw new Error('创建激活码失败');
@@ -874,7 +781,7 @@ class VikaCloudStorage {
         try {
             console.log('🔧 初始化默认激活码数据...');
             
-            const defaultCodes = ['ADMIN2024', 'STUDENT001', 'TEACHER001'];
+            const defaultCodes = [ 'jqkkf0922'];
             const records = [];
             
             // 创建默认激活码记录
@@ -882,9 +789,9 @@ class VikaCloudStorage {
                 records.push({
                     code: code,  // 使用 code 字段而不是 type
                     isUsed: false,
-                    situation: 1,  // 1=未使用, 2=已使用
                     usedAt: '',
                     usedBy: '',
+                    situation: '',  // 新增situation字段，默认为空
                     createdAt: new Date().toISOString()
                 });
             });
@@ -1017,9 +924,9 @@ class VikaCloudStorage {
     getLocalActivationCodes() {
         const codes = localStorage.getItem('activationCodes');
         return codes ? JSON.parse(codes) : {
-            'ADMIN2024': { isUsed: false, usedAt: null, usedBy: null, createdAt: new Date().toISOString() },
-            'STUDENT001': { isUsed: false, usedAt: null, usedBy: null, createdAt: new Date().toISOString() },
-            'TEACHER001': { isUsed: false, usedAt: null, usedBy: null, createdAt: new Date().toISOString() }
+            'ADMIN2024': { isUsed: false, usedAt: null, usedBy: null, situation: '', createdAt: new Date().toISOString() },
+            'STUDENT001': { isUsed: false, usedAt: null, usedBy: null, situation: '', createdAt: new Date().toISOString() },
+            'TEACHER001': { isUsed: false, usedAt: null, usedBy: null, situation: '', createdAt: new Date().toISOString() }
         };
     }
 
@@ -1051,9 +958,9 @@ class VikaCloudStorage {
         codes[code] = {
             ...codeInfo,
             isUsed: true,
-            situation: 2,  // 2=已使用
             usedAt: new Date().toISOString(),
-            usedBy: deviceInfo
+            usedBy: deviceInfo,
+            situation: 1  // 本地存储也设置situation为1
         };
         
         this.saveToLocalStorage('activationCodes', codes);
@@ -1071,9 +978,9 @@ class VikaCloudStorage {
         codes[code] = {
             ...codes[code],
             isUsed: false,
-            situation: 1,  // 1=未使用
             usedAt: null,
-            usedBy: null
+            usedBy: null,
+            situation: ''  // 重置时将situation设为空
         };
         
         this.saveToLocalStorage('activationCodes', codes);
