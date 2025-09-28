@@ -131,8 +131,9 @@ class VikaCloudStorage {
                     params.pageToken = pageToken;
                 }
 
-                console.log(`📄 获取第${pageCount + 1}页数据...`);
+                console.log(`📄 获取第${pageCount + 1}页数据，参数:`, params);
                 const response = await this.makeVikaRequest('GET', '', null, params);
+                console.log(`📄 第${pageCount + 1}页API原始响应:`, response);
                 
                 if (response.data && response.data.records) {
                     const records = response.data.records;
@@ -351,6 +352,53 @@ class VikaCloudStorage {
             console.error('❌ 获取激活码失败:', error);
             return this.getLocalActivationCodes();
         }
+    }
+
+    /**
+     * 测试不同的fieldKey设置
+     */
+    async testDifferentFieldKeys() {
+        console.log('🧪 测试不同的fieldKey设置...');
+        
+        const fieldKeyOptions = ['name', 'id', undefined];
+        const results = {};
+        
+        for (const fieldKey of fieldKeyOptions) {
+            try {
+                console.log(`🔍 测试fieldKey: ${fieldKey || 'undefined'}`);
+                
+                const params = {
+                    pageSize: 100
+                };
+                
+                if (fieldKey) {
+                    params.fieldKey = fieldKey;
+                }
+                
+                const response = await this.makeVikaRequest('GET', '', null, params);
+                
+                if (response.data && response.data.records) {
+                    results[fieldKey || 'undefined'] = {
+                        recordCount: response.data.records.length,
+                        hasPageToken: !!response.data.pageToken,
+                        sampleRecord: response.data.records[0] || null
+                    };
+                    
+                    console.log(`✅ fieldKey=${fieldKey || 'undefined'}: ${response.data.records.length}条记录`);
+                    console.log(`📄 样本记录:`, response.data.records[0]);
+                } else {
+                    results[fieldKey || 'undefined'] = { error: '无数据' };
+                    console.log(`❌ fieldKey=${fieldKey || 'undefined'}: 无数据`);
+                }
+                
+            } catch (error) {
+                results[fieldKey || 'undefined'] = { error: error.message };
+                console.error(`❌ fieldKey=${fieldKey || 'undefined'}失败:`, error);
+            }
+        }
+        
+        console.log('🧪 fieldKey测试结果:', results);
+        return results;
     }
 
     /**
