@@ -569,26 +569,22 @@ class VikaCloudStorage {
             // 更新激活码状态 - 尝试多种字段名
             const updateFields = {};
             
-            // 尝试不同的字段名来更新状态
-            const usedFields = ['isUsed', 'IsUsed', 'used', 'Used'];
-            const usedAtFields = ['usedAt', 'UsedAt', 'used_at', 'UsedAt'];
-            const usedByFields = ['usedBy', 'UsedBy', 'used_by', 'UsedBy'];
-            const situationFields = ['situation', 'Situation'];
-
-            // 设置已使用状态
-            updateFields[usedFields[0]] = true;
-            updateFields[situationFields[0]] = 2;  // 2=已使用
-            updateFields[usedAtFields[0]] = new Date().toISOString();
-            updateFields[usedByFields[0]] = JSON.stringify(deviceInfo);
+            // 直接使用与创建记录时相同的字段名
+            updateFields['isUsed'] = true;
+            updateFields['situation'] = 2;  // 2=已使用
+            updateFields['usedAt'] = new Date().toISOString();
+            updateFields['usedBy'] = JSON.stringify(deviceInfo);
             
             console.log('🔄 更新激活码状态:', code, updateFields);
-            
+            console.log('📝 准备更新到维格表:', { recordId: codeInfo.recordId, fields: updateFields });
+
             const updateData = [{
                 recordId: codeInfo.recordId,
                 fields: updateFields
             }];
 
-            await this.updateRecords(updateData);
+            const updateResult = await this.updateRecords(updateData);
+            console.log('✅ 维格表更新结果:', updateResult);
             
             // 添加使用日志
             await this.addLog(code, 'used', deviceInfo);
@@ -714,7 +710,6 @@ class VikaCloudStorage {
 
             // 创建新记录
             const newRecord = [{
-                type: 'activation_code',
                 code: code,
                 isUsed: false,
                 situation: 1,  // 1=未使用
