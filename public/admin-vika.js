@@ -103,21 +103,19 @@ class AdminSystem {
             const codes = this.currentData.codes;
             let needsUpdate = false;
 
-            // 检查是否需要为现有激活码添加situation字段
+            // 检查并修正激活码状态字段
             for (const [code, info] of Object.entries(codes)) {
+                // 确保situation字段存在且与isUsed状态一致
+                const expectedSituation = info.isUsed ? '已使用' : '未使用';
+
                 if (!info.situation) {
-                    console.log(`📝 为激活码 ${code} 添加situation字段`);
-                    // 根据isUsed状态设置正确的situation值
-                    info.situation = info.isUsed ? '已使用' : '未使用';
+                    console.log(`📝 为激活码 ${code} 添加situation字段: ${expectedSituation}`);
+                    info.situation = expectedSituation;
                     needsUpdate = true;
-                } else {
-                    // 确保situation值与isUsed状态一致
-                    const expectedSituation = info.isUsed ? '已使用' : '未使用';
-                    if (info.situation !== expectedSituation) {
-                        console.log(`🔧 修正激活码 ${code} 的situation字段: ${info.situation} -> ${expectedSituation}`);
-                        info.situation = expectedSituation;
-                        needsUpdate = true;
-                    }
+                } else if (info.situation !== expectedSituation) {
+                    console.log(`🔧 修正激活码 ${code} 的situation字段: ${info.situation} -> ${expectedSituation}`);
+                    info.situation = expectedSituation;
+                    needsUpdate = true;
                 }
             }
 
@@ -359,10 +357,11 @@ class AdminSystem {
         let html = '';
         
         Object.entries(codes).forEach(([code, info]) => {
-            const statusClass = info.isUsed ? 'used' : 'unused';
-            const statusText = info.isUsed ? '已使用' : '未使用';
-            const statusIcon = info.isUsed ? 'fas fa-check-circle' : 'fas fa-clock';
-            const situationText = info.situation || '未设置';
+            // 基于situation字段判断状态（situation字段优先）
+            const isUsed = info.situation === '已使用';
+            const statusClass = isUsed ? 'used' : 'unused';
+            const statusText = info.situation || '未设置';
+            const statusIcon = isUsed ? 'fas fa-check-circle' : 'fas fa-clock';
 
             html += `
                 <div class="code-item ${statusClass}">
@@ -378,7 +377,7 @@ class AdminSystem {
                         </div>
                         <div class="code-actions">
                             <button class="action-btn reset-btn" onclick="adminSystem.resetSingleCode('${code}')"
-                                    title="重置激活码" ${!info.isUsed ? 'disabled' : ''}>
+                                    title="重置激活码" ${!isUsed ? 'disabled' : ''}>
                                 <i class="fas fa-undo"></i>
                             </button>
                             <button class="action-btn delete-btn" onclick="adminSystem.deleteCode('${code}')"
