@@ -759,4 +759,194 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('offline', () => {
         console.log('网络连接已断开');
     });
+    
+    // 添加可爱的交互效果
+    addCuteInteractions();
 });
+
+/**
+ * 添加可爱的交互效果
+ */
+function addCuteInteractions() {
+    // 为发送按钮添加点击特效
+    const sendButton = document.getElementById('sendButton');
+    if (sendButton) {
+        sendButton.addEventListener('click', function() {
+            createClickEffect(this);
+        });
+    }
+    
+    // 为快速提问添加悬停特效
+    const questionItems = document.querySelectorAll('.question-item');
+    questionItems.forEach(item => {
+        item.addEventListener('mouseenter', function() {
+            createHoverSparkle(this);
+        });
+    });
+    
+    // 添加消息发送成功的庆祝效果
+    const originalAddMessage = window.SmartAdvisor?.prototype?.addMessage;
+    if (originalAddMessage) {
+        window.SmartAdvisor.prototype.addMessage = function(content, sender) {
+            const result = originalAddMessage.call(this, content, sender);
+            if (sender === 'advisor') {
+                setTimeout(() => createMessageSparkle(result), 500);
+            }
+            return result;
+        };
+    }
+}
+
+/**
+ * 创建点击特效
+ */
+function createClickEffect(element) {
+    const ripple = document.createElement('div');
+    ripple.style.cssText = `
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.6);
+        transform: scale(0);
+        animation: rippleEffect 0.6s linear;
+        pointer-events: none;
+        z-index: 1000;
+    `;
+    
+    const rect = element.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = (rect.left + rect.width / 2 - size / 2) + 'px';
+    ripple.style.top = (rect.top + rect.height / 2 - size / 2) + 'px';
+    
+    // 添加动画样式
+    if (!document.getElementById('ripple-animation-style')) {
+        const style = document.createElement('style');
+        style.id = 'ripple-animation-style';
+        style.textContent = `
+            @keyframes rippleEffect {
+                to {
+                    transform: scale(2);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    document.body.appendChild(ripple);
+    
+    setTimeout(() => {
+        if (ripple.parentNode) {
+            ripple.parentNode.removeChild(ripple);
+        }
+    }, 600);
+}
+
+/**
+ * 创建悬停闪闪发光效果
+ */
+function createHoverSparkle(element) {
+    const sparkles = ['✨', '⭐', '💫', '🌟'];
+    const sparkle = document.createElement('div');
+    
+    sparkle.textContent = sparkles[Math.floor(Math.random() * sparkles.length)];
+    sparkle.style.cssText = `
+        position: absolute;
+        font-size: 12px;
+        pointer-events: none;
+        z-index: 1000;
+        animation: sparkleFloat 1s ease-out forwards;
+    `;
+    
+    const rect = element.getBoundingClientRect();
+    sparkle.style.left = (rect.right - 20) + 'px';
+    sparkle.style.top = (rect.top + Math.random() * rect.height) + 'px';
+    
+    // 添加闪闪发光动画
+    if (!document.getElementById('sparkle-animation-style')) {
+        const style = document.createElement('style');
+        style.id = 'sparkle-animation-style';
+        style.textContent = `
+            @keyframes sparkleFloat {
+                0% {
+                    transform: translateX(0) scale(0);
+                    opacity: 1;
+                }
+                50% {
+                    transform: translateX(10px) scale(1);
+                    opacity: 1;
+                }
+                100% {
+                    transform: translateX(20px) scale(0);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    document.body.appendChild(sparkle);
+    
+    setTimeout(() => {
+        if (sparkle.parentNode) {
+            sparkle.parentNode.removeChild(sparkle);
+        }
+    }, 1000);
+}
+
+/**
+ * 为消息添加闪闪发光效果
+ */
+function createMessageSparkle(messageElement) {
+    if (!messageElement) return;
+    
+    const sparkles = ['✨', '💖', '🌟', '💫'];
+    for (let i = 0; i < 3; i++) {
+        setTimeout(() => {
+            const sparkle = document.createElement('div');
+            sparkle.textContent = sparkles[Math.floor(Math.random() * sparkles.length)];
+            sparkle.style.cssText = `
+                position: absolute;
+                font-size: 14px;
+                pointer-events: none;
+                z-index: 1000;
+                animation: messageSparkle 2s ease-out forwards;
+            `;
+            
+            const rect = messageElement.getBoundingClientRect();
+            sparkle.style.left = (rect.left + Math.random() * rect.width) + 'px';
+            sparkle.style.top = (rect.top - 10) + 'px';
+            
+            // 添加消息闪闪发光动画
+            if (!document.getElementById('message-sparkle-style')) {
+                const style = document.createElement('style');
+                style.id = 'message-sparkle-style';
+                style.textContent = `
+                    @keyframes messageSparkle {
+                        0% {
+                            transform: translateY(0) scale(0);
+                            opacity: 1;
+                        }
+                        50% {
+                            transform: translateY(-20px) scale(1);
+                            opacity: 1;
+                        }
+                        100% {
+                            transform: translateY(-40px) scale(0);
+                            opacity: 0;
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            document.body.appendChild(sparkle);
+            
+            setTimeout(() => {
+                if (sparkle.parentNode) {
+                    sparkle.parentNode.removeChild(sparkle);
+                }
+            }, 2000);
+        }, i * 200);
+    }
+}

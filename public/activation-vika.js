@@ -511,24 +511,106 @@ class ActivationSystem {
         element.textContent = message;
         element.className = `activation-message ${type}`;
         
-        // 显示消息
+        // 显示消息with可爱的动画
         element.style.display = 'block';
+        
+        // 添加显示动画
+        setTimeout(() => {
+            element.classList.add('show');
+        }, 50);
+        
+        // 添加可爱的特效
+        if (type === 'success') {
+            this.addSparkleEffect(element);
+            this.showSuccessConfetti();
+        }
         
         // 自动清除成功消息
         if (type === 'success') {
             setTimeout(() => {
-                element.textContent = '';
-                element.className = 'activation-message';
-                element.style.display = 'none';
+                element.classList.remove('show');
+                setTimeout(() => {
+                    element.textContent = '';
+                    element.className = 'activation-message';
+                    element.style.display = 'none';
+                }, 300);
             }, 3000);
         }
         
         // 如果是错误消息，5秒后自动隐藏
         if (type === 'error') {
             setTimeout(() => {
-                element.style.display = 'none';
+                element.classList.remove('show');
+                setTimeout(() => {
+                    element.style.display = 'none';
+                }, 300);
             }, 5000);
         }
+    }
+    
+    /**
+     * 添加闪闪发光效果
+     */
+    addSparkleEffect(element) {
+        element.classList.add('sparkle');
+        setTimeout(() => {
+            element.classList.remove('sparkle');
+        }, 3000);
+    }
+    
+    /**
+     * 显示成功彩带效果
+     */
+    showSuccessConfetti() {
+        // 创建彩带效果
+        for (let i = 0; i < 50; i++) {
+            setTimeout(() => {
+                this.createConfettiParticle();
+            }, i * 20);
+        }
+    }
+    
+    /**
+     * 创建彩带粒子
+     */
+    createConfettiParticle() {
+        const colors = ['#ff6b9d', '#a855f7', '#3b82f6', '#10b981', '#f59e0b'];
+        const particle = document.createElement('div');
+        
+        particle.style.cssText = `
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            background: ${colors[Math.floor(Math.random() * colors.length)]};
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1000;
+            top: 30%;
+            left: ${Math.random() * 100}%;
+            animation: confettiFall ${2 + Math.random() * 3}s ease-out forwards;
+        `;
+        
+        // 添加彩带下落动画
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes confettiFall {
+                to {
+                    transform: translateY(100vh) rotate(720deg);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        document.body.appendChild(particle);
+        
+        // 清理
+        setTimeout(() => {
+            particle.remove();
+            if (document.head.contains(style)) {
+                document.head.removeChild(style);
+            }
+        }, 5000);
     }
     
     /**
