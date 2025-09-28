@@ -256,12 +256,32 @@ class SmartAdvisor {
                         
                         console.log('解析后的data:', parsedData);
                         
-                        // 优先使用output2，如果没有则使用output
+                        // 调试信息：显示可用的output字段
+                        const availableOutputs = [];
+                        ['output5', 'output4', 'output3', 'output2', 'output'].forEach(field => {
+                            if (parsedData[field] && parsedData[field].trim()) {
+                                availableOutputs.push(field);
+                            }
+                        });
+                        console.log('可用的output字段:', availableOutputs);
+                        
+                        // 按优先级顺序使用output字段：output5 > output4 > output3 > output2 > output
                         let content = '';
-                        if (parsedData.output2 && parsedData.output.trim()) {
-                            content = parsedData.output;
-                        } else if (parsedData.output && parsedData.output2.trim()) {
+                        if (parsedData.output5 && parsedData.output5.trim()) {
+                            content = parsedData.output5;
+                            console.log('使用output5字段:', content.substring(0, 100) + '...');
+                        } else if (parsedData.output4 && parsedData.output4.trim()) {
+                            content = parsedData.output4;
+                            console.log('使用output4字段:', content.substring(0, 100) + '...');
+                        } else if (parsedData.output3 && parsedData.output3.trim()) {
+                            content = parsedData.output3;
+                            console.log('使用output3字段:', content.substring(0, 100) + '...');
+                        } else if (parsedData.output2 && parsedData.output2.trim()) {
                             content = parsedData.output2;
+                            console.log('使用output2字段:', content.substring(0, 100) + '...');
+                        } else if (parsedData.output && parsedData.output.trim()) {
+                            content = parsedData.output;
+                            console.log('使用output字段:', content.substring(0, 100) + '...');
                         }
                         
                         if (content) {
@@ -279,12 +299,35 @@ class SmartAdvisor {
                     }
                 }
                 
-                // 尝试其他可能的字段
+                // 尝试其他可能的字段 - 按优先级顺序
+                // 调试信息：显示直接在data中可用的output字段
+                const directOutputs = [];
+                ['output5', 'output4', 'output3', 'output2', 'output'].forEach(field => {
+                    if (data[field] && data[field].trim()) {
+                        directOutputs.push(field);
+                    }
+                });
+                console.log('直接在data中可用的output字段:', directOutputs);
+                
                 let content = '';
-                if (data.output) {
+                if (data.output5 && data.output5.trim()) {
+                    content = data.output5;
+                    console.log('直接使用data.output5字段:', content.substring(0, 100) + '...');
+                } else if (data.output4 && data.output4.trim()) {
+                    content = data.output4;
+                    console.log('直接使用data.output4字段:', content.substring(0, 100) + '...');
+                } else if (data.output3 && data.output3.trim()) {
+                    content = data.output3;
+                    console.log('直接使用data.output3字段:', content.substring(0, 100) + '...');
+                } else if (data.output2 && data.output2.trim()) {
+                    content = data.output2;
+                    console.log('直接使用data.output2字段:', content.substring(0, 100) + '...');
+                } else if (data.output && data.output.trim()) {
                     content = data.output;
+                    console.log('直接使用data.output字段:', content.substring(0, 100) + '...');
                 } else if (data.result) {
                     content = data.result;
+                    console.log('使用data.result字段:', content.substring(0, 100) + '...');
                 }
                 
                 if (content) {

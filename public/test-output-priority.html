@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试Output字段优先级</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .result {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success { border-left: 4px solid #28a745; }
+        .error { border-left: 4px solid #dc3545; }
+        .info { border-left: 4px solid #17a2b8; }
+        .warning { border-left: 4px solid #ffc107; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .mock-data {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>测试Output字段优先级处理</h1>
+        
+        <div class="test-section">
+            <h3>修改说明</h3>
+            <div class="mock-data">
+                <strong>新的优先级顺序：</strong><br>
+                output5 > output4 > output3 > output2 > output<br><br>
+                <strong>修改位置：</strong> public/advisor.js 中的 callCozeAPIStream 方法<br>
+                <strong>功能：</strong> 智能导员会按照新的优先级顺序选择API返回的内容
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>模拟测试不同的API响应</h3>
+            <button onclick="testOutputPriority()">测试Output字段优先级</button>
+            <div id="testResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>实际API测试</h3>
+            <p>要测试实际效果，请：</p>
+            <ol>
+                <li>打开智能导员界面 (advisor.html)</li>
+                <li>发送一个消息给AI</li>
+                <li>打开浏览器控制台 (F12)</li>
+                <li>查看日志中显示的"可用的output字段"和"使用xxx字段"信息</li>
+            </ol>
+            <a href="advisor.html" target="_blank">
+                <button>打开智能导员测试</button>
+            </a>
+        </div>
+
+        <div class="test-section">
+            <h3>调试信息说明</h3>
+            <div class="mock-data">
+                修改后的代码会在控制台输出以下调试信息：<br>
+                • "可用的output字段: [...]" - 显示API响应中包含的所有output字段<br>
+                • "使用outputX字段: ..." - 显示实际选择使用的字段和内容预览<br>
+                • "直接在data中可用的output字段: [...]" - 显示直接在data对象中的output字段<br>
+                这些信息帮助确认优先级选择是否正确工作
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function addResult(elementId, content, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            element.innerHTML += `<div class="${type}">[${timestamp}] ${content}</div>`;
+            element.scrollTop = element.scrollHeight;
+        }
+
+        // 模拟测试output字段优先级逻辑
+        function testOutputPriority() {
+            addResult('testResult', '开始测试Output字段优先级逻辑...', 'info');
+            
+            // 模拟不同的API响应数据
+            const testCases = [
+                {
+                    name: '包含output5的响应',
+                    data: {
+                        output: '这是output内容',
+                        output2: '这是output2内容',
+                        output3: '这是output3内容',
+                        output4: '这是output4内容',
+                        output5: '这是output5内容 - 应该被优先选择'
+                    },
+                    expected: 'output5'
+                },
+                {
+                    name: '缺少output5，有output4',
+                    data: {
+                        output: '这是output内容',
+                        output2: '这是output2内容',
+                        output3: '这是output3内容',
+                        output4: '这是output4内容 - 应该被选择'
+                    },
+                    expected: 'output4'
+                },
+                {
+                    name: '只有output2和output',
+                    data: {
+                        output: '这是output内容',
+                        output2: '这是output2内容 - 应该被选择'
+                    },
+                    expected: 'output2'
+                },
+                {
+                    name: '只有output',
+                    data: {
+                        output: '这是output内容 - 应该被选择'
+                    },
+                    expected: 'output'
+                },
+                {
+                    name: '包含空字段',
+                    data: {
+                        output: '这是output内容 - 应该被选择',
+                        output2: '',
+                        output3: '   ',
+                        output4: null,
+                        output5: undefined
+                    },
+                    expected: 'output'
+                }
+            ];
+
+            // 实现与advisor.js中相同的优先级逻辑
+            function selectOutput(parsedData) {
+                const availableOutputs = [];
+                ['output5', 'output4', 'output3', 'output2', 'output'].forEach(field => {
+                    if (parsedData[field] && parsedData[field].trim && parsedData[field].trim()) {
+                        availableOutputs.push(field);
+                    }
+                });
+
+                let content = '';
+                let selectedField = null;
+                
+                if (parsedData.output5 && parsedData.output5.trim && parsedData.output5.trim()) {
+                    content = parsedData.output5;
+                    selectedField = 'output5';
+                } else if (parsedData.output4 && parsedData.output4.trim && parsedData.output4.trim()) {
+                    content = parsedData.output4;
+                    selectedField = 'output4';
+                } else if (parsedData.output3 && parsedData.output3.trim && parsedData.output3.trim()) {
+                    content = parsedData.output3;
+                    selectedField = 'output3';
+                } else if (parsedData.output2 && parsedData.output2.trim && parsedData.output2.trim()) {
+                    content = parsedData.output2;
+                    selectedField = 'output2';
+                } else if (parsedData.output && parsedData.output.trim && parsedData.output.trim()) {
+                    content = parsedData.output;
+                    selectedField = 'output';
+                }
+
+                return { content, selectedField, availableOutputs };
+            }
+
+            // 测试每个用例
+            testCases.forEach((testCase, index) => {
+                addResult('testResult', `\n测试用例 ${index + 1}: ${testCase.name}`, 'info');
+                
+                const result = selectOutput(testCase.data);
+                
+                addResult('testResult', `可用字段: [${result.availableOutputs.join(', ')}]`, 'info');
+                addResult('testResult', `选择字段: ${result.selectedField}`, 'info');
+                addResult('testResult', `内容预览: ${result.content ? result.content.substring(0, 50) + '...' : '无内容'}`, 'info');
+                
+                if (result.selectedField === testCase.expected) {
+                    addResult('testResult', `✅ 测试通过 - 正确选择了 ${result.selectedField}`, 'success');
+                } else {
+                    addResult('testResult', `❌ 测试失败 - 期望 ${testCase.expected}，实际 ${result.selectedField}`, 'error');
+                }
+            });
+
+            addResult('testResult', '\n🎉 模拟测试完成！请在实际智能导员界面中测试真实API响应。', 'success');
+        }
+    </script>
+</body>
+</html>
