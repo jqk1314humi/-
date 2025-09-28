@@ -8,13 +8,13 @@ class ActivationSystem {
         // 开发者激活码（可重复使用但有限制）
         this.DEVELOPER_CODE = 'jqkkf0922';
         
-        // 初始激活码列表
+        // 初始激活码列表（不包含开发者激活码）
         this.INITIAL_CODES = [
             'ADMIN2024',
-            'STUDENT001', 
+            'STUDENT001',
             'TEACHER001',
             'j6si0f26cig0',
-            'polex311eo4e', 
+            'polex311eo4e',
             'gwhfntmgol8l',
             'sej5z1hhleqf',
             '2ta1zchbuj8v',
@@ -360,27 +360,14 @@ class ActivationSystem {
      */
     async handleDeveloperCode() {
         try {
-            const deviceInfo = {
-                deviceId: this.deviceFingerprint,
-                userAgent: navigator.userAgent,
-                timestamp: new Date().toISOString(),
-                platform: navigator.platform,
-                language: navigator.language,
-                isDeveloper: true
-            };
-            
-            // 记录开发者访问日志
-            if (this.vikaStorage && this.vikaStorage.isInitialized) {
-                await this.vikaStorage.addLog(this.DEVELOPER_CODE, 'developer_access', deviceInfo);
-            } else {
-                this.addLocalLog(this.DEVELOPER_CODE, 'developer_access', deviceInfo);
-            }
-            
+            // 不再记录开发者激活码的日志，避免维格表重复写入
+            // 开发者激活码是特殊的，不需要记录每次使用
+
             return { success: true, message: '开发者模式激活成功！' };
-            
+
         } catch (error) {
             console.error('处理开发者激活码失败:', error);
-            return { success: true, message: '开发者模式激活成功！' }; // 即使日志失败也允许通过
+            return { success: true, message: '开发者模式激活成功！' };
         }
     }
     

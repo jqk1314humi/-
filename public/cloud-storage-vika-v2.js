@@ -776,7 +776,7 @@ class VikaCloudStorage {
         try {
             console.log('🔧 初始化默认激活码数据...');
             
-            const defaultCodes = ['ADMIN2024', 'STUDENT001', 'TEACHER001', 'jqkkf0922'];
+            const defaultCodes = [ 'jqkkf0922'];
             const records = [];
             
             // 创建默认激活码记录
