@@ -561,10 +561,51 @@ class SmartAdvisor {
     }
 }
 
-// 生成设备ID的函数（简化版，允许跨设备使用）
+// 生成设备ID的函数（云端绑定版）
 function generateDeviceId() {
-    // 简化为固定设备ID，允许激活码在任何设备上使用
-    return 'universal-device';
+    const components = [
+        navigator.userAgent,
+        navigator.language,
+        navigator.platform,
+        screen.width + 'x' + screen.height,
+        screen.colorDepth,
+        new Date().getTimezoneOffset(),
+        navigator.hardwareConcurrency || 'unknown',
+        navigator.deviceMemory || 'unknown'
+    ];
+
+    // 获取canvas指纹（相对稳定）
+    try {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.textBaseline = 'top';
+        ctx.font = '14px Arial';
+        ctx.fillText('DeviceFingerprint', 2, 2);
+        components.push(canvas.toDataURL());
+    } catch (e) {
+        components.push('canvas-error');
+    }
+
+    // 获取WebGL指纹（如果可用）
+    try {
+        const canvas = document.createElement('canvas');
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        if (gl) {
+            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+            if (debugInfo) {
+                components.push(gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL));
+                components.push(gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL));
+            }
+        }
+    } catch (e) {
+        components.push('webgl-error');
+    }
+
+    // 添加时区和语言偏好
+    components.push(Intl.DateTimeFormat().resolvedOptions().timeZone);
+
+    const fingerprint = hashString(components.join('|'));
+    return fingerprint.substring(0, 32); // 取前32位作为设备ID
 }
 
 // 简单哈希函数
@@ -614,7 +655,23 @@ function checkActivationStatus() {
             return true;
         }
 
-        // 简化为时间检查，移除设备绑定限制
+        // 验证当前设备ID是否与保存的一致
+        const currentDeviceId = generateDeviceId();
+        if (userDeviceId !== currentDeviceId) {
+            console.log('❌ 设备ID不匹配，可能是不同的设备');
+            console.log('保存的设备ID:', userDeviceId);
+            console.log('当前设备ID:', currentDeviceId);
+
+            // 尝试通过云端验证激活码状态
+            console.log('🔄 尝试通过云端验证激活状态...');
+            // 这里会调用云端验证，如果设备ID不匹配，云端会拒绝
+
+            // 暂时允许通过，但会在云端验证时被拒绝
+            // 这是为了避免立即重定向，让用户有机会重新激活
+            console.log('⚠️ 设备ID不匹配，稍后通过云端验证');
+        }
+
+        // 基本的本地时间检查（作为辅助验证）
         const activationDate = new Date(activationTime);
         const now = new Date();
         const timeDiff = now - activationDate;
@@ -627,7 +684,7 @@ function checkActivationStatus() {
             return false;
         }
 
-        console.log('✅ 激活状态验证通过（已激活超过30天将过期）');
+        console.log('✅ 本地激活状态验证通过（最终验证将在云端进行）');
         return true;
         
     } catch (error) {
@@ -677,8 +734,8 @@ function redirectToActivation(message) {
     }, redirectDelay);
 }
 
-// 页面加载完成后初始化应用（优化版，减少手机端死循环）
-document.addEventListener('DOMContentLoaded', () => {
+// 页面加载完成后初始化应用（云端绑定版）
+document.addEventListener('DOMContentLoaded', async () => {
     // 检测是否为手机端
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
@@ -686,34 +743,54 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const fromActivation = urlParams.get('from') === 'activation';
 
+    const initializeApp = async () => {
+        // 第一步：本地激活状态检查
+        if (!checkActivationStatus()) {
+            console.log('❌ 本地激活检查失败');
+            return;
+        }
+
+        // 第二步：云端激活码绑定验证（仅对非开发者激活码）
+        const userActivationCode = localStorage.getItem('userActivationCode');
+        if (userActivationCode && userActivationCode !== 'jqkkf0922' && userActivationCode !== 'ADMIN2024') {
+            console.log('🔍 正在进行云端激活码绑定验证...');
+            try {
+                if (window.activationSystem && window.activationSystem.verifyActivationBinding) {
+                    const cloudVerifyResult = await window.activationSystem.verifyActivationBinding(userActivationCode);
+                    if (!cloudVerifyResult) {
+                        console.error('❌ 云端激活码绑定验证失败');
+                        redirectToActivation('激活码绑定验证失败，请重新激活');
+                        return;
+                    }
+                    console.log('✅ 云端激活码绑定验证通过');
+                } else {
+                    console.log('⚠️ 激活系统未初始化，跳过云端验证');
+                }
+            } catch (error) {
+                console.error('云端验证出错:', error);
+                // 云端验证失败时仍允许继续，但记录警告
+                console.warn('⚠️ 云端验证失败，但允许继续使用（可能存在安全风险）');
+            }
+        }
+
+        // 第三步：初始化应用
+        console.log('🚀 初始化智能导员应用...');
+        new SmartAdvisor();
+    };
+
     if (fromActivation) {
         console.log(`🔄 从激活页面跳转而来，等待激活信息稳定... (手机端: ${isMobile})`);
         // 如果是从激活页面跳转过来的，等待更长时间让激活信息稳定
-        // 手机端可能需要更长时间
-        const delayTime = isMobile ? 1500 : 500;
-        setTimeout(() => {
-            if (checkActivationStatus()) {
-                new SmartAdvisor();
-            } else {
-                console.log('❌ 激活检查失败，页面将自动跳转');
-            }
-        }, delayTime);
+        const delayTime = isMobile ? 2000 : 1000;
+        setTimeout(initializeApp, delayTime);
     } else {
         // 正常检查激活状态
         // 对于手机端，增加延迟以避免快速重定向循环
         if (isMobile) {
-            console.log('📱 检测到手机端，延迟激活检查...');
-            setTimeout(() => {
-                if (checkActivationStatus()) {
-                    new SmartAdvisor();
-                } else {
-                    console.log('❌ 手机端激活检查失败，页面将自动跳转');
-                }
-            }, 800);
+            console.log('📱 检测到手机端，延迟应用初始化...');
+            setTimeout(initializeApp, 1000);
         } else {
-            if (checkActivationStatus()) {
-                new SmartAdvisor();
-            }
+            initializeApp();
         }
     }
 });

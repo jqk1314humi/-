@@ -173,9 +173,15 @@ class ActivationSystem {
                 return false;
             }
 
-            // 同时检查isUsed和situation字段（移除设备ID验证）
+            // 同时检查isUsed和situation字段（严格设备绑定）
             const isUsed = codeInfo.isUsed || (codeInfo.situation === 1);
             if (!isUsed) {
+                return false;
+            }
+
+            // 验证设备ID绑定
+            if (codeInfo.usedBy && codeInfo.usedBy.deviceId !== deviceId) {
+                console.log('❌ 激活码已被其他设备绑定:', codeInfo.usedBy.deviceId, '当前设备:', deviceId);
                 return false;
             }
 
@@ -323,12 +329,17 @@ class ActivationSystem {
             // 同时检查isUsed和situation字段
             const isUsed = codeInfo.isUsed || (codeInfo.situation === 1);
 
-            // 检查是否已被使用（移除设备绑定限制）
+            // 检查是否已被使用（严格设备绑定）
             if (isUsed) {
-                return {
-                    success: false,
-                    message: '该激活码已被使用'
-                };
+                // 检查是否是当前设备使用的
+                if (codeInfo.usedBy && codeInfo.usedBy.deviceId === this.deviceFingerprint) {
+                    return { success: true, message: '欢迎回来！激活码验证成功' };
+                } else {
+                    return {
+                        success: false,
+                        message: '该激活码已被其他设备绑定使用，每个激活码只能在一台设备上使用'
+                    };
+                }
             }
             
             // 激活码可用，标记为已使用
@@ -343,7 +354,15 @@ class ActivationSystem {
             const result = await this.markCodeAsUsed(code, deviceInfo);
             
             if (result.success) {
-                return { success: true, message: '激活成功！正在跳转到智能导员...' };
+                // 激活成功后，立即进行一次云端验证确保绑定正确
+                console.log('🔍 激活成功，进行最终云端验证...');
+                const verifyResult = await this.verifyActivationBinding(code);
+                if (verifyResult) {
+                    return { success: true, message: '激活成功！正在跳转到智能导员...' };
+                } else {
+                    console.warn('⚠️ 云端验证失败，但本地激活成功，允许继续');
+                    return { success: true, message: '激活成功！正在跳转到智能导员...' };
+                }
             } else {
                 return { success: false, message: result.message || '激活失败，请重试' };
             }
@@ -354,6 +373,53 @@ class ActivationSystem {
         }
     }
     
+    /**
+     * 验证激活码绑定状态
+     */
+    async verifyActivationBinding(code) {
+        try {
+            if (!this.vikaStorage || !this.vikaStorage.isInitialized) {
+                console.log('⚠️ 维格表存储未初始化，跳过绑定验证');
+                return true; // 本地模式下允许继续
+            }
+
+            const codes = await this.vikaStorage.getActivationCodes();
+            const codeInfo = codes[code];
+
+            if (!codeInfo) {
+                console.error('❌ 无法找到激活码信息进行验证');
+                return false;
+            }
+
+            // 检查激活码是否已被使用且绑定到当前设备
+            const isUsed = codeInfo.isUsed || (codeInfo.situation === 1);
+            if (!isUsed) {
+                console.error('❌ 激活码状态异常：未被标记为已使用');
+                return false;
+            }
+
+            if (!codeInfo.usedBy || !codeInfo.usedBy.deviceId) {
+                console.error('❌ 激活码缺少设备绑定信息');
+                return false;
+            }
+
+            if (codeInfo.usedBy.deviceId !== this.deviceFingerprint) {
+                console.error('❌ 激活码绑定设备不匹配:', {
+                    boundDevice: codeInfo.usedBy.deviceId,
+                    currentDevice: this.deviceFingerprint
+                });
+                return false;
+            }
+
+            console.log('✅ 激活码绑定验证通过');
+            return true;
+
+        } catch (error) {
+            console.error('验证激活码绑定失败:', error);
+            return false;
+        }
+    }
+
     /**
      * 处理开发者激活码
      */
@@ -455,8 +521,49 @@ class ActivationSystem {
      * 生成设备指纹
      */
     generateDeviceFingerprint() {
-        // 简化为固定设备ID，允许激活码在任何设备上使用
-        return 'universal-device';
+        const components = [
+            navigator.userAgent,
+            navigator.language,
+            navigator.platform,
+            screen.width + 'x' + screen.height,
+            screen.colorDepth,
+            new Date().getTimezoneOffset(),
+            navigator.hardwareConcurrency || 'unknown',
+            navigator.deviceMemory || 'unknown'
+        ];
+
+        // 获取canvas指纹（相对稳定）
+        try {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.textBaseline = 'top';
+            ctx.font = '14px Arial';
+            ctx.fillText('DeviceFingerprint', 2, 2);
+            components.push(canvas.toDataURL());
+        } catch (e) {
+            components.push('canvas-error');
+        }
+
+        // 获取WebGL指纹（如果可用）
+        try {
+            const canvas = document.createElement('canvas');
+            const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+            if (gl) {
+                const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                if (debugInfo) {
+                    components.push(gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL));
+                    components.push(gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL));
+                }
+            }
+        } catch (e) {
+            components.push('webgl-error');
+        }
+
+        // 添加时区和语言偏好
+        components.push(Intl.DateTimeFormat().resolvedOptions().timeZone);
+
+        const fingerprint = this.hashString(components.join('|'));
+        return fingerprint.substring(0, 32); // 取前32位作为设备ID
     }
     
     /**
