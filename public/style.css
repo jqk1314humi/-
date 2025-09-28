@@ -1036,7 +1036,7 @@ html {
     padding: 1.5rem;
     max-height: 600px;
     overflow-y: auto;
-    /* 强制显示滚动�?*/
+    /* 强制显示滚动�?*/
     scrollbar-width: auto;
     -webkit-overflow-scrolling: touch;
 }
@@ -1965,7 +1965,7 @@ html {
     color: #f59e0b;
 }
 
-/* 响应式设�?*/
+/* 响应式设�?*/
 @media (max-width: 768px) {
     .sync-actions {
         grid-template-columns: 1fr;

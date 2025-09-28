@@ -712,6 +712,7 @@ body::after {
 /* 聊天消息区域 */
 .chat-messages {
     flex: 1;
+    min-height: 500px; /* 增加最小高度，使对话框更长 */
     padding: 1.5rem;
     overflow-y: auto;
     display: flex;
@@ -1149,7 +1150,7 @@ body::after {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(20px);
     display: flex;
-    justify-content: space-between;
+    justify-content: center; /* 确保内容居中 */
     align-items: center;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
