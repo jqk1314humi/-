@@ -112,19 +112,54 @@ class VikaCloudStorage {
      */
     async getRecords(filterFormula = null) {
         try {
-            const params = {
-                fieldKey: this.VIKA_CONFIG.fieldKey
-            };
+            console.log('🔍 开始获取维格表记录...');
+            let allRecords = [];
+            let pageToken = null;
+            let pageCount = 0;
             
-            if (filterFormula) {
-                params.filterByFormula = filterFormula;
-            }
+            do {
+                const params = {
+                    fieldKey: this.VIKA_CONFIG.fieldKey,
+                    pageSize: 1000 // 设置较大的页面大小
+                };
+                
+                if (filterFormula) {
+                    params.filterByFormula = filterFormula;
+                }
+                
+                if (pageToken) {
+                    params.pageToken = pageToken;
+                }
 
-            const response = await this.makeVikaRequest('GET', '', null, params);
-            return response.data?.records || [];
+                console.log(`📄 获取第${pageCount + 1}页数据...`);
+                const response = await this.makeVikaRequest('GET', '', null, params);
+                
+                if (response.data && response.data.records) {
+                    const records = response.data.records;
+                    allRecords = allRecords.concat(records);
+                    console.log(`✅ 第${pageCount + 1}页获取到 ${records.length} 条记录`);
+                    
+                    // 检查是否有下一页
+                    pageToken = response.data.pageToken;
+                    pageCount++;
+                    
+                    // 防止无限循环，最多获取10页
+                    if (pageCount >= 10) {
+                        console.warn('⚠️ 已达到最大页数限制(10页)，停止获取');
+                        break;
+                    }
+                } else {
+                    console.log('📄 没有更多数据');
+                    break;
+                }
+                
+            } while (pageToken);
+            
+            console.log(`🎯 总共获取到 ${allRecords.length} 条记录，共 ${pageCount} 页`);
+            return allRecords;
             
         } catch (error) {
-            console.error('获取记录失败:', error);
+            console.error('❌ 获取记录失败:', error);
             return [];
         }
     }
@@ -258,10 +293,15 @@ class VikaCloudStorage {
             
             records.forEach((record, index) => {
                 const fields = record.fields;
-                console.log(`记录${index + 1}:`, fields);
+                
+                // 只在前5条记录显示详细信息，避免日志过多
+                if (index < 5) {
+                    console.log(`记录${index + 1}:`, fields);
+                }
                 
                 // 尝试多种可能的字段名来查找激活码
                 let codeValue = null;
+                let foundFieldName = null;
                 const possibleCodeFields = ['code', 'Code', 'CODE', 'activationCode', 'activation_code'];
                 
                 for (const fieldName of possibleCodeFields) {
@@ -269,6 +309,7 @@ class VikaCloudStorage {
                         // 检查是否像激活码（字母数字组合，长度大于6）
                         if (/^[A-Za-z0-9]{6,}$/.test(fields[fieldName])) {
                             codeValue = fields[fieldName];
+                            foundFieldName = fieldName;
                             console.log(`✅ 在字段"${fieldName}"中找到激活码:`, codeValue);
                             break;
                         }
@@ -281,9 +322,19 @@ class VikaCloudStorage {
                         usedAt: fields.usedAt || fields.UsedAt || fields.used_at || null,
                         usedBy: this.parseJSON(fields.usedBy || fields.UsedBy || fields.used_by) || null,
                         createdAt: fields.createdAt || fields.CreatedAt || fields.created_at || new Date().toISOString(),
-                        recordId: record.recordId
+                        recordId: record.recordId,
+                        sourceField: foundFieldName // 记录来源字段名
                     };
-                    console.log(`📝 激活码 ${codeValue} 数据:`, codes[codeValue]);
+                    
+                    // 只显示前几个激活码的详细信息
+                    if (Object.keys(codes).length <= 5) {
+                        console.log(`📝 激活码 ${codeValue} 数据:`, codes[codeValue]);
+                    }
+                } else {
+                    // 如果没找到激活码，记录一下（只显示前几条）
+                    if (index < 3) {
+                        console.log(`⚠️ 记录${index + 1}中未找到有效的激活码字段`);
+                    }
                 }
             });
             
@@ -299,6 +350,72 @@ class VikaCloudStorage {
         } catch (error) {
             console.error('❌ 获取激活码失败:', error);
             return this.getLocalActivationCodes();
+        }
+    }
+
+    /**
+     * 调试维格表数据结构
+     */
+    async debugVikaStructure() {
+        try {
+            console.log('🔍 开始调试维格表数据结构...');
+            
+            const records = await this.getRecords();
+            console.log(`📊 总记录数: ${records.length}`);
+            
+            if (records.length === 0) {
+                console.log('❌ 没有找到任何记录');
+                return;
+            }
+            
+            // 分析字段结构
+            const fieldAnalysis = {};
+            const sampleValues = {};
+            
+            records.forEach((record, index) => {
+                if (record.fields) {
+                    Object.keys(record.fields).forEach(fieldName => {
+                        if (!fieldAnalysis[fieldName]) {
+                            fieldAnalysis[fieldName] = {
+                                count: 0,
+                                types: new Set(),
+                                sampleValues: []
+                            };
+                        }
+                        
+                        const value = record.fields[fieldName];
+                        fieldAnalysis[fieldName].count++;
+                        fieldAnalysis[fieldName].types.add(typeof value);
+                        
+                        // 保存前3个样本值
+                        if (fieldAnalysis[fieldName].sampleValues.length < 3) {
+                            fieldAnalysis[fieldName].sampleValues.push(value);
+                        }
+                    });
+                }
+            });
+            
+            console.log('📋 字段分析结果:');
+            Object.entries(fieldAnalysis).forEach(([fieldName, analysis]) => {
+                console.log(`  字段: ${fieldName}`);
+                console.log(`    出现次数: ${analysis.count}/${records.length}`);
+                console.log(`    数据类型: ${Array.from(analysis.types).join(', ')}`);
+                console.log(`    样本值: ${JSON.stringify(analysis.sampleValues)}`);
+                
+                // 检查是否可能是激活码字段
+                const isPossibleCodeField = analysis.sampleValues.some(value => 
+                    typeof value === 'string' && /^[A-Za-z0-9]{6,}$/.test(value)
+                );
+                if (isPossibleCodeField) {
+                    console.log(`    ✅ 可能是激活码字段`);
+                }
+            });
+            
+            return fieldAnalysis;
+            
+        } catch (error) {
+            console.error('❌ 调试维格表结构失败:', error);
+            return null;
         }
     }
 

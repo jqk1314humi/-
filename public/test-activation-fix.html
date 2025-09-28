@@ -83,7 +83,13 @@
         </div>
 
         <div class="test-section">
-            <h3>4. 系统状态</h3>
+            <h3>4. 调试维格表数据结构</h3>
+            <button onclick="debugVikaStructure()">分析数据结构</button>
+            <div id="debugResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>5. 系统状态</h3>
             <button onclick="checkSystemStatus()">检查状态</button>
             <div id="statusResult" class="result"></div>
         </div>
@@ -188,6 +194,40 @@
                 
             } catch (error) {
                 addResult('activationResult', `验证失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function debugVikaStructure() {
+            addResult('debugResult', '开始调试维格表数据结构...', 'info');
+            
+            if (!vikaStorage) {
+                addResult('debugResult', '维格表存储未初始化', 'error');
+                return;
+            }
+            
+            try {
+                const analysis = await vikaStorage.debugVikaStructure();
+                if (analysis) {
+                    addResult('debugResult', '数据结构分析完成，请查看控制台获取详细信息', 'success');
+                    addResult('debugResult', `字段数量: ${Object.keys(analysis).length}`, 'info');
+                    
+                    // 显示可能的激活码字段
+                    const codeFields = Object.entries(analysis).filter(([fieldName, data]) => 
+                        data.sampleValues.some(value => 
+                            typeof value === 'string' && /^[A-Za-z0-9]{6,}$/.test(value)
+                        )
+                    );
+                    
+                    if (codeFields.length > 0) {
+                        addResult('debugResult', `可能的激活码字段: ${codeFields.map(([name]) => name).join(', ')}`, 'success');
+                    } else {
+                        addResult('debugResult', '未找到可能的激活码字段', 'warning');
+                    }
+                } else {
+                    addResult('debugResult', '数据结构分析失败', 'error');
+                }
+            } catch (error) {
+                addResult('debugResult', `分析失败: ${error.message}`, 'error');
             }
         }
 
