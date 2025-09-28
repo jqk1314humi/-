@@ -1,12 +1,12 @@
 /* 可爱洋气的智能导员样式 v3.0 */
 
-/* 导入Google字体 */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Nunito:wght@300;400;500;600;700;800&display=swap');
+/* 移除Google字体引用，使用系统兼容字体 */
 
 /* CSS变量定义 */
 :root {
     /* 可爱的渐变色彩 */
     --primary-gradient: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+    --primary-gradient-webkit: -webkit-linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
     --cute-pink: #ff9a9e;
     --cute-purple: #d946ef;
     --cute-blue: #60a5fa;
@@ -16,6 +16,7 @@
     
     /* 背景渐变 */
     --bg-gradient: linear-gradient(135deg, #ff9a9e 0%, #fecfef 30%, #fecfef 70%, #a8e6cf 100%);
+    --bg-gradient-webkit: -webkit-linear-gradient(135deg, #ff9a9e 0%, #fecfef 30%, #fecfef 70%, #a8e6cf 100%);
     --card-bg: rgba(255, 255, 255, 0.98);
     --glass-bg: rgba(255, 255, 255, 0.15);
     
@@ -42,13 +43,70 @@
     box-sizing: border-box;
 }
 
+/* 微信浏览器兼容性修复 */
+* {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* 微信浏览器backdrop-filter兼容性 */
+@supports not (backdrop-filter: blur(20px)) {
+    .card, .header, .chat-window {
+        background: rgba(255, 255, 255, 0.95) !important;
+    }
+}
+
+/* 允许文本选择 */
+input, textarea {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+}
+
+/* 微信浏览器CSS兼容性前缀 */
+.card, .header, .chat-window, .message-avatar {
+    -webkit-transform: translateZ(0);
+    -moz-transform: translateZ(0);
+    -ms-transform: translateZ(0);
+    -o-transform: translateZ(0);
+    transform: translateZ(0);
+}
+
+/* 修复微信浏览器中可能出现的动画问题 */
+@keyframes avatarBounce {
+    0%, 100% {
+        -webkit-transform: scale(1);
+        -moz-transform: scale(1);
+        -ms-transform: scale(1);
+        -o-transform: scale(1);
+        transform: scale(1);
+    }
+    50% {
+        -webkit-transform: scale(1.1);
+        -moz-transform: scale(1.1);
+        -ms-transform: scale(1.1);
+        -o-transform: scale(1.1);
+        transform: scale(1.1);
+    }
+}
+
 body {
-    font-family: 'Nunito', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
     background: var(--bg-gradient);
+    background: var(--bg-gradient-webkit);
     min-height: 100vh;
     color: var(--text-primary);
     overflow-x: hidden;
     position: relative;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* 可爱的背景装饰 */
@@ -253,6 +311,7 @@ body::after {
     width: 100%;
     padding: 1rem 2rem;
     background: linear-gradient(135deg, var(--cute-pink), var(--cute-purple));
+    background: -webkit-linear-gradient(135deg, var(--cute-pink), var(--cute-purple));
     color: white;
     border: none;
     border-radius: var(--radius-md);
@@ -354,6 +413,11 @@ body::after {
     color: var(--cute-purple);
     font-size: 2rem;
     animation: pulse 2s infinite;
+    background: var(--primary-gradient);
+    background: var(--primary-gradient-webkit);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 @keyframes pulse {
@@ -791,6 +855,7 @@ body::after {
 
 .user-message .message-avatar {
     background: linear-gradient(135deg, var(--cute-blue), var(--cute-purple));
+    background: -webkit-linear-gradient(135deg, var(--cute-blue), var(--cute-purple));
     position: relative;
 }
 
@@ -811,6 +876,7 @@ body::after {
 
 .advisor-message .message-avatar {
     background: linear-gradient(135deg, var(--cute-pink), var(--cute-orange));
+    background: -webkit-linear-gradient(135deg, var(--cute-pink), var(--cute-orange));
     animation: avatarBounce 2s infinite;
     position: relative;
 }
