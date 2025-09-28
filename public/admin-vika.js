@@ -372,7 +372,7 @@ class AdminSystem {
                                 <i class="${statusIcon}"></i> ${statusText}
                             </span>
                             <span class="code-situation">
-                                <i class="fas fa-info-circle"></i> ${situationText}
+                                <i class="fas fa-info-circle"></i> ${statusText}
                             </span>
                         </div>
                         <div class="code-actions">
