@@ -561,7 +561,7 @@ class SmartAdvisor {
     }
 }
 
-// 生成设备ID的函数（与activation-vika.js中的逻辑保持一致）
+// 生成设备ID的函数（优化版，更适合手机端）
 function generateDeviceId() {
     const components = [
         navigator.userAgent,
@@ -573,12 +573,14 @@ function generateDeviceId() {
         navigator.hardwareConcurrency || 'unknown',
         navigator.deviceMemory || 'unknown'
     ];
-    
-    // 添加更多浏览器特征
-    if (navigator.plugins) {
+
+    // 对于手机端，避免使用可能不稳定的navigator.plugins
+    // 只在桌面端添加插件信息
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (!isMobile && navigator.plugins && navigator.plugins.length > 0) {
         components.push(Array.from(navigator.plugins).map(p => p.name).join(','));
     }
-    
+
     const fingerprint = hashString(components.join('|'));
     return fingerprint.substring(0, 16); // 取前16位作为设备ID
 }
@@ -594,24 +596,33 @@ function hashString(str) {
     return Math.abs(hash).toString(16);
 }
 
-// 检查激活状态的函数
+// 检查激活状态的函数（优化版，减少手机端死循环）
 function checkActivationStatus() {
     try {
         // 使用新的存储键，与activation-vika.js保持一致
         const userActivationCode = localStorage.getItem('userActivationCode');
         const userDeviceId = localStorage.getItem('userDeviceId');
         const activationTime = localStorage.getItem('activationTime');
-        
+
         console.log('🔍 advisor.js 激活状态检查:', {
             userActivationCode,
             userDeviceId,
             activationTime
         });
-        
+
         if (!userActivationCode || !userDeviceId || !activationTime) {
-            // 如果没有激活信息，重定向到激活页面
-            console.log('❌ 激活信息不完整，重定向到激活页面');
-            redirectToActivation('激活信息不完整，请重新激活');
+            // 检测是否为手机端，如果是，给出更友好的提示
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            if (isMobile) {
+                console.log('📱 手机端激活信息不完整，准备跳转到激活页面');
+                // 对于手机端，延迟重定向并显示提示
+                setTimeout(() => {
+                    redirectToActivation('激活信息不完整，请重新激活');
+                }, 1000);
+            } else {
+                console.log('❌ 激活信息不完整，重定向到激活页面');
+                redirectToActivation('激活信息不完整，请重新激活');
+            }
             return false;
         }
         
@@ -627,20 +638,29 @@ function checkActivationStatus() {
             console.log('❌ 设备ID不匹配，可能是设备指纹算法变化');
             console.log('保存的设备ID:', userDeviceId);
             console.log('当前设备ID:', currentDeviceId);
-            
+
             // 对于设备ID不匹配的情况，我们给予一定的容错
-            // 检查激活时间是否在合理范围内（24小时内）
+            // 检查激活时间是否在合理范围内
             const activationDate = new Date(activationTime);
             const now = new Date();
             const timeDiff = now - activationDate;
             const hoursDiff = timeDiff / (1000 * 60 * 60);
-            
-            if (hoursDiff > 48) {
-                console.log('❌ 激活时间过久且设备ID不匹配，需要重新激活');
-                redirectToActivation('激活信息已过期，请重新激活');
+
+            // 检测是否为手机端，对手机端更宽容
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+            if (hoursDiff > (isMobile ? 72 : 48)) { // 手机端给予72小时，桌面端48小时
+                console.log(`❌ 激活时间过久且设备ID不匹配，需要重新激活 (手机端容错: ${isMobile})`);
+                if (isMobile) {
+                    setTimeout(() => {
+                        redirectToActivation('激活信息已过期，请重新激活');
+                    }, 1500);
+                } else {
+                    redirectToActivation('激活信息已过期，请重新激活');
+                }
                 return false;
             } else {
-                console.log('⚠️ 设备ID不匹配但激活时间在48小时内，更新设备ID');
+                console.log(`⚠️ 设备ID不匹配但激活时间在${isMobile ? 72 : 48}小时内，更新设备ID (手机端容错: ${isMobile})`);
                 localStorage.setItem('userDeviceId', currentDeviceId);
                 return true;
             }
@@ -709,56 +729,83 @@ function checkActivationStatus() {
     }
 }
 
-// 重定向到激活页面的统一函数
+// 重定向到激活页面的统一函数（优化版，增强防循环机制）
 function redirectToActivation(message) {
     // 检查是否在短时间内已经重定向过，避免循环
     const lastRedirect = sessionStorage.getItem('lastRedirectTime');
     const now = Date.now();
-    
-    if (lastRedirect && (now - parseInt(lastRedirect)) < 5000) {
-        console.log('⚠️ 检测到可能的重定向循环，停止重定向');
+
+    // 检测是否为手机端，对手机端使用更长的防循环时间
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const minInterval = isMobile ? 10000 : 5000; // 手机端10秒，桌面端5秒
+
+    if (lastRedirect && (now - parseInt(lastRedirect)) < minInterval) {
+        console.log(`⚠️ 检测到可能的重定向循环，停止重定向 (手机端: ${isMobile})`);
         return;
     }
-    
+
     // 记录重定向时间
     sessionStorage.setItem('lastRedirectTime', now.toString());
-    
+
     // 清除激活信息
     localStorage.removeItem('userActivationCode');
     localStorage.removeItem('userDeviceId');
     localStorage.removeItem('activationTime');
-    
+
     // 显示消息（如果有的话）
     if (message) {
         console.log('重定向原因:', message);
-        // 可以选择是否显示alert，避免打扰用户体验
-        // alert(message);
+        // 在手机端可以显示一个临时的提示
+        if (isMobile) {
+            console.log('📱 手机端检测到激活问题，正在跳转到激活页面...');
+        }
     }
-    
-    // 延迟重定向，避免循环
+
+    // 延迟重定向，避免循环（手机端延迟更长）
+    const redirectDelay = isMobile ? 500 : 100;
     setTimeout(() => {
+        console.log(`🔄 即将跳转到激活页面 (延迟: ${redirectDelay}ms)`);
         window.location.href = './index.html';
-    }, 100);
+    }, redirectDelay);
 }
 
-// 页面加载完成后初始化应用
+// 页面加载完成后初始化应用（优化版，减少手机端死循环）
 document.addEventListener('DOMContentLoaded', () => {
+    // 检测是否为手机端
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
     // 检查是否刚从激活页面跳转过来
     const urlParams = new URLSearchParams(window.location.search);
     const fromActivation = urlParams.get('from') === 'activation';
-    
+
     if (fromActivation) {
-        console.log('🔄 从激活页面跳转而来，等待激活信息稳定...');
-        // 如果是从激活页面跳转过来的，等待一段时间再检查
+        console.log(`🔄 从激活页面跳转而来，等待激活信息稳定... (手机端: ${isMobile})`);
+        // 如果是从激活页面跳转过来的，等待更长时间让激活信息稳定
+        // 手机端可能需要更长时间
+        const delayTime = isMobile ? 1500 : 500;
         setTimeout(() => {
             if (checkActivationStatus()) {
                 new SmartAdvisor();
+            } else {
+                console.log('❌ 激活检查失败，页面将自动跳转');
             }
-        }, 500);
+        }, delayTime);
     } else {
         // 正常检查激活状态
-        if (checkActivationStatus()) {
-            new SmartAdvisor();
+        // 对于手机端，增加延迟以避免快速重定向循环
+        if (isMobile) {
+            console.log('📱 检测到手机端，延迟激活检查...');
+            setTimeout(() => {
+                if (checkActivationStatus()) {
+                    new SmartAdvisor();
+                } else {
+                    console.log('❌ 手机端激活检查失败，页面将自动跳转');
+                }
+            }, 800);
+        } else {
+            if (checkActivationStatus()) {
+                new SmartAdvisor();
+            }
         }
     }
 });

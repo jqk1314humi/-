@@ -475,12 +475,14 @@ class ActivationSystem {
             navigator.hardwareConcurrency || 'unknown',
             navigator.deviceMemory || 'unknown'
         ];
-        
-        // 添加更多浏览器特征
-        if (navigator.plugins) {
+
+        // 对于手机端，避免使用可能不稳定的navigator.plugins
+        // 只在桌面端添加插件信息
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (!isMobile && navigator.plugins && navigator.plugins.length > 0) {
             components.push(Array.from(navigator.plugins).map(p => p.name).join(','));
         }
-        
+
         const fingerprint = this.hashString(components.join('|'));
         return fingerprint.substring(0, 16); // 取前16位作为设备ID
     }
