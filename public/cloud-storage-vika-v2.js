@@ -322,7 +322,8 @@ class VikaCloudStorage {
                         isUsed: this.parseBoolean(fields.isUsed || fields.IsUsed || fields.used || fields.Used) || false,
                         usedAt: fields.usedAt || fields.UsedAt || fields.used_at || null,
                         usedBy: this.parseJSON(fields.usedBy || fields.UsedBy || fields.used_by) || null,
-                        situation: fields.situation || '',  // 读取situation字段
+                        situation: fields.situation || fields.Situation || fields.SITUATION ||
+                                  fields.status || fields.Status || fields.STATUS || '',  // 读取多种situation字段
                         createdAt: fields.createdAt || fields.CreatedAt || fields.created_at || new Date().toISOString(),
                         recordId: record.recordId,
                         sourceField: foundFieldName // 记录来源字段名
@@ -574,7 +575,10 @@ class VikaCloudStorage {
             updateFields[usedFields[0]] = true;
             updateFields[usedAtFields[0]] = new Date().toISOString();
             updateFields[usedByFields[0]] = JSON.stringify(deviceInfo);
-            updateFields['situation'] = 1;  // 设置situation为1表示已使用
+
+            // 尝试多种situation字段名
+            const situationFields = ['situation', 'Situation', 'SITUATION', 'status', 'Status', 'STATUS'];
+            updateFields[situationFields[0]] = 1;  // 设置situation为1表示已使用
             
             console.log('🔄 更新激活码状态:', code, updateFields);
             
@@ -630,7 +634,12 @@ class VikaCloudStorage {
                     isUsed: false,
                     usedAt: null,
                     usedBy: null,
-                    situation: ''  // 重置时将situation设为空
+                    situation: '',  // 重置时将situation设为空
+                    Situation: '',  // 尝试多种字段名
+                    SITUATION: '',
+                    status: '',
+                    Status: '',
+                    STATUS: ''
                 }
             }];
 
@@ -781,7 +790,7 @@ class VikaCloudStorage {
         try {
             console.log('🔧 初始化默认激活码数据...');
             
-            const defaultCodes = [ 'jqkkf0922'];
+            const defaultCodes = ['ADMIN2024', 'STUDENT001', 'TEACHER001'];
             const records = [];
             
             // 创建默认激活码记录
@@ -926,7 +935,17 @@ class VikaCloudStorage {
         return codes ? JSON.parse(codes) : {
             'ADMIN2024': { isUsed: false, usedAt: null, usedBy: null, situation: '', createdAt: new Date().toISOString() },
             'STUDENT001': { isUsed: false, usedAt: null, usedBy: null, situation: '', createdAt: new Date().toISOString() },
-            'TEACHER001': { isUsed: false, usedAt: null, usedBy: null, situation: '', createdAt: new Date().toISOString() }
+            'TEACHER001': { isUsed: false, usedAt: null, usedBy: null, situation: '', createdAt: new Date().toISOString() },
+            'j6si0f26cig0': { isUsed: false, usedAt: null, usedBy: null, situation: '', createdAt: new Date().toISOString() },
+            'polex311eo4e': { isUsed: false, usedAt: null, usedBy: null, situation: '', createdAt: new Date().toISOString() },
+            'gwhfntmgol8l': { isUsed: false, usedAt: null, usedBy: null, situation: '', createdAt: new Date().toISOString() },
+            'sej5z1hhleqf': { isUsed: false, usedAt: null, usedBy: null, situation: '', createdAt: new Date().toISOString() },
+            '2ta1zchbuj8v': { isUsed: false, usedAt: null, usedBy: null, situation: '', createdAt: new Date().toISOString() },
+            '6uwqby0nk0fv': { isUsed: false, usedAt: null, usedBy: null, situation: '', createdAt: new Date().toISOString() },
+            'jza4m0okaflj': { isUsed: false, usedAt: null, usedBy: null, situation: '', createdAt: new Date().toISOString() },
+            '5n51yax303tm': { isUsed: false, usedAt: null, usedBy: null, situation: '', createdAt: new Date().toISOString() },
+            'by8fahc1taa3': { isUsed: false, usedAt: null, usedBy: null, situation: '', createdAt: new Date().toISOString() },
+            'v61g1yyvbgg6': { isUsed: false, usedAt: null, usedBy: null, situation: '', createdAt: new Date().toISOString() }
         };
     }
 
