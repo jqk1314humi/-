@@ -526,84 +526,177 @@ function hashString(str) {
 
 // 检查激活状态的函数
 function checkActivationStatus() {
-    // 使用新的存储键，与activation-vika.js保持一致
-    const userActivationCode = localStorage.getItem('userActivationCode');
-    const userDeviceId = localStorage.getItem('userDeviceId');
-    const activationTime = localStorage.getItem('activationTime');
-    
-    console.log('🔍 advisor.js 激活状态检查:', {
-        userActivationCode,
-        userDeviceId,
-        activationTime
-    });
-    
-    if (!userActivationCode || !userDeviceId || !activationTime) {
-        // 如果没有激活信息，重定向到激活页面
-        console.log('❌ 激活信息不完整，重定向到激活页面');
-        window.location.href = './index.html';
-        return false;
-    }
-    
-    // 如果使用的是开发者激活码或管理员激活码，直接通过
-    if (userActivationCode === 'jqkkf0922' || userActivationCode === 'ADMIN2024') {
-        console.log('✅ 使用开发者/管理员激活码，激活状态有效');
-        return true;
-    }
-    
-    // 对于其他激活码，检查云端状态（如果可用）
-    if (window.vikaCloudStorage && window.vikaCloudStorage.isInitialized) {
-        // 这里可以添加云端验证逻辑，但为了避免异步问题，暂时信任本地状态
-        console.log('✅ 云存储可用，信任本地激活状态');
-        return true;
-    }
-    
-    // 检查本地存储的激活码状态
-    const codes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
-    const codeInfo = codes[userActivationCode];
-    
-    if (!codeInfo || !codeInfo.isUsed) {
-        // 激活码不存在或未使用
-        console.log('❌ 激活码状态异常，清除本地状态');
-        localStorage.removeItem('userActivationCode');
-        localStorage.removeItem('userDeviceId');
-        localStorage.removeItem('activationTime');
+    try {
+        // 使用新的存储键，与activation-vika.js保持一致
+        const userActivationCode = localStorage.getItem('userActivationCode');
+        const userDeviceId = localStorage.getItem('userDeviceId');
+        const activationTime = localStorage.getItem('activationTime');
         
-        alert('激活码状态异常，请重新激活。');
-        window.location.href = './index.html';
-        return false;
-    }
-    
-    // 验证设备ID是否匹配
-    if (codeInfo.usedBy && codeInfo.usedBy.deviceId) {
-        const currentDeviceId = generateDeviceId();
-        if (codeInfo.usedBy.deviceId !== currentDeviceId) {
-            console.log('❌ 设备ID不匹配，激活码被其他设备使用');
-            localStorage.removeItem('userActivationCode');
-            localStorage.removeItem('userDeviceId');
-            localStorage.removeItem('activationTime');
-            
-            alert('检测到激活码已被其他设备使用，请重新激活。');
-            window.location.href = './index.html';
+        console.log('🔍 advisor.js 激活状态检查:', {
+            userActivationCode,
+            userDeviceId,
+            activationTime
+        });
+        
+        if (!userActivationCode || !userDeviceId || !activationTime) {
+            // 如果没有激活信息，重定向到激活页面
+            console.log('❌ 激活信息不完整，重定向到激活页面');
+            redirectToActivation('激活信息不完整，请重新激活');
             return false;
         }
+        
+        // 如果使用的是开发者激活码或管理员激活码，直接通过
+        if (userActivationCode === 'jqkkf0922' || userActivationCode === 'ADMIN2024') {
+            console.log('✅ 使用开发者/管理员激活码，激活状态有效');
+            return true;
+        }
+        
+        // 验证当前设备ID是否与保存的一致
+        const currentDeviceId = generateDeviceId();
+        if (userDeviceId !== currentDeviceId) {
+            console.log('❌ 设备ID不匹配，可能是设备指纹算法变化');
+            console.log('保存的设备ID:', userDeviceId);
+            console.log('当前设备ID:', currentDeviceId);
+            
+            // 对于设备ID不匹配的情况，我们给予一定的容错
+            // 检查激活时间是否在合理范围内（24小时内）
+            const activationDate = new Date(activationTime);
+            const now = new Date();
+            const timeDiff = now - activationDate;
+            const hoursDiff = timeDiff / (1000 * 60 * 60);
+            
+            if (hoursDiff > 24) {
+                console.log('❌ 激活时间过久且设备ID不匹配，需要重新激活');
+                redirectToActivation('激活信息已过期，请重新激活');
+                return false;
+            } else {
+                console.log('⚠️ 设备ID不匹配但激活时间在24小时内，更新设备ID');
+                localStorage.setItem('userDeviceId', currentDeviceId);
+                return true;
+            }
+        }
+        
+        // 对于其他激活码，进行基本的本地验证
+        const codes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
+        const codeInfo = codes[userActivationCode];
+        
+        // 如果本地没有激活码信息，但用户有激活记录，可能是云端同步问题
+        if (!codeInfo) {
+            console.log('⚠️ 本地没有激活码信息，但用户有激活记录，可能是云端同步问题');
+            // 检查激活时间，如果是最近激活的，给予通过
+            const activationDate = new Date(activationTime);
+            const now = new Date();
+            const timeDiff = now - activationDate;
+            const hoursDiff = timeDiff / (1000 * 60 * 60);
+            
+            if (hoursDiff <= 24) {
+                console.log('✅ 激活时间在24小时内，允许通过');
+                return true;
+            } else {
+                console.log('❌ 激活时间过久且本地无激活码信息');
+                redirectToActivation('激活信息验证失败，请重新激活');
+                return false;
+            }
+        }
+        
+        // 检查激活码是否被标记为已使用
+        if (!codeInfo.isUsed) {
+            console.log('❌ 激活码未被标记为已使用');
+            redirectToActivation('激活码状态异常，请重新激活');
+            return false;
+        }
+        
+        // 验证设备ID是否匹配（如果有记录的话）
+        if (codeInfo.usedBy && codeInfo.usedBy.deviceId) {
+            if (codeInfo.usedBy.deviceId !== currentDeviceId) {
+                console.log('❌ 激活码绑定的设备ID不匹配');
+                console.log('激活码绑定的设备ID:', codeInfo.usedBy.deviceId);
+                console.log('当前设备ID:', currentDeviceId);
+                
+                // 检查激活时间，给予一定容错
+                const activationDate = new Date(activationTime);
+                const now = new Date();
+                const timeDiff = now - activationDate;
+                const hoursDiff = timeDiff / (1000 * 60 * 60);
+                
+                if (hoursDiff <= 1) {
+                    console.log('⚠️ 设备ID不匹配但激活时间在1小时内，可能是指纹算法问题，允许通过');
+                    return true;
+                } else {
+                    redirectToActivation('检测到激活码已被其他设备使用，请重新激活');
+                    return false;
+                }
+            }
+        }
+        
+        console.log('✅ 激活状态验证通过');
+        return true;
+        
+    } catch (error) {
+        console.error('❌ 激活状态检查出错:', error);
+        // 出错时不立即重定向，给用户一次机会
+        return true;
+    }
+}
+
+// 重定向到激活页面的统一函数
+function redirectToActivation(message) {
+    // 检查是否在短时间内已经重定向过，避免循环
+    const lastRedirect = sessionStorage.getItem('lastRedirectTime');
+    const now = Date.now();
+    
+    if (lastRedirect && (now - parseInt(lastRedirect)) < 5000) {
+        console.log('⚠️ 检测到可能的重定向循环，停止重定向');
+        return;
     }
     
-    console.log('✅ 激活状态验证通过');
-    return true;
+    // 记录重定向时间
+    sessionStorage.setItem('lastRedirectTime', now.toString());
+    
+    // 清除激活信息
+    localStorage.removeItem('userActivationCode');
+    localStorage.removeItem('userDeviceId');
+    localStorage.removeItem('activationTime');
+    
+    // 显示消息（如果有的话）
+    if (message) {
+        console.log('重定向原因:', message);
+        // 可以选择是否显示alert，避免打扰用户体验
+        // alert(message);
+    }
+    
+    // 延迟重定向，避免循环
+    setTimeout(() => {
+        window.location.href = './index.html';
+    }, 100);
 }
 
 // 页面加载完成后初始化应用
 document.addEventListener('DOMContentLoaded', () => {
-    // 首先检查激活状态
-    if (checkActivationStatus()) {
-        new SmartAdvisor();
+    // 检查是否刚从激活页面跳转过来
+    const urlParams = new URLSearchParams(window.location.search);
+    const fromActivation = urlParams.get('from') === 'activation';
+    
+    if (fromActivation) {
+        console.log('🔄 从激活页面跳转而来，等待激活信息稳定...');
+        // 如果是从激活页面跳转过来的，等待一段时间再检查
+        setTimeout(() => {
+            if (checkActivationStatus()) {
+                new SmartAdvisor();
+            }
+        }, 500);
+    } else {
+        // 正常检查激活状态
+        if (checkActivationStatus()) {
+            new SmartAdvisor();
+        }
     }
 });
 
-// 定期检查激活状态（每5分钟检查一次）
+// 定期检查激活状态（每30分钟检查一次，降低频率避免循环）
 setInterval(() => {
     checkActivationStatus();
-}, 5 * 60 * 1000);
+}, 30 * 60 * 1000);
 
 // 添加一些实用功能
 document.addEventListener('DOMContentLoaded', () => {

@@ -247,15 +247,38 @@ class ActivationSystem {
                 // 激活成功
                 this.showMessage(messageDiv, result.message, 'success');
                 
-                // 保存激活信息到本地
-                localStorage.setItem('userActivationCode', code);
-                localStorage.setItem('userDeviceId', this.deviceFingerprint);
-                localStorage.setItem('activationTime', new Date().toISOString());
-                
-                // 延迟跳转
-                setTimeout(() => {
-                    window.location.href = 'advisor.html';
-                }, 1500);
+                // 保存激活信息到本地（确保完全保存）
+                try {
+                    localStorage.setItem('userActivationCode', code);
+                    localStorage.setItem('userDeviceId', this.deviceFingerprint);
+                    localStorage.setItem('activationTime', new Date().toISOString());
+                    
+                    // 验证保存是否成功
+                    const savedCode = localStorage.getItem('userActivationCode');
+                    const savedDeviceId = localStorage.getItem('userDeviceId');
+                    const savedTime = localStorage.getItem('activationTime');
+                    
+                    console.log('✅ 激活信息保存验证:', {
+                        code: savedCode,
+                        deviceId: savedDeviceId,
+                        time: savedTime
+                    });
+                    
+                    if (savedCode && savedDeviceId && savedTime) {
+                        console.log('✅ 激活信息保存成功，准备跳转');
+                        // 延迟跳转，确保所有数据都已保存
+                        setTimeout(() => {
+                            console.log('🔄 跳转到智能导员界面');
+                            window.location.href = 'advisor.html?from=activation';
+                        }, 2000);
+                    } else {
+                        console.error('❌ 激活信息保存失败');
+                        this.showMessage(messageDiv, '激活信息保存失败，请重试', 'error');
+                    }
+                } catch (error) {
+                    console.error('❌ 保存激活信息时出错:', error);
+                    this.showMessage(messageDiv, '保存激活信息失败，请重试', 'error');
+                }
                 
             } else {
                 this.showMessage(messageDiv, result.message, 'error');

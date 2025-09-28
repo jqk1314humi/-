@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>激活码验证修复测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .result {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .success { border-left: 4px solid #28a745; }
+        .error { border-left: 4px solid #dc3545; }
+        .info { border-left: 4px solid #17a2b8; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 5px;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>激活码验证修复测试</h1>
+        
+        <div class="test-section">
+            <h3>1. 测试维格表连接</h3>
+            <button onclick="testVikaConnection()">测试连接</button>
+            <div id="connectionResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. 获取激活码数据</h3>
+            <button onclick="getActivationCodes()">获取激活码</button>
+            <div id="codesResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. 测试激活码验证</h3>
+            <input type="text" id="testCode" placeholder="输入激活码" value="ADMIN2024">
+            <button onclick="testActivation()">测试验证</button>
+            <div id="activationResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>4. 系统状态</h3>
+            <button onclick="checkSystemStatus()">检查状态</button>
+            <div id="statusResult" class="result"></div>
+        </div>
+    </div>
+
+    <script src="cloud-storage-vika-v2.js"></script>
+    <script>
+        let vikaStorage = null;
+
+        function addResult(elementId, content, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            element.innerHTML += `<div class="${type}">[${timestamp}] ${content}</div>`;
+            element.scrollTop = element.scrollHeight;
+        }
+
+        // 初始化维格表存储
+        document.addEventListener('DOMContentLoaded', () => {
+            addResult('statusResult', '初始化维格表存储...', 'info');
+            
+            try {
+                vikaStorage = new VikaCloudStorage();
+                
+                window.addEventListener('vikaStorageReady', (event) => {
+                    addResult('statusResult', '维格表存储已就绪', 'success');
+                });
+                
+                setTimeout(() => {
+                    if (!vikaStorage.isInitialized) {
+                        addResult('statusResult', '维格表初始化超时', 'error');
+                    }
+                }, 5000);
+                
+            } catch (error) {
+                addResult('statusResult', `初始化失败: ${error.message}`, 'error');
+            }
+        });
+
+        async function testVikaConnection() {
+            addResult('connectionResult', '测试维格表连接...', 'info');
+            
+            if (!vikaStorage) {
+                addResult('connectionResult', '维格表存储未初始化', 'error');
+                return;
+            }
+            
+            try {
+                const status = vikaStorage.getConnectionStatus();
+                addResult('connectionResult', `连接状态: ${JSON.stringify(status, null, 2)}`, 'success');
+            } catch (error) {
+                addResult('connectionResult', `连接测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function getActivationCodes() {
+            addResult('codesResult', '获取激活码数据...', 'info');
+            
+            if (!vikaStorage) {
+                addResult('codesResult', '维格表存储未初始化', 'error');
+                return;
+            }
+            
+            try {
+                const codes = await vikaStorage.getActivationCodes();
+                addResult('codesResult', `激活码数据: ${JSON.stringify(codes, null, 2)}`, 'success');
+                addResult('codesResult', `激活码数量: ${Object.keys(codes).length}`, 'info');
+            } catch (error) {
+                addResult('codesResult', `获取失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function testActivation() {
+            const code = document.getElementById('testCode').value.trim();
+            
+            if (!code) {
+                addResult('activationResult', '请输入激活码', 'error');
+                return;
+            }
+            
+            addResult('activationResult', `测试激活码: ${code}`, 'info');
+            
+            if (!vikaStorage) {
+                addResult('activationResult', '维格表存储未初始化', 'error');
+                return;
+            }
+            
+            try {
+                // 获取激活码数据
+                const codes = await vikaStorage.getActivationCodes();
+                
+                if (codes[code]) {
+                    addResult('activationResult', `激活码存在: ${JSON.stringify(codes[code], null, 2)}`, 'success');
+                    
+                    if (codes[code].isUsed) {
+                        addResult('activationResult', '激活码已被使用', 'info');
+                    } else {
+                        addResult('activationResult', '激活码可用', 'success');
+                    }
+                } else {
+                    addResult('activationResult', '激活码不存在', 'error');
+                }
+                
+            } catch (error) {
+                addResult('activationResult', `验证失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkSystemStatus() {
+            addResult('statusResult', '检查系统状态...', 'info');
+            
+            const status = {
+                vikaStorage: !!vikaStorage,
+                isInitialized: vikaStorage ? vikaStorage.isInitialized : false,
+                isOnline: vikaStorage ? vikaStorage.isOnline : navigator.onLine,
+                localStorage: {
+                    activationCodes: !!localStorage.getItem('activationCodes'),
+                    userActivationCode: localStorage.getItem('userActivationCode'),
+                    userDeviceId: localStorage.getItem('userDeviceId')
+                }
+            };
+            
+            addResult('statusResult', `系统状态: ${JSON.stringify(status, null, 2)}`, 'info');
+        }
+    </script>
+</body>
+</html>

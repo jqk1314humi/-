@@ -198,24 +198,44 @@ class VikaCloudStorage {
      */
     async initializeDataStructure() {
         try {
+            console.log('🔧 初始化数据结构...');
+            
             // 获取现有记录
             const records = await this.getRecords();
+            console.log('📊 现有记录数量:', records.length);
             
-            // 检查是否有激活码记录
-            const activationCodes = records.filter(record => 
-                record.fields && record.fields.type === 'activation_code'
-            );
+            // 检查是否有激活码记录（通过查找包含激活码格式的字段）
+            let hasActivationCodes = false;
             
-            if (activationCodes.length === 0) {
-                console.log('📝 初始化默认激活码...');
+            if (records.length > 0) {
+                records.forEach(record => {
+                    const fields = record.fields;
+                    const possibleCodeFields = ['code', 'Code', 'CODE', 'activationCode', 'activation_code'];
+                    
+                    for (const fieldName of possibleCodeFields) {
+                        if (fields[fieldName] && typeof fields[fieldName] === 'string') {
+                            if (/^[A-Za-z0-9]{6,}$/.test(fields[fieldName])) {
+                                hasActivationCodes = true;
+                                console.log('✅ 发现激活码记录:', fields[fieldName]);
+                                break;
+                            }
+                        }
+                    }
+                });
+            }
+            
+            if (!hasActivationCodes) {
+                console.log('📝 未发现激活码记录，初始化默认激活码...');
                 await this.initializeDefaultData();
+            } else {
+                console.log('✅ 已存在激活码记录，跳过初始化');
             }
             
             // 同步到缓存
             await this.syncFromVika();
             
         } catch (error) {
-            console.error('初始化数据结构失败:', error);
+            console.error('❌ 初始化数据结构失败:', error);
         }
     }
 
@@ -228,23 +248,47 @@ class VikaCloudStorage {
         }
 
         try {
-            // 使用过滤公式只获取激活码记录
-            const filterFormula = '{type} = "activation_code"';
-            const records = await this.getRecords(filterFormula);
+            console.log('🔍 从维格表获取激活码数据...');
+            
+            // 不使用过滤公式，获取所有记录
+            const records = await this.getRecords();
+            console.log('📊 获取到记录数量:', records.length);
+            
             const codes = {};
             
-            records.forEach(record => {
+            records.forEach((record, index) => {
                 const fields = record.fields;
-                if (fields.code) {
-                    codes[fields.code] = {
-                        isUsed: fields.isUsed || false,
-                        usedAt: fields.usedAt || null,
-                        usedBy: fields.usedBy ? JSON.parse(fields.usedBy) : null,
-                        createdAt: fields.createdAt || new Date().toISOString(),
+                console.log(`记录${index + 1}:`, fields);
+                
+                // 尝试多种可能的字段名来查找激活码
+                let codeValue = null;
+                const possibleCodeFields = ['code', 'Code', 'CODE', 'activationCode', 'activation_code'];
+                
+                for (const fieldName of possibleCodeFields) {
+                    if (fields[fieldName] && typeof fields[fieldName] === 'string') {
+                        // 检查是否像激活码（字母数字组合，长度大于6）
+                        if (/^[A-Za-z0-9]{6,}$/.test(fields[fieldName])) {
+                            codeValue = fields[fieldName];
+                            console.log(`✅ 在字段"${fieldName}"中找到激活码:`, codeValue);
+                            break;
+                        }
+                    }
+                }
+                
+                if (codeValue) {
+                    codes[codeValue] = {
+                        isUsed: this.parseBoolean(fields.isUsed || fields.IsUsed || fields.used || fields.Used) || false,
+                        usedAt: fields.usedAt || fields.UsedAt || fields.used_at || null,
+                        usedBy: this.parseJSON(fields.usedBy || fields.UsedBy || fields.used_by) || null,
+                        createdAt: fields.createdAt || fields.CreatedAt || fields.created_at || new Date().toISOString(),
                         recordId: record.recordId
                     };
+                    console.log(`📝 激活码 ${codeValue} 数据:`, codes[codeValue]);
                 }
             });
+            
+            console.log('🎯 解析完成，激活码总数:', Object.keys(codes).length);
+            console.log('📋 激活码列表:', Object.keys(codes));
             
             // 更新缓存
             this.cache.codes = codes;
@@ -253,9 +297,38 @@ class VikaCloudStorage {
             return codes;
             
         } catch (error) {
-            console.error('获取激活码失败:', error);
+            console.error('❌ 获取激活码失败:', error);
             return this.getLocalActivationCodes();
         }
+    }
+
+    /**
+     * 解析布尔值
+     */
+    parseBoolean(value) {
+        if (typeof value === 'boolean') return value;
+        if (typeof value === 'string') {
+            const lower = value.toLowerCase();
+            return lower === 'true' || lower === '1' || lower === 'yes';
+        }
+        return false;
+    }
+    
+    /**
+     * 解析JSON字符串
+     */
+    parseJSON(value) {
+        if (!value) return null;
+        if (typeof value === 'object') return value;
+        if (typeof value === 'string') {
+            try {
+                return JSON.parse(value);
+            } catch (error) {
+                console.warn('JSON解析失败:', value, error);
+                return null;
+            }
+        }
+        return null;
     }
 
     /**
@@ -323,14 +396,24 @@ class VikaCloudStorage {
                 throw new Error('激活码已被使用');
             }
 
-            // 更新激活码状态
+            // 更新激活码状态 - 尝试多种字段名
+            const updateFields = {};
+            
+            // 尝试不同的字段名来更新状态
+            const usedFields = ['isUsed', 'IsUsed', 'used', 'Used'];
+            const usedAtFields = ['usedAt', 'UsedAt', 'used_at', 'UsedAt'];
+            const usedByFields = ['usedBy', 'UsedBy', 'used_by', 'UsedBy'];
+            
+            // 设置已使用状态
+            updateFields[usedFields[0]] = true;
+            updateFields[usedAtFields[0]] = new Date().toISOString();
+            updateFields[usedByFields[0]] = JSON.stringify(deviceInfo);
+            
+            console.log('🔄 更新激活码状态:', code, updateFields);
+            
             const updateData = [{
                 recordId: codeInfo.recordId,
-                fields: {
-                    isUsed: true,
-                    usedAt: new Date().toISOString(),
-                    usedBy: JSON.stringify(deviceInfo)
-                }
+                fields: updateFields
             }];
 
             await this.updateRecords(updateData);
@@ -526,20 +609,23 @@ class VikaCloudStorage {
      */
     async initializeDefaultData() {
         try {
-            const defaultCodes = ['ADMIN2024', 'STUDENT001', 'TEACHER001'];
+            console.log('🔧 初始化默认激活码数据...');
+            
+            const defaultCodes = ['ADMIN2024', 'STUDENT001', 'TEACHER001', 'jqkkf0922'];
             const records = [];
             
-            // 创建默认激活码
+            // 创建默认激活码记录
             defaultCodes.forEach(code => {
                 records.push({
-                    type: 'activation_code',
-                    code: code,
+                    code: code,  // 使用 code 字段而不是 type
                     isUsed: false,
-                    usedAt: null,
-                    usedBy: null,
+                    usedAt: '',
+                    usedBy: '',
                     createdAt: new Date().toISOString()
                 });
             });
+            
+            console.log('📝 准备创建激活码记录:', records);
             
             await this.createRecords(records);
             console.log('✅ 默认激活码初始化完成');
