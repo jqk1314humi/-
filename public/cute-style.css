@@ -151,7 +151,8 @@ body::before {
         radial-gradient(circle at 90% 70%, rgba(230, 102, 255, 0.1) 0%, transparent 50%);
     pointer-events: none;
     z-index: -1;
-    animation: gentleFloat 35s ease-in-out infinite;
+    /* 禁用可能导致刷新的动画 */
+    /* animation: gentleFloat 35s ease-in-out infinite; */
 }
 
 @keyframes backgroundPulse {
@@ -194,7 +195,8 @@ body::after {
     background-position: 0 0, 30px 30px;
     pointer-events: none;
     z-index: -1;
-    animation: geometricMove 40s linear infinite;
+    /* 禁用可能导致刷新的动画 */
+    /* animation: geometricMove 40s linear infinite; */
 }
 
 @keyframes geometricMove {
@@ -494,7 +496,8 @@ body::after {
     background: rgba(168, 85, 247, 0.1);
     transform: translateY(-2px) scale(1.05);
     box-shadow: var(--shadow-sm), 0 0 15px rgba(168, 85, 247, 0.3);
-    animation: headerButtonGlow 1.5s ease-in-out infinite;
+    /* 禁用可能导致刷新的动画 */
+    /* animation: headerButtonGlow 1.5s ease-in-out infinite; */
 }
 
 @keyframes headerButtonGlow {
@@ -593,7 +596,8 @@ body::after {
 .card:hover {
     transform: translateY(-5px) scale(1.02);
     box-shadow: var(--shadow-lg);
-    animation: cardFloat 2s ease-in-out infinite;
+    /* 禁用可能导致刷新的动画 */
+    /* animation: cardFloat 2s ease-in-out infinite; */
 }
 
 @keyframes cardFloat {
@@ -924,7 +928,8 @@ body::after {
 .advisor-message .message-avatar {
     background: linear-gradient(135deg, var(--cute-pink), var(--cute-orange));
     background: -webkit-linear-gradient(135deg, var(--cute-pink), var(--cute-orange));
-    animation: avatarBounce 2s infinite;
+    /* 禁用可能导致刷新的动画 */
+    /* animation: avatarBounce 2s infinite; */
     position: relative;
 }
 
@@ -1157,7 +1162,8 @@ body::after {
 .send-button:hover {
     transform: translateY(-3px) scale(1.05);
     box-shadow: var(--shadow-lg), var(--shadow-glow);
-    animation: buttonPulse 1.5s ease-in-out infinite;
+    /* 禁用可能导致刷新的动画 */
+    /* animation: buttonPulse 1.5s ease-in-out infinite; */
     background: linear-gradient(135deg, var(--cute-pink), var(--cute-hotpink), var(--cute-purple), var(--cute-blue));
 }
 
@@ -1226,11 +1232,6 @@ body::after {
     z-index: 3;
 }
 
-.team-icon {
-    color: var(--cute-pink);
-    font-size: 1.3rem;
-    animation: teamIconPulse 2s ease-in-out infinite;
-}
 
 .team-title {
     color: var(--text-primary);
@@ -1244,10 +1245,6 @@ body::after {
     background-clip: text;
 }
 
-@keyframes teamIconPulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-}
 
 .team-members {
     display: flex;
@@ -1261,7 +1258,7 @@ body::after {
 .member-item {
     display: flex;
     align-items: flex-start;
-    gap: 0.8rem;
+    gap: 0.5rem;
     padding: 0.6rem;
     background: rgba(255, 255, 255, 0.3);
     border-radius: var(--radius-sm);
@@ -1277,40 +1274,7 @@ body::after {
     box-shadow: 0 2px 8px rgba(255, 105, 180, 0.2);
 }
 
-.member-icon {
-    color: var(--cute-purple);
-    font-size: 0.9rem;
-    margin-top: 0.1rem;
-    flex-shrink: 0;
-    animation: memberIconGlow 2s ease-in-out infinite;
-}
 
-.member-icon.fa-handshake {
-    color: var(--cute-orange);
-    animation: handshakeGlow 2s ease-in-out infinite;
-}
-
-@keyframes memberIconGlow {
-    0%, 100% {
-        text-shadow: 0 0 3px rgba(216, 70, 239, 0.3);
-        transform: scale(1);
-    }
-    50% {
-        text-shadow: 0 0 8px rgba(216, 70, 239, 0.5);
-        transform: scale(1.1);
-    }
-}
-
-@keyframes handshakeGlow {
-    0%, 100% {
-        text-shadow: 0 0 3px rgba(251, 146, 60, 0.3);
-        transform: scale(1);
-    }
-    50% {
-        text-shadow: 0 0 8px rgba(251, 146, 60, 0.5);
-        transform: scale(1.1);
-    }
-}
 
 .member-label {
     font-weight: 600;
@@ -1332,7 +1296,6 @@ body::after {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
     padding-top: 0.8rem;
     border-top: 1px solid rgba(255, 105, 180, 0.2);
     color: var(--text-secondary);
@@ -1343,16 +1306,6 @@ body::after {
     z-index: 3;
 }
 
-.team-footer i {
-    color: var(--cute-pink);
-    animation: heartBeat 1.5s ease-in-out infinite;
-    font-size: 1rem;
-}
-
-@keyframes heartBeat {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.3); }
-}
 
 
 
@@ -1383,7 +1336,7 @@ body::after {
 
     .member-item {
         padding: 0.6rem;
-        gap: 0.6rem;
+        gap: 0.4rem;
     }
 
     .member-label {
@@ -1410,10 +1363,6 @@ body::after {
         margin-bottom: 0.8rem;
     }
 
-    .team-icon {
-        font-size: 1.2rem;
-    }
-
     .team-title {
         font-size: 0.95rem;
     }
@@ -1425,12 +1374,9 @@ body::after {
 
     .member-item {
         padding: 0.5rem;
-        gap: 0.5rem;
+        gap: 0.3rem;
     }
 
-    .member-icon {
-        font-size: 0.85rem;
-    }
 
     .member-label {
         min-width: 50px;
@@ -1444,11 +1390,6 @@ body::after {
 
     .team-footer {
         font-size: 0.8rem;
-        gap: 0.4rem;
-    }
-
-    .team-footer i {
-        font-size: 0.9rem;
     }
 }
 
