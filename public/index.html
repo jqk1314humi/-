@@ -122,7 +122,57 @@
         <span>小顺子开发团队</span>
     </footer>
 
+    <!-- 装饰元素容器 -->
+    <div id="decorations-container" class="decorations-container"></div>
 
     <script src="advisor.js"></script>
+    <script>
+        // 创建可爱的小装饰元素
+        function createDecorations() {
+            const container = document.getElementById('decorations-container');
+            const decorationTypes = ['✨', '⭐', '🌟', '💫', '🎀', '🌸', '🍀', '🎈', '🎊', '💖', '🌈', '🦄', '🦋', '🌺', '🍃', '💎', '🔮', '🌙', '☀️', '🌟'];
+
+            for (let i = 0; i < 30; i++) {
+                const decoration = document.createElement('div');
+                decoration.className = 'decoration';
+                decoration.textContent = decorationTypes[Math.floor(Math.random() * decorationTypes.length)];
+
+                // 随机位置
+                decoration.style.left = Math.random() * 100 + '%';
+                decoration.style.top = Math.random() * 100 + '%';
+
+                // 随机大小 (10px到30px)
+                const size = Math.random() * 20 + 10;
+                decoration.style.fontSize = size + 'px';
+
+                // 随机透明度 (0.1到0.4)
+                const opacity = Math.random() * 0.3 + 0.1;
+                decoration.style.opacity = opacity;
+
+                // 随机颜色
+                const colors = ['#ff9a9e', '#fecfef', '#ff69b4', '#e6e6fa', '#c5b3ff', '#87ceeb', '#98fb98', '#ffcba4', '#fde047'];
+                decoration.style.color = colors[Math.floor(Math.random() * colors.length)];
+
+                // 随机动画延迟
+                decoration.style.animationDelay = Math.random() * 10 + 's';
+
+                // 添加悬停效果
+                decoration.addEventListener('mouseenter', function() {
+                    this.style.transform += ' scale(1.2)';
+                    this.style.opacity = Math.min(parseFloat(this.style.opacity) + 0.2, 0.8);
+                });
+
+                decoration.addEventListener('mouseleave', function() {
+                    this.style.transform = this.style.transform.replace(' scale(1.2)', '');
+                    this.style.opacity = opacity;
+                });
+
+                container.appendChild(decoration);
+            }
+        }
+
+        // 页面加载完成后创建装饰
+        document.addEventListener('DOMContentLoaded', createDecorations);
+    </script>
 </body>
 </html>

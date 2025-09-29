@@ -14,7 +14,7 @@ class SmartAdvisor {
             botId: '7553901337742802980'
         };
         
-        // 用于保存原始消息内容的数�?        this.messageHistory = [];
+        // 用于保存原始消息内容的数�?        this.messageHistory = [];
         
         this.initializeEventListeners();
         this.loadChatHistory();
@@ -45,18 +45,18 @@ class SmartAdvisor {
         text = text.replace(/^##### (.*$)/gm, '<h5>$1</h5>');
         text = text.replace(/^###### (.*$)/gm, '<h6>$1</h6>');
         
-        // 处理加粗 **text** �?__text__
+        // 处理加粗 **text** �?__text__
         text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         text = text.replace(/__(.*?)__/g, '<strong>$1</strong>');
         
-        // 处理斜体 *text* �?_text_
+        // 处理斜体 *text* �?_text_
         text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
         text = text.replace(/_(.*?)_/g, '<em>$1</em>');
         
-        // 处理删除�?~~text~~
+        // 处理删除�?~~text~~
         text = text.replace(/~~(.*?)~~/g, '<del>$1</del>');
         
-        // 处理代码�?```code```
+        // 处理代码�?```code```
         text = text.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
         
         // 处理行内代码 `code`
@@ -74,7 +74,7 @@ class SmartAdvisor {
         // 处理引用 > text
         text = text.replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>');
         
-        // 处理分割�?---
+        // 处理分割�?---
         text = text.replace(/^---$/gm, '<hr>');
         
         // 处理表格（简单版本）
@@ -83,14 +83,14 @@ class SmartAdvisor {
             return '<tr>' + cells.map(cell => `<td>${cell}</td>`).join('') + '</tr>';
         });
         
-        // 包装列表�?- 简单版�?        text = text.replace(/(<li>.*<\/li>)/gs, function(match) {
+        // 包装列表�?- 简单版�?        text = text.replace(/(<li>.*<\/li>)/gs, function(match) {
             return '<ul>' + match + '</ul>';
         });
         
         // 处理段落（通过换行符）
         text = text.replace(/^(?!<h[1-6]>|<ul>|<ol>|<pre>|<blockquote>|<hr>|<table>)(.*$)/gm, '<p>$1</p>');
         
-        // 处理多余的空�?        text = text.replace(/\n\n+/g, '\n');
+        // 处理多余的空�?        text = text.replace(/\n\n+/g, '\n');
         
         // 合并相邻的列表项
         text = text.replace(/<\/li><\/ul>\s*<ul><li>/g, '');
@@ -115,9 +115,9 @@ class SmartAdvisor {
     }
 
     initializeEventListeners() {
-        // 发送按钮点击事�?        this.sendButton.addEventListener('click', () => this.handleSendMessage());
+        // 发送按钮点击事�?        this.sendButton.addEventListener('click', () => this.handleSendMessage());
         
-        // 输入框回车事�?        this.chatInput.addEventListener('keypress', (e) => {
+        // 输入框回车事�?        this.chatInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 this.handleSendMessage();
@@ -127,7 +127,7 @@ class SmartAdvisor {
         // 清空聊天事件
         this.clearButton.addEventListener('click', () => this.clearChat());
         
-        // 快速提问事�?        this.questionItems.forEach(item => {
+        // 快速提问事�?        this.questionItems.forEach(item => {
             item.addEventListener('click', () => {
                 const questionText = item.querySelector('span').textContent;
                 this.chatInput.value = questionText;
@@ -135,7 +135,7 @@ class SmartAdvisor {
             });
         });
         
-        // 输入框输入事�?        this.chatInput.addEventListener('input', () => {
+        // 输入框输入事�?        this.chatInput.addEventListener('input', () => {
             this.updateSendButtonState();
         });
         
@@ -150,10 +150,10 @@ class SmartAdvisor {
         const userInput = this.chatInput.value.trim();
         if (!userInput) return;
 
-        // 清空输入框并禁用发送按�?        this.chatInput.value = '';
+        // 清空输入框并禁用发送按�?        this.chatInput.value = '';
         this.updateSendButtonState();
         
-        // 禁用输入框和发送按钮，防止重复发�?        this.chatInput.disabled = true;
+        // 禁用输入框和发送按钮，防止重复发�?        this.chatInput.disabled = true;
         this.sendButton.disabled = true;
 
         // 添加用户消息
@@ -178,10 +178,10 @@ class SmartAdvisor {
         } catch (error) {
             console.error('API调用失败:', error);
             
-            // 移除流式消息，添加错误消�?            streamingMessage.remove();
-            this.addMessage(`抱歉，我现在无法回答您的问题。错误信�? ${error.message}`, 'advisor');
+            // 移除流式消息，添加错误消�?            streamingMessage.remove();
+            this.addMessage(`抱歉，我现在无法回答您的问题。错误信�? ${error.message}`, 'advisor');
         } finally {
-            // 重新启用输入框和发送按�?            this.chatInput.disabled = false;
+            // 重新启用输入框和发送按�?            this.chatInput.disabled = false;
             this.updateSendButtonState();
         }
 
@@ -191,7 +191,7 @@ class SmartAdvisor {
 
     async callCozeAPIStream(userInput, onChunk) {
         try {
-            console.log('开始调用Coze Workflow API（流式），用户输�?', userInput);
+            console.log('开始调用Coze Workflow API（流式），用户输�?', userInput);
             
             // 构建请求参数
             const requestBody = {
@@ -212,8 +212,8 @@ class SmartAdvisor {
                 body: JSON.stringify(requestBody)
             });
 
-            console.log('响应状�?', response.status);
-            console.log('响应�?', Object.fromEntries(response.headers.entries()));
+            console.log('响应状�?', response.status);
+            console.log('响应�?', Object.fromEntries(response.headers.entries()));
 
             if (!response.ok) {
                 const errorText = await response.text();
@@ -228,7 +228,7 @@ class SmartAdvisor {
             if (data && data.code === 0) {
                 if (data.data) {
                     try {
-                        // data字段可能是字符串，需要解�?                        let parsedData;
+                        // data字段可能是字符串，需要解�?                        let parsedData;
                         if (typeof data.data === 'string') {
                             parsedData = JSON.parse(data.data);
                         } else {
@@ -280,7 +280,7 @@ class SmartAdvisor {
                     }
                 }
                 
-                // 尝试其他可能的字�?- 按优先级顺序
+                // 尝试其他可能的字�?- 按优先级顺序
                 // 调试信息：显示直接在data中可用的output字段
                 const directOutputs = [];
                 ['output5', 'output4', 'output3', 'output2', 'output'].forEach(field => {
@@ -317,8 +317,8 @@ class SmartAdvisor {
                 }
             }
             
-            // 如果都没有找到有效内�?            console.warn('未找到有效的响应内容，返回默认消�?);
-            const defaultMessage = '抱歉，我现在无法处理您的问题，请稍后再试�?;
+            // 如果都没有找到有效内�?            console.warn('未找到有效的响应内容，返回默认消�?);
+            const defaultMessage = '抱歉，我现在无法处理您的问题，请稍后再试�?;
             await this.simulateStreamingOutput(defaultMessage, onChunk);
             return defaultMessage;
             
@@ -334,11 +334,11 @@ class SmartAdvisor {
         for (let i = 0; i < words.length; i++) {
             // 根据字符类型调整延迟时间
             let delay = 30;
-            if (words[i] === '�? || words[i] === '�? || words[i] === '�?) {
+            if (words[i] === '�? || words[i] === '�? || words[i] === '�?) {
                 delay = 200; // 句号、感叹号、问号后稍长停顿
-            } else if (words[i] === '�? || words[i] === '�?) {
-                delay = 100; // 逗号、分号后短停�?            } else if (words[i] === '\n') {
-                delay = 150; // 换行后停�?            }
+            } else if (words[i] === '�? || words[i] === '�?) {
+                delay = 100; // 逗号、分号后短停�?            } else if (words[i] === '\n') {
+                delay = 150; // 换行后停�?            }
             
             await new Promise(resolve => setTimeout(resolve, delay));
             onChunk(words[i]);
@@ -363,7 +363,7 @@ class SmartAdvisor {
             // AI回复使用Markdown渲染
             bubbleDiv.innerHTML = this.renderMarkdown(content);
         } else {
-            // 用户消息使用纯文本（转义HTML�?            bubbleDiv.textContent = content;
+            // 用户消息使用纯文本（转义HTML�?            bubbleDiv.textContent = content;
         }
 
         messageDiv.appendChild(avatarDiv);
@@ -372,7 +372,7 @@ class SmartAdvisor {
         this.chatMessages.appendChild(messageDiv);
         this.scrollToBottom();
 
-        // 添加可爱的跳跳动�?        setTimeout(() => {
+        // 添加可爱的跳跳动�?        setTimeout(() => {
             messageDiv.classList.add('message-bounce');
             setTimeout(() => {
                 messageDiv.classList.remove('message-bounce');
@@ -381,7 +381,7 @@ class SmartAdvisor {
 
         // 随机添加表情符号装饰
         if (Math.random() < 0.3) { // 30%概率添加表情符号
-            const emojis = ['�?, '💫', '�?, '🌟', '💖', '🎉', '🎊', '🌈'];
+            const emojis = ['�?, '💫', '�?, '🌟', '💖', '🎉', '🎊', '🌈'];
             const emoji = emojis[Math.floor(Math.random() * emojis.length)];
 
             setTimeout(() => {
@@ -398,7 +398,7 @@ class SmartAdvisor {
             }, 500 + Math.random() * 1000);
         }
 
-        // 保存原始消息内容到历史数�?        this.messageHistory.push({
+        // 保存原始消息内容到历史数�?        this.messageHistory.push({
             sender: sender,
             content: content,
             timestamp: Date.now()
@@ -449,12 +449,12 @@ class SmartAdvisor {
             cursor.remove();
         }
         
-        // 更新最终内�?        const bubbleDiv = messageDiv.querySelector('.message-bubble');
+        // 更新最终内�?        const bubbleDiv = messageDiv.querySelector('.message-bubble');
         if (bubbleDiv) {
             bubbleDiv.innerHTML = this.renderMarkdown(finalContent);
         }
         
-        // 保存到历史记�?        this.messageHistory.push({
+        // 保存到历史记�?        this.messageHistory.push({
             sender: 'advisor',
             content: finalContent,
             timestamp: Date.now()
@@ -475,17 +475,17 @@ class SmartAdvisor {
             this.chatMessages.appendChild(welcomeMessage);
         }
         
-        // 清除历史数组和本地存�?        this.messageHistory = [];
+        // 清除历史数组和本地存�?        this.messageHistory = [];
         localStorage.removeItem('chatHistory');
         
-        // 重置输入�?        this.chatInput.value = '';
+        // 重置输入�?        this.chatInput.value = '';
         this.updateSendButtonState();
     }
 
     saveChatHistory() {
         // 使用messageHistory数组保存原始内容
         const filteredHistory = this.messageHistory.filter(message => 
-            message.content !== '你好!我是你的智能导员,很高兴为你服务。有什么学习、生活或职业规划方面的问�?都可以随时问我哦!'
+            message.content !== '你好!我是你的智能导员,很高兴为你服务。有什么学习、生活或职业规划方面的问�?都可以随时问我哦!'
         );
         localStorage.setItem('chatHistory', JSON.stringify(filteredHistory));
     }
