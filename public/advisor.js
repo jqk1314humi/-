@@ -14,8 +14,7 @@ class SmartAdvisor {
             botId: '7553901337742802980'
         };
         
-        // 用于保存原始消息内容的数组
-        this.messageHistory = [];
+        // 用于保存原始消息内容的数�?        this.messageHistory = [];
         
         this.initializeEventListeners();
         this.loadChatHistory();
@@ -46,18 +45,18 @@ class SmartAdvisor {
         text = text.replace(/^##### (.*$)/gm, '<h5>$1</h5>');
         text = text.replace(/^###### (.*$)/gm, '<h6>$1</h6>');
         
-        // 处理加粗 **text** 或 __text__
+        // 处理加粗 **text** �?__text__
         text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         text = text.replace(/__(.*?)__/g, '<strong>$1</strong>');
         
-        // 处理斜体 *text* 或 _text_
+        // 处理斜体 *text* �?_text_
         text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
         text = text.replace(/_(.*?)_/g, '<em>$1</em>');
         
-        // 处理删除线 ~~text~~
+        // 处理删除�?~~text~~
         text = text.replace(/~~(.*?)~~/g, '<del>$1</del>');
         
-        // 处理代码块 ```code```
+        // 处理代码�?```code```
         text = text.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
         
         // 处理行内代码 `code`
@@ -75,7 +74,7 @@ class SmartAdvisor {
         // 处理引用 > text
         text = text.replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>');
         
-        // 处理分割线 ---
+        // 处理分割�?---
         text = text.replace(/^---$/gm, '<hr>');
         
         // 处理表格（简单版本）
@@ -84,16 +83,14 @@ class SmartAdvisor {
             return '<tr>' + cells.map(cell => `<td>${cell}</td>`).join('') + '</tr>';
         });
         
-        // 包装列表项 - 简单版本
-        text = text.replace(/(<li>.*<\/li>)/gs, function(match) {
+        // 包装列表�?- 简单版�?        text = text.replace(/(<li>.*<\/li>)/gs, function(match) {
             return '<ul>' + match + '</ul>';
         });
         
         // 处理段落（通过换行符）
         text = text.replace(/^(?!<h[1-6]>|<ul>|<ol>|<pre>|<blockquote>|<hr>|<table>)(.*$)/gm, '<p>$1</p>');
         
-        // 处理多余的空行
-        text = text.replace(/\n\n+/g, '\n');
+        // 处理多余的空�?        text = text.replace(/\n\n+/g, '\n');
         
         // 合并相邻的列表项
         text = text.replace(/<\/li><\/ul>\s*<ul><li>/g, '');
@@ -118,11 +115,9 @@ class SmartAdvisor {
     }
 
     initializeEventListeners() {
-        // 发送按钮点击事件
-        this.sendButton.addEventListener('click', () => this.handleSendMessage());
+        // 发送按钮点击事�?        this.sendButton.addEventListener('click', () => this.handleSendMessage());
         
-        // 输入框回车事件
-        this.chatInput.addEventListener('keypress', (e) => {
+        // 输入框回车事�?        this.chatInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 this.handleSendMessage();
@@ -132,8 +127,7 @@ class SmartAdvisor {
         // 清空聊天事件
         this.clearButton.addEventListener('click', () => this.clearChat());
         
-        // 快速提问事件
-        this.questionItems.forEach(item => {
+        // 快速提问事�?        this.questionItems.forEach(item => {
             item.addEventListener('click', () => {
                 const questionText = item.querySelector('span').textContent;
                 this.chatInput.value = questionText;
@@ -141,8 +135,7 @@ class SmartAdvisor {
             });
         });
         
-        // 输入框输入事件
-        this.chatInput.addEventListener('input', () => {
+        // 输入框输入事�?        this.chatInput.addEventListener('input', () => {
             this.updateSendButtonState();
         });
         
@@ -157,12 +150,10 @@ class SmartAdvisor {
         const userInput = this.chatInput.value.trim();
         if (!userInput) return;
 
-        // 清空输入框并禁用发送按钮
-        this.chatInput.value = '';
+        // 清空输入框并禁用发送按�?        this.chatInput.value = '';
         this.updateSendButtonState();
         
-        // 禁用输入框和发送按钮，防止重复发送
-        this.chatInput.disabled = true;
+        // 禁用输入框和发送按钮，防止重复发�?        this.chatInput.disabled = true;
         this.sendButton.disabled = true;
 
         // 添加用户消息
@@ -187,12 +178,10 @@ class SmartAdvisor {
         } catch (error) {
             console.error('API调用失败:', error);
             
-            // 移除流式消息，添加错误消息
-            streamingMessage.remove();
-            this.addMessage(`抱歉，我现在无法回答您的问题。错误信息: ${error.message}`, 'advisor');
+            // 移除流式消息，添加错误消�?            streamingMessage.remove();
+            this.addMessage(`抱歉，我现在无法回答您的问题。错误信�? ${error.message}`, 'advisor');
         } finally {
-            // 重新启用输入框和发送按钮
-            this.chatInput.disabled = false;
+            // 重新启用输入框和发送按�?            this.chatInput.disabled = false;
             this.updateSendButtonState();
         }
 
@@ -202,7 +191,7 @@ class SmartAdvisor {
 
     async callCozeAPIStream(userInput, onChunk) {
         try {
-            console.log('开始调用Coze Workflow API（流式），用户输入:', userInput);
+            console.log('开始调用Coze Workflow API（流式），用户输�?', userInput);
             
             // 构建请求参数
             const requestBody = {
@@ -223,8 +212,8 @@ class SmartAdvisor {
                 body: JSON.stringify(requestBody)
             });
 
-            console.log('响应状态:', response.status);
-            console.log('响应头:', Object.fromEntries(response.headers.entries()));
+            console.log('响应状�?', response.status);
+            console.log('响应�?', Object.fromEntries(response.headers.entries()));
 
             if (!response.ok) {
                 const errorText = await response.text();
@@ -239,8 +228,7 @@ class SmartAdvisor {
             if (data && data.code === 0) {
                 if (data.data) {
                     try {
-                        // data字段可能是字符串，需要解析
-                        let parsedData;
+                        // data字段可能是字符串，需要解�?                        let parsedData;
                         if (typeof data.data === 'string') {
                             parsedData = JSON.parse(data.data);
                         } else {
@@ -292,7 +280,7 @@ class SmartAdvisor {
                     }
                 }
                 
-                // 尝试其他可能的字段 - 按优先级顺序
+                // 尝试其他可能的字�?- 按优先级顺序
                 // 调试信息：显示直接在data中可用的output字段
                 const directOutputs = [];
                 ['output5', 'output4', 'output3', 'output2', 'output'].forEach(field => {
@@ -329,9 +317,8 @@ class SmartAdvisor {
                 }
             }
             
-            // 如果都没有找到有效内容
-            console.warn('未找到有效的响应内容，返回默认消息');
-            const defaultMessage = '抱歉，我现在无法处理您的问题，请稍后再试。';
+            // 如果都没有找到有效内�?            console.warn('未找到有效的响应内容，返回默认消�?);
+            const defaultMessage = '抱歉，我现在无法处理您的问题，请稍后再试�?;
             await this.simulateStreamingOutput(defaultMessage, onChunk);
             return defaultMessage;
             
@@ -347,13 +334,11 @@ class SmartAdvisor {
         for (let i = 0; i < words.length; i++) {
             // 根据字符类型调整延迟时间
             let delay = 30;
-            if (words[i] === '。' || words[i] === '！' || words[i] === '？') {
+            if (words[i] === '�? || words[i] === '�? || words[i] === '�?) {
                 delay = 200; // 句号、感叹号、问号后稍长停顿
-            } else if (words[i] === '，' || words[i] === '；') {
-                delay = 100; // 逗号、分号后短停顿
-            } else if (words[i] === '\n') {
-                delay = 150; // 换行后停顿
-            }
+            } else if (words[i] === '�? || words[i] === '�?) {
+                delay = 100; // 逗号、分号后短停�?            } else if (words[i] === '\n') {
+                delay = 150; // 换行后停�?            }
             
             await new Promise(resolve => setTimeout(resolve, delay));
             onChunk(words[i]);
@@ -378,8 +363,7 @@ class SmartAdvisor {
             // AI回复使用Markdown渲染
             bubbleDiv.innerHTML = this.renderMarkdown(content);
         } else {
-            // 用户消息使用纯文本（转义HTML）
-            bubbleDiv.textContent = content;
+            // 用户消息使用纯文本（转义HTML�?            bubbleDiv.textContent = content;
         }
 
         messageDiv.appendChild(avatarDiv);
@@ -388,8 +372,7 @@ class SmartAdvisor {
         this.chatMessages.appendChild(messageDiv);
         this.scrollToBottom();
 
-        // 添加可爱的跳跳动画
-        setTimeout(() => {
+        // 添加可爱的跳跳动�?        setTimeout(() => {
             messageDiv.classList.add('message-bounce');
             setTimeout(() => {
                 messageDiv.classList.remove('message-bounce');
@@ -398,7 +381,7 @@ class SmartAdvisor {
 
         // 随机添加表情符号装饰
         if (Math.random() < 0.3) { // 30%概率添加表情符号
-            const emojis = ['✨', '💫', '⭐', '🌟', '💖', '🎉', '🎊', '🌈'];
+            const emojis = ['�?, '💫', '�?, '🌟', '💖', '🎉', '🎊', '🌈'];
             const emoji = emojis[Math.floor(Math.random() * emojis.length)];
 
             setTimeout(() => {
@@ -415,8 +398,7 @@ class SmartAdvisor {
             }, 500 + Math.random() * 1000);
         }
 
-        // 保存原始消息内容到历史数组
-        this.messageHistory.push({
+        // 保存原始消息内容到历史数�?        this.messageHistory.push({
             sender: sender,
             content: content,
             timestamp: Date.now()
@@ -467,14 +449,12 @@ class SmartAdvisor {
             cursor.remove();
         }
         
-        // 更新最终内容
-        const bubbleDiv = messageDiv.querySelector('.message-bubble');
+        // 更新最终内�?        const bubbleDiv = messageDiv.querySelector('.message-bubble');
         if (bubbleDiv) {
             bubbleDiv.innerHTML = this.renderMarkdown(finalContent);
         }
         
-        // 保存到历史记录
-        this.messageHistory.push({
+        // 保存到历史记�?        this.messageHistory.push({
             sender: 'advisor',
             content: finalContent,
             timestamp: Date.now()
@@ -495,19 +475,17 @@ class SmartAdvisor {
             this.chatMessages.appendChild(welcomeMessage);
         }
         
-        // 清除历史数组和本地存储
-        this.messageHistory = [];
+        // 清除历史数组和本地存�?        this.messageHistory = [];
         localStorage.removeItem('chatHistory');
         
-        // 重置输入框
-        this.chatInput.value = '';
+        // 重置输入�?        this.chatInput.value = '';
         this.updateSendButtonState();
     }
 
     saveChatHistory() {
         // 使用messageHistory数组保存原始内容
         const filteredHistory = this.messageHistory.filter(message => 
-            message.content !== '你好!我是你的智能导员,很高兴为你服务。有什么学习、生活或职业规划方面的问题,都可以随时问我哦!'
+            message.content !== '你好!我是你的智能导员,很高兴为你服务。有什么学习、生活或职业规划方面的问�?都可以随时问我哦!'
         );
         localStorage.setItem('chatHistory', JSON.stringify(filteredHistory));
     }
@@ -539,285 +517,3 @@ class SmartAdvisor {
         } catch (error) {
             console.error('加载聊天历史失败:', error);
         }
-    }
-
-}
-
-// 设备指纹识别功能已完全移除
-
-// 检查激活状态的函数（优化版，减少手机端死循环）
-// 激活检查功能已完全移除，直接允许访问
-
-// 重定向到激活页面的统一函数（优化版，增强防循环机制）
-// 重定向功能已移除，避免页面刷新问题
-
-// 页面加载完成后初始化应用（简化版，移除激活检查）
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 智能导员应用启动中...');
-
-    // 检测是否为手机端
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    console.log(`📱 设备类型: ${isMobile ? '手机端' : '桌面端'}`);
-
-    // 直接初始化应用，移除激活检查
-    try {
-        new SmartAdvisor();
-        console.log('✅ 智能导员应用初始化成功');
-    } catch (error) {
-        console.error('❌ 应用初始化失败:', error);
-    }
-});
-
-// 移除定期检查激活状态，避免死循环
-// 激活状态只在页面加载时检查一次，之后由用户手动触发
-
-// 添加一些实用功能
-document.addEventListener('DOMContentLoaded', () => {
-    // 添加页面可见性变化处理
-    document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) {
-            // 页面重新可见时，可以做一些处理
-            console.log('页面重新激活');
-        }
-    });
-    
-    // 添加在线状态检测
-    window.addEventListener('online', () => {
-        console.log('网络连接已恢复');
-    });
-    
-    window.addEventListener('offline', () => {
-        console.log('网络连接已断开');
-    });
-    
-    // 添加可爱的交互效果
-    addCuteInteractions();
-});
-
-/**
- * 添加可爱的交互效果
- */
-function addCuteInteractions() {
-    // 为发送按钮添加点击特效
-    const sendButton = document.getElementById('sendButton');
-    if (sendButton) {
-        sendButton.addEventListener('click', function() {
-            createClickEffect(this);
-        });
-    }
-    
-    // 为快速提问添加悬停特效
-    const questionItems = document.querySelectorAll('.question-item');
-    questionItems.forEach(item => {
-        item.addEventListener('mouseenter', function() {
-            createHoverSparkle(this);
-        });
-
-        item.addEventListener('click', function() {
-            // 添加点击反馈效果
-            this.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                this.style.transform = '';
-            }, 150);
-        });
-    });
-    
-    // 添加消息发送成功的庆祝效果
-    const originalAddMessage = window.SmartAdvisor?.prototype?.addMessage;
-    if (originalAddMessage) {
-        window.SmartAdvisor.prototype.addMessage = function(content, sender) {
-            const result = originalAddMessage.call(this, content, sender);
-            if (sender === 'advisor') {
-                setTimeout(() => createMessageSparkle(result), 500);
-            }
-            return result;
-        };
-    }
-}
-
-/**
- * 创建点击特效
- */
-function createClickEffect(element) {
-    const ripple = document.createElement('div');
-    const heart = document.createElement('div');
-
-    // 水波纹效果
-    ripple.style.cssText = `
-        position: absolute;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.6);
-        transform: scale(0);
-        animation: rippleEffect 0.6s linear;
-        pointer-events: none;
-        z-index: 1000;
-    `;
-
-    const rect = element.getBoundingClientRect();
-    const size = Math.max(rect.width, rect.height);
-    ripple.style.width = ripple.style.height = size + 'px';
-    ripple.style.left = (rect.left + rect.width / 2 - size / 2) + 'px';
-    ripple.style.top = (rect.top + rect.height / 2 - size / 2) + 'px';
-
-    // 心形效果
-    heart.textContent = '💖';
-    heart.style.cssText = `
-        position: absolute;
-        font-size: 1.5rem;
-        pointer-events: none;
-        z-index: 1001;
-        animation: heartFloat 1.2s ease-out forwards;
-    `;
-    heart.style.left = (rect.left + rect.width / 2 - 10) + 'px';
-    heart.style.top = (rect.top + rect.height / 2 - 10) + 'px';
-
-    // 添加动画样式
-    if (!document.getElementById('ripple-animation-style')) {
-        const style = document.createElement('style');
-        style.id = 'ripple-animation-style';
-        style.textContent = `
-            @keyframes rippleEffect {
-                to {
-                    transform: scale(2);
-                    opacity: 0;
-                }
-            }
-            @keyframes heartFloat {
-                0% {
-                    transform: scale(0) rotate(0deg);
-                    opacity: 1;
-                }
-                50% {
-                    transform: scale(1.2) rotate(180deg);
-                    opacity: 1;
-                }
-                100% {
-                    transform: scale(0.8) rotate(360deg);
-                    opacity: 0;
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-
-    document.body.appendChild(ripple);
-    document.body.appendChild(heart);
-
-    setTimeout(() => {
-        if (ripple.parentNode) {
-            ripple.parentNode.removeChild(ripple);
-        }
-        if (heart.parentNode) {
-            heart.parentNode.removeChild(heart);
-        }
-    }, 1200);
-}
-
-/**
- * 创建悬停闪闪发光效果
- */
-function createHoverSparkle(element) {
-    const sparkles = ['✨', '⭐', '💫', '🌟'];
-    const sparkle = document.createElement('div');
-    
-    sparkle.textContent = sparkles[Math.floor(Math.random() * sparkles.length)];
-    sparkle.style.cssText = `
-        position: absolute;
-        font-size: 12px;
-        pointer-events: none;
-        z-index: 1000;
-        animation: sparkleFloat 1s ease-out forwards;
-    `;
-    
-    const rect = element.getBoundingClientRect();
-    sparkle.style.left = (rect.right - 20) + 'px';
-    sparkle.style.top = (rect.top + Math.random() * rect.height) + 'px';
-    
-    // 添加闪闪发光动画
-    if (!document.getElementById('sparkle-animation-style')) {
-        const style = document.createElement('style');
-        style.id = 'sparkle-animation-style';
-        style.textContent = `
-            @keyframes sparkleFloat {
-                0% {
-                    transform: translateX(0) scale(0);
-                    opacity: 1;
-                }
-                50% {
-                    transform: translateX(10px) scale(1);
-                    opacity: 1;
-                }
-                100% {
-                    transform: translateX(20px) scale(0);
-                    opacity: 0;
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-    
-    document.body.appendChild(sparkle);
-    
-    setTimeout(() => {
-        if (sparkle.parentNode) {
-            sparkle.parentNode.removeChild(sparkle);
-        }
-    }, 1000);
-}
-
-/**
- * 为消息添加闪闪发光效果
- */
-function createMessageSparkle(messageElement) {
-    if (!messageElement) return;
-    
-    const sparkles = ['✨', '💖', '🌟', '💫'];
-    for (let i = 0; i < 3; i++) {
-        setTimeout(() => {
-            const sparkle = document.createElement('div');
-            sparkle.textContent = sparkles[Math.floor(Math.random() * sparkles.length)];
-            sparkle.style.cssText = `
-                position: absolute;
-                font-size: 14px;
-                pointer-events: none;
-                z-index: 1000;
-                animation: messageSparkle 2s ease-out forwards;
-            `;
-            
-            const rect = messageElement.getBoundingClientRect();
-            sparkle.style.left = (rect.left + Math.random() * rect.width) + 'px';
-            sparkle.style.top = (rect.top - 10) + 'px';
-            
-            // 添加消息闪闪发光动画
-            if (!document.getElementById('message-sparkle-style')) {
-                const style = document.createElement('style');
-                style.id = 'message-sparkle-style';
-                style.textContent = `
-                    @keyframes messageSparkle {
-                        0% {
-                            transform: translateY(0) scale(0);
-                            opacity: 1;
-                        }
-                        50% {
-                            transform: translateY(-20px) scale(1);
-                            opacity: 1;
-                        }
-                        100% {
-                            transform: translateY(-40px) scale(0);
-                            opacity: 0;
-                        }
-                    }
-                `;
-                document.head.appendChild(style);
-            }
-            
-            document.body.appendChild(sparkle);
-            
-            setTimeout(() => {
-                if (sparkle.parentNode) {
-                    sparkle.parentNode.removeChild(sparkle);
-                }
-            }, 2000);
-        }, i * 200);
-    }
-}
