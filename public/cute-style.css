@@ -1,10 +1,10 @@
-/* 可爱洋气的智能导员样�?v3.0 */
+/* 可爱洋气的智能导员样�?v3.0 */
 
-/* 移除Google字体引用，使用系统兼容字�?*/
+/* 移除Google字体引用，使用系统兼容字�?*/
 
 /* CSS变量定义 */
 :root {
-    /* 可爱的渐变色�?*/
+    /* 可爱的渐变色�?*/
     --primary-gradient: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #ff69b4 100%);
     --primary-gradient-webkit: -webkit-linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #ff69b4 100%);
     --cute-pink: #ff9a9e;
@@ -19,7 +19,7 @@
     --cute-yellow: #fde047;
     --cute-lavender: #e6e6fa;
 
-    /* 梦幻背景渐变 - 更广阔更自然的色调范围 */
+    /* 梦幻背景渐变 - 更广阔更自然的色调范�?*/
     --bg-gradient: linear-gradient(135deg,
         #ff9a9e 0%,
         #fecfef 12%,
@@ -48,7 +48,7 @@
     --text-secondary: #718096;
     --text-light: #a0aec0;
 
-    /* 圆角和阴�?*/
+    /* 圆角和阴�?*/
     --radius-sm: 0.5rem;
     --radius-md: 1rem;
     --radius-lg: 1.5rem;
@@ -68,7 +68,7 @@
     box-sizing: border-box;
 }
 
-/* 微信浏览器兼容性修�?*/
+/* 微信浏览器兼容性修�?*/
 * {
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
@@ -78,7 +78,7 @@
     user-select: none;
 }
 
-/* 微信浏览器backdrop-filter兼容�?*/
+/* 微信浏览器backdrop-filter兼容�?*/
 @supports not (backdrop-filter: blur(20px)) {
     .card, .header, .chat-window {
         background: rgba(255, 255, 255, 0.95) !important;
@@ -102,7 +102,7 @@ input, textarea {
     transform: translateZ(0);
 }
 
-/* 修复微信浏览器中可能出现的动画问�?*/
+/* 修复微信浏览器中可能出现的动画问�?*/
 @keyframes avatarBounce {
     0%, 100% {
         -webkit-transform: scale(1);
@@ -134,7 +134,7 @@ body {
     -webkit-overflow-scrolling: touch;
 }
 
-/* 可爱的背景装�?*/
+/* 可爱的背景装�?*/
 body::before {
     content: '';
     position: fixed;
@@ -178,7 +178,7 @@ body::before {
     }
 }
 
-/* 动态几何图案背�?*/
+/* 动态几何图案背�?*/
 body::after {
     content: '';
     position: fixed;
@@ -187,7 +187,7 @@ body::after {
     width: 100%;
     height: 100%;
     background:
-        /* 三角形图�?*/
+        /* 三角形图�?*/
         linear-gradient(45deg, transparent 40%, rgba(255, 107, 157, 0.05) 40%, rgba(255, 107, 157, 0.05) 60%, transparent 60%),
         linear-gradient(-45deg, transparent 40%, rgba(168, 85, 247, 0.05) 40%, rgba(168, 85, 247, 0.05) 60%, transparent 60%);
     background-size: 60px 60px, 80px 80px;
@@ -202,7 +202,7 @@ body::after {
     100% { background-position: 60px 60px, 90px 90px; }
 }
 
-/* 激活页面样�?*/
+/* 激活页面样�?*/
 .activation-page {
     min-height: 100vh;
     display: flex;
@@ -218,7 +218,7 @@ body::after {
     position: relative;
 }
 
-/* 可爱的浮动装�?*/
+/* 可爱的浮动装�?*/
 .activation-container::before,
 .activation-container::after {
     content: '';
@@ -524,7 +524,7 @@ body::after {
     position: relative;
 }
 
-/* 怀抱背�?*/
+/* 怀抱背�?*/
 .hugging-background {
     position: absolute;
     top: 0;
@@ -541,7 +541,7 @@ body::after {
 .hugging-character {
     width: 400px;
     height: 500px;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500"><defs><radialGradient id="skin" cx="50%" cy="30%" r="60%"><stop offset="0%" stop-color="%23fdbcb4"/><stop offset="100%" stop-color="%23f4a59c"/></radialGradient><linearGradient id="hair" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%23654321"/><stop offset="100%" stop-color="%234a3728"/></linearGradient><linearGradient id="shirt" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%23ff6b9d"/><stop offset="100%" stop-color="%23c44569"/></linearGradient></defs><circle cx="200" cy="120" r="60" fill="url(%23skin)"/><ellipse cx="200" cy="80" rx="70" ry="50" fill="url(%23hair)"/><rect x="150" y="180" width="100" height="120" rx="20" fill="url(%23shirt)"/><circle cx="170" cy="140" r="8" fill="%23000"/><circle cx="230" cy="140" r="8" fill="%23000"/><path d="M 180 160 Q 200 170 220 160" stroke="%23000" stroke-width="2" fill="none"/><ellipse cx="160" cy="200" rx="25" ry="40" fill="%23ff6b9d" opacity="0.7"/><ellipse cx="240" cy="200" rx="25" ry="40" fill="%23ff6b9d" opacity="0.7"/><text x="200" y="450" text-anchor="middle" font-family="Arial" font-size="24" fill="%23ff6b9d">🤗 抱着�?/text></svg>') center/contain no-repeat;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500"><defs><radialGradient id="skin" cx="50%" cy="30%" r="60%"><stop offset="0%" stop-color="%23fdbcb4"/><stop offset="100%" stop-color="%23f4a59c"/></radialGradient><linearGradient id="hair" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%23654321"/><stop offset="100%" stop-color="%234a3728"/></linearGradient><linearGradient id="shirt" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%23ff6b9d"/><stop offset="100%" stop-color="%23c44569"/></linearGradient></defs><circle cx="200" cy="120" r="60" fill="url(%23skin)"/><ellipse cx="200" cy="80" rx="70" ry="50" fill="url(%23hair)"/><rect x="150" y="180" width="100" height="120" rx="20" fill="url(%23shirt)"/><circle cx="170" cy="140" r="8" fill="%23000"/><circle cx="230" cy="140" r="8" fill="%23000"/><path d="M 180 160 Q 200 170 220 160" stroke="%23000" stroke-width="2" fill="none"/><ellipse cx="160" cy="200" rx="25" ry="40" fill="%23ff6b9d" opacity="0.7"/><ellipse cx="240" cy="200" rx="25" ry="40" fill="%23ff6b9d" opacity="0.7"/><text x="200" y="450" text-anchor="middle" font-family="Arial" font-size="24" fill="%23ff6b9d">🤗 抱着�?/text></svg>') center/contain no-repeat;
     opacity: 0.3;
     animation: characterBreathe 4s ease-in-out infinite;
 }
@@ -624,11 +624,11 @@ body::after {
 }
 
 .card-title::before {
-    content: '�?;
+    content: '�?;
     font-size: 1.1rem;
 }
 
-/* 快速提问列�?*/
+/* 快速提问列�?*/
 .question-list {
     list-style: none;
     display: flex;
@@ -682,7 +682,7 @@ body::after {
     font-size: 0.95rem;
 }
 
-/* 系统状态卡片样�?*/
+/* 系统状态卡片样�?*/
 .system-status-card {
     background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
     border: 1px solid rgba(16, 185, 129, 0.2);
@@ -768,7 +768,7 @@ body::after {
     position: relative;
 }
 
-/* 聊天背景的可爱装�?*/
+/* 聊天背景的可爱装�?*/
 .chat-messages::before {
     content: '';
     position: absolute;
@@ -790,7 +790,7 @@ body::after {
     50% { opacity: 0.3; }
 }
 
-/* 隐藏滚动�?*/
+/* 隐藏滚动�?*/
 .chat-messages::-webkit-scrollbar {
     width: 0px;
     display: none;
@@ -1207,7 +1207,7 @@ body::after {
 }
 
 
-/* 响应式设�?- Footer */
+/* 响应式设�?- Footer */
 @media (max-width: 768px) {
     .footer {
         flex-direction: column;
@@ -1257,7 +1257,7 @@ body::after {
     background: linear-gradient(135deg, var(--cute-blue), #2563eb);
 }
 
-/* 响应式设�?*/
+/* 响应式设�?*/
 @media (max-width: 1200px) {
     .main-content {
         gap: 1rem;
@@ -1361,7 +1361,7 @@ body::after {
 }
 
 .sparkle::after {
-    content: '�?;
+    content: '�?;
     position: absolute;
     top: -10px;
     right: -10px;
@@ -1389,7 +1389,7 @@ body::after {
     to { transform: rotate(360deg); }
 }
 
-/* 成功检查标记动�?*/
+/* 成功检查标记动�?*/
 .checkmark {
     display: inline-block;
     width: 20px;
@@ -1430,788 +1430,6 @@ body::after {
     100% { width: 6px; }
 }
 
-/* 可爱的装饰元�?*/
-.cute-decorations {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: -2;
-    overflow: hidden;
-}
+/* 所有装饰元素样式已被删除以优化性能 */
 
-/* 浮动的贴纸元�?*/
 .sticker {
-    position: absolute;
-    font-size: 2.5rem;
-    opacity: 0.8;
-    animation: floatSticker 10s ease-in-out infinite;
-    z-index: -1;
-    filter: drop-shadow(0 2px 4px rgba(255, 105, 180, 0.3));
-    transition: all 0.3s ease;
-}
-
-.sticker:hover {
-    transform: scale(1.2);
-    opacity: 1;
-    filter: drop-shadow(0 4px 8px rgba(255, 105, 180, 0.5));
-}
-
-.sticker:nth-child(1) {
-    top: 10%;
-    left: 5%;
-    animation-delay: 0s;
-}
-
-.sticker:nth-child(2) {
-    top: 20%;
-    right: 8%;
-    animation-delay: 2s;
-}
-
-.sticker:nth-child(3) {
-    bottom: 25%;
-    left: 3%;
-    animation-delay: 4s;
-}
-
-.sticker:nth-child(4) {
-    bottom: 15%;
-    right: 5%;
-    animation-delay: 6s;
-}
-
-.sticker:nth-child(5) {
-    top: 60%;
-    left: 2%;
-    animation-delay: 1s;
-}
-
-.sticker:nth-child(6) {
-    top: 40%;
-    right: 3%;
-    animation-delay: 3s;
-    animation-duration: 12s;
-}
-
-@keyframes floatSticker {
-    0%, 100% {
-        transform: translateY(0px) rotate(0deg) scale(1);
-        opacity: 0.8;
-    }
-    25% {
-        transform: translateY(-8px) rotate(60deg) scale(1.05);
-        opacity: 0.9;
-    }
-    50% {
-        transform: translateY(-12px) rotate(120deg) scale(1.1);
-        opacity: 1;
-    }
-    75% {
-        transform: translateY(-8px) rotate(180deg) scale(1.05);
-        opacity: 0.9;
-    }
-}
-
-/* 可爱的小玩偶 */
-.doll {
-    position: absolute;
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(135deg, #ff6b9d, #a855f7);
-    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-    opacity: 0.6;
-    animation: bounceDoll 6s ease-in-out infinite;
-    z-index: -1;
-}
-
-.doll::before {
-    content: '🤖';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 2rem;
-}
-
-.doll:nth-child(1) {
-    top: 15%;
-    left: 15%;
-    animation-delay: 0s;
-}
-
-.doll:nth-child(2) {
-    bottom: 30%;
-    right: 12%;
-    animation-delay: 3s;
-}
-
-@keyframes bounceDoll {
-    0%, 100% {
-        transform: translateY(0px) scale(1);
-    }
-    50% {
-        transform: translateY(-20px) scale(1.1);
-    }
-}
-
-/* 闪烁的星星背�?*/
-.stars {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: -3;
-}
-
-.star {
-    position: absolute;
-    width: 4px;
-    height: 4px;
-    background: radial-gradient(circle, #fff, transparent);
-    border-radius: 50%;
-    opacity: 0.8;
-    animation: twinkle 6s ease-in-out infinite;
-}
-
-.star:nth-child(1) { top: 20%; left: 10%; animation-delay: 0s; }
-.star:nth-child(2) { top: 15%; left: 30%; animation-delay: 0.5s; }
-.star:nth-child(3) { top: 25%; left: 50%; animation-delay: 1s; }
-.star:nth-child(4) { top: 10%; left: 70%; animation-delay: 1.5s; }
-.star:nth-child(5) { top: 30%; left: 90%; animation-delay: 2s; }
-.star:nth-child(6) { top: 40%; left: 15%; animation-delay: 2.5s; }
-.star:nth-child(7) { top: 35%; left: 45%; animation-delay: 0.8s; }
-.star:nth-child(8) { top: 45%; left: 75%; animation-delay: 1.8s; }
-
-@keyframes twinkle {
-    0%, 100% { opacity: 0.6; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.1); }
-}
-
-/* 彩虹边框效果 */
-.rainbow-border {
-    position: relative;
-    background: linear-gradient(white, white) padding-box,
-                linear-gradient(45deg, #ff6b9d, #a855f7, #3b82f6, #10b981, #f59e0b, #ef4444) border-box;
-    border: 3px solid transparent;
-    border-radius: var(--radius-lg);
-    animation: rainbowRotate 8s linear infinite;
-}
-
-@keyframes rainbowRotate {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-/* 可爱的心形装�?*/
-.heart {
-    position: absolute;
-    color: #ff6b9d;
-    font-size: 1.5rem;
-    opacity: 0.6;
-    animation: heartbeat 4s ease-in-out infinite;
-    z-index: -1;
-}
-
-.heart:nth-child(1) {
-    top: 25%;
-    right: 20%;
-    animation-delay: 0s;
-}
-
-.heart:nth-child(2) {
-    bottom: 35%;
-    left: 20%;
-    animation-delay: 2s;
-}
-
-@keyframes heartbeat {
-    0%, 100% { transform: scale(1); opacity: 0.6; }
-    50% { transform: scale(1.3); opacity: 0.9; }
-}
-
-/* 魔法粒子效果 */
-.magic-particles {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    overflow: hidden;
-    z-index: -1;
-}
-
-.particle {
-    position: absolute;
-    width: 8px;
-    height: 8px;
-    background: radial-gradient(circle, #a855f7, transparent);
-    border-radius: 50%;
-    animation: particleFloat 12s linear infinite;
-}
-
-.particle:nth-child(1) {
-    left: 10%;
-    animation-duration: 8s;
-    animation-delay: 0s;
-}
-
-.particle:nth-child(2) {
-    left: 30%;
-    animation-duration: 10s;
-    animation-delay: 2s;
-}
-
-.particle:nth-child(3) {
-    left: 60%;
-    animation-duration: 9s;
-    animation-delay: 4s;
-}
-
-.particle:nth-child(4) {
-    left: 80%;
-    animation-duration: 11s;
-    animation-delay: 6s;
-}
-
-@keyframes particleFloat {
-    0% {
-        transform: translateY(100vh) scale(0);
-        opacity: 1;
-    }
-    10% {
-        opacity: 1;
-        transform: translateY(90vh) scale(0.5);
-    }
-    90% {
-        opacity: 1;
-        transform: translateY(10vh) scale(1);
-    }
-    100% {
-        transform: translateY(-10vh) scale(0);
-        opacity: 0;
-    }
-}
-
-/* 更多可爱的装饰元�?*/
-.floating-hearts {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: -2;
-}
-
-.floating-heart {
-    position: absolute;
-    font-size: 1.5rem;
-    opacity: 0.6;
-    animation: heartFloat 8s ease-in-out infinite;
-}
-
-.floating-heart:nth-child(1) {
-    top: 20%;
-    left: 10%;
-    animation-delay: 0s;
-}
-
-.floating-heart:nth-child(2) {
-    top: 60%;
-    left: 5%;
-    animation-delay: 2s;
-}
-
-.floating-heart:nth-child(3) {
-    top: 30%;
-    right: 15%;
-    animation-delay: 4s;
-}
-
-.floating-heart:nth-child(4) {
-    bottom: 30%;
-    right: 10%;
-    animation-delay: 6s;
-}
-
-@keyframes heartFloat {
-    0%, 100% {
-        transform: translateY(0px) rotate(0deg) scale(1);
-        opacity: 0.6;
-    }
-    25% {
-        transform: translateY(-15px) rotate(5deg) scale(1.1);
-        opacity: 0.8;
-    }
-    50% {
-        transform: translateY(-10px) rotate(-3deg) scale(0.9);
-        opacity: 0.7;
-    }
-    75% {
-        transform: translateY(-20px) rotate(8deg) scale(1.1);
-        opacity: 0.9;
-    }
-}
-
-/* 彩虹光晕效果 */
-.rainbow-glow {
-    position: fixed;
-    top: 10%;
-    left: 50%;
-    width: 200px;
-    height: 200px;
-    background: radial-gradient(circle,
-        rgba(255, 107, 157, 0.3) 0%,
-        rgba(168, 85, 247, 0.2) 25%,
-        rgba(59, 130, 246, 0.2) 50%,
-        rgba(16, 185, 129, 0.2) 75%,
-        transparent 100%);
-    border-radius: 50%;
-    transform: translateX(-50%);
-    animation: rainbowPulse 6s ease-in-out infinite;
-    pointer-events: none;
-    z-index: -3;
-}
-
-@keyframes rainbowPulse {
-    0%, 100% {
-        transform: translateX(-50%) scale(1);
-        opacity: 0.5;
-    }
-    50% {
-        transform: translateX(-50%) scale(1.2);
-        opacity: 0.8;
-    }
-}
-
-/* 新增装饰元素样式 */
-.cute-bubbles {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: -3;
-}
-
-.bubble {
-    position: absolute;
-    border-radius: 50%;
-    background: radial-gradient(circle, var(--primary-glow), transparent 70%);
-    animation: bubbleFloat 15s infinite ease-in-out;
-    opacity: 0.7;
-    filter: blur(2px);
-}
-
-.bubble:nth-child(1) {
-    width: 150px;
-    height: 150px;
-    left: 10%;
-    top: 20%;
-    animation-delay: 0s;
-}
-
-.bubble:nth-child(2) {
-    width: 100px;
-    height: 100px;
-    left: 25%;
-    top: 60%;
-    animation-delay: 2s;
-}
-
-.bubble:nth-child(3) {
-    width: 200px;
-    height: 200px;
-    left: 70%;
-    top: 30%;
-    animation-delay: 4s;
-}
-
-.bubble:nth-child(4) {
-    width: 120px;
-    height: 120px;
-    left: 85%;
-    top: 70%;
-    animation-delay: 6s;
-}
-
-.bubble:nth-child(5) {
-    width: 180px;
-    height: 180px;
-    left: 45%;
-    top: 40%;
-    animation-delay: 8s;
-}
-
-@keyframes bubbleFloat {
-    0%, 100% {
-        transform: translateY(0) translateX(0) scale(1);
-        opacity: 0.5;
-    }
-    25% {
-        transform: translateY(-30px) translateX(20px) scale(1.1);
-        opacity: 0.8;
-    }
-    50% {
-        transform: translateY(-60px) translateX(0) scale(1.2);
-        opacity: 0.6;
-    }
-    75% {
-        transform: translateY(-30px) translateX(-20px) scale(1.1);
-        opacity: 0.7;
-    }
-}
-
-.floating-stickers {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: -3;
-}
-
-.float-sticker {
-    position: absolute;
-    font-size: 3rem;
-    animation: floatSticker 10s infinite ease-in-out;
-    opacity: 0.8;
-}
-
-.float-sticker:nth-child(1) {
-    left: 5%;
-    top: 15%;
-    animation-delay: 0s;
-}
-
-.float-sticker:nth-child(2) {
-    left: 80%;
-    top: 10%;
-    animation-delay: 1s;
-}
-
-.float-sticker:nth-child(3) {
-    left: 30%;
-    top: 85%;
-    animation-delay: 2s;
-}
-
-.float-sticker:nth-child(4) {
-    left: 90%;
-    top: 60%;
-    animation-delay: 3s;
-}
-
-.float-sticker:nth-child(5) {
-    left: 15%;
-    top: 75%;
-    animation-delay: 4s;
-}
-
-@keyframes floatSticker {
-    0%, 100% {
-        transform: translateY(0) rotate(0deg) scale(1);
-    }
-    25% {
-        transform: translateY(-20px) rotate(5deg) scale(1.05);
-    }
-    50% {
-        transform: translateY(-40px) rotate(0deg) scale(1.1);
-    }
-    75% {
-        transform: translateY(-20px) rotate(-5deg) scale(1.05);
-    }
-}
-
-.magic-wand {
-    position: fixed;
-    top: 15%;
-    left: 5%;
-    width: 150px;
-    height: 50px;
-    background: linear-gradient(45deg, var(--primary-glow), var(--secondary-glow));
-    border-radius: 25px;
-    animation: wandMagic 8s infinite ease-in-out;
-    opacity: 0.8;
-    z-index: -3;
-    pointer-events: none;
-    filter: blur(1px);
-    box-shadow: 0 0 20px var(--primary-glow);
-}
-
-.magic-wand::before {
-    content: "✨";
-    position: absolute;
-    right: -20px;
-    top: 50%;
-    transform: translateY(-50%) scale(1.5);
-    animation: wandSparkle 2s infinite;
-}
-
-@keyframes wandMagic {
-    0%, 100% {
-        transform: rotate(-10deg) scale(1);
-        opacity: 0.7;
-    }
-    50% {
-        transform: rotate(10deg) scale(1.05);
-        opacity: 0.9;
-    }
-}
-
-@keyframes wandSparkle {
-    0%, 100% {
-        transform: translateY(-50%) scale(1.5) rotate(0deg);
-    }
-    50% {
-        transform: translateY(-50%) scale(1.8) rotate(15deg);
-    }
-}
-
-/* 魔法符文环绕效果 */
-.magic-runes {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 600px;
-    height: 600px;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    z-index: -2;
-}
-
-.rune {
-    position: absolute;
-    width: 30px;
-    height: 30px;
-    border: 2px solid rgba(168, 85, 247, 0.5);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    color: rgba(168, 85, 247, 0.7);
-    animation: runeRotate 20s linear infinite;
-}
-
-.rune:nth-child(1) {
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.rune:nth-child(2) {
-    top: 25%;
-    right: 0;
-    transform: rotate(72deg);
-}
-
-.rune:nth-child(3) {
-    bottom: 25%;
-    right: 0;
-    transform: rotate(144deg);
-}
-
-.rune:nth-child(4) {
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%) rotate(216deg);
-}
-
-.rune:nth-child(5) {
-    bottom: 25%;
-    left: 0;
-    transform: rotate(288deg);
-}
-
-.rune:nth-child(6) {
-    top: 25%;
-    left: 0;
-    transform: rotate(0deg);
-}
-
-@keyframes runeRotate {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* 漂浮的云�?*/
-.floating-clouds {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: -3;
-}
-
-.cloud {
-    position: absolute;
-    border-radius: 50px;
-    opacity: 0.7;
-    animation: cloudFloat 25s ease-in-out infinite;
-}
-
-.cloud::before,
-.cloud::after {
-    content: '';
-    position: absolute;
-    border-radius: 50px;
-}
-
-/* 为不同云朵设置不同颜�?*/
-.cloud:nth-child(1) {
-    background: rgba(255, 255, 255, 0.4);
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
-    position: relative;
-}
-
-.cloud:nth-child(1)::before,
-.cloud:nth-child(1)::after {
-    background: rgba(255, 255, 255, 0.4);
-}
-
-.cloud:nth-child(1)::after {
-    content: '☁️';
-    position: absolute;
-    top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
-    font-size: 1.2rem;
-    opacity: 0.6;
-}
-
-.cloud:nth-child(2) {
-    background: rgba(255, 182, 193, 0.3);
-    box-shadow: 0 0 20px rgba(255, 182, 193, 0.3);
-    position: relative;
-}
-
-.cloud:nth-child(2)::before,
-.cloud:nth-child(2)::after {
-    background: rgba(255, 182, 193, 0.3);
-}
-
-.cloud:nth-child(2)::after {
-    content: '🌸';
-    position: absolute;
-    top: 50%;
-    right: 8px;
-    transform: translateY(-50%);
-    font-size: 1rem;
-    opacity: 0.7;
-}
-
-.cloud:nth-child(3) {
-    background: rgba(173, 216, 230, 0.3);
-    box-shadow: 0 0 20px rgba(173, 216, 230, 0.3);
-    position: relative;
-}
-
-.cloud:nth-child(3)::before,
-.cloud:nth-child(3)::after {
-    background: rgba(173, 216, 230, 0.3);
-}
-
-.cloud:nth-child(3)::after {
-    content: '💙';
-    position: absolute;
-    top: 50%;
-    right: 12px;
-    transform: translateY(-50%);
-    font-size: 1.1rem;
-    opacity: 0.7;
-}
-
-.cloud:nth-child(4) {
-    background: rgba(255, 255, 224, 0.3);
-    box-shadow: 0 0 20px rgba(255, 255, 224, 0.3);
-    position: relative;
-}
-
-.cloud:nth-child(4)::before,
-.cloud:nth-child(4)::after {
-    background: rgba(255, 255, 224, 0.3);
-}
-
-.cloud:nth-child(4)::after {
-    content: '�?;
-    position: absolute;
-    top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
-    font-size: 1rem;
-    opacity: 0.8;
-}
-
-.cloud:nth-child(5) {
-    background: rgba(144, 238, 144, 0.3);
-    box-shadow: 0 0 20px rgba(144, 238, 144, 0.3);
-    position: relative;
-}
-
-.cloud:nth-child(5)::before,
-.cloud:nth-child(5)::after {
-    background: rgba(144, 238, 144, 0.3);
-}
-
-.cloud:nth-child(5)::after {
-    content: '🍃';
-    position: absolute;
-    top: 50%;
-    right: 8px;
-    transform: translateY(-50%);
-    font-size: 1.1rem;
-    opacity: 0.7;
-}
-
-.cloud:nth-child(6) {
-    background: rgba(255, 160, 122, 0.3);
-    box-shadow: 0 0 20px rgba(255, 160, 122, 0.3);
-    position: relative;
-}
-
-.cloud:nth-child(6)::before,
-.cloud:nth-child(6)::after {
-    background: rgba(255, 160, 122, 0.3);
-}
-
-.cloud:nth-child(6)::after {
-    content: '🌞';
-    position: absolute;
-    top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
-    font-size: 1rem;
-    opacity: 0.8;
-}
-
-
-@keyframes cloudFloat {
-    0%, 100% {
-        transform: translateX(0px) translateY(0px);
-        opacity: 0.7;
-    }
-    25% {
-        transform: translateX(10px) translateY(-5px);
-        opacity: 0.8;
-    }
-    50% {
-        transform: translateX(-5px) translateY(5px);
-        opacity: 0.9;
-    }
-    75% {
-        transform: translateX(8px) translateY(-3px);
-        opacity: 0.8;
-    }
-}
-
-/* 由于只保�?个云朵，以下样式被删除以优化性能 */
