@@ -563,8 +563,8 @@ class SmartAdvisor {
 
 // 设备指纹识别功能已完全移除
 
-// 检查激活状态的函数（云端设备指纹验证版）
-async function checkActivationStatus() {
+// 检查激活状态的函数（优化版，减少手机端死循环）
+function checkActivationStatus() {
     try {
         // 使用新的存储键，与activation-vika.js保持一致
         const userActivationCode = localStorage.getItem('userActivationCode');
@@ -590,69 +590,34 @@ async function checkActivationStatus() {
             }
             return false;
         }
-
+        
         // 如果使用的是开发者激活码或管理员激活码，直接通过
         if (userActivationCode === 'jqkkf0922' || userActivationCode === 'ADMIN2024') {
             console.log('✅ 使用开发者/管理员激活码，激活状态有效');
             return true;
         }
 
-        // 等待云存储系统初始化
-        console.log('⏳ 等待云存储系统初始化...');
-        if (typeof window.waitForVikaStorage === 'function') {
-            const vikaStorage = await window.waitForVikaStorage();
-            if (!vikaStorage || !vikaStorage.isInitialized) {
-                console.log('⚠️ 云存储系统未初始化，使用本地验证');
-                return await checkActivationStatusLocal(userActivationCode, activationTime);
-            }
+        // 简化为时间检查，移除设备绑定限制
+        const activationDate = new Date(activationTime);
+        const now = new Date();
+        const timeDiff = now - activationDate;
+        const hoursDiff = timeDiff / (1000 * 60 * 60);
 
-            // 生成当前设备指纹
-            const currentDeviceFingerprint = vikaStorage.generateDeviceFingerprint();
-            console.log('🔍 当前设备指纹:', currentDeviceFingerprint);
-
-            // 查询云端设备指纹表
-            console.log('🔍 查询云端设备指纹表...');
-            const deviceFingerprints = await vikaStorage.getDeviceFingerprints();
-
-            // 检查当前设备的指纹是否在云端表中
-            let fingerprintExists = false;
-            for (const [code, data] of Object.entries(deviceFingerprints)) {
-                if (data.deviceFingerprint === currentDeviceFingerprint) {
-                    console.log('✅ 在云端找到匹配的设备指纹，对应激活码:', code);
-                    fingerprintExists = true;
-                    break;
-                }
-            }
-
-            if (!fingerprintExists) {
-                console.log('❌ 云端设备指纹表中未找到当前设备的指纹');
-                redirectToActivation('设备未授权，请重新激活');
-                return false;
-            }
-
-            console.log('✅ 云端设备指纹验证通过');
-        } else {
-            console.log('⚠️ 云存储系统不可用，使用本地验证');
-            return await checkActivationStatusLocal(userActivationCode, activationTime);
+        // 检查激活时间是否过期（设置为30天）
+        if (hoursDiff > 720) { // 30天 = 720小时
+            console.log('❌ 激活时间已过期（超过30天）');
+            redirectToActivation('激活码已过期，请重新激活');
+            return false;
         }
 
-        console.log('✅ 激活状态验证通过（云端设备指纹验证）');
+        console.log('✅ 激活状态验证通过（已激活超过30天将过期）');
         return true;
-
+        
     } catch (error) {
         console.error('❌ 激活状态检查出错:', error);
         // 出错时不立即重定向，给用户一次机会
         return true;
     }
-}
-
-// 本地激活状态检查（降级方案）
-async function checkActivationStatusLocal(userActivationCode, activationTime) {
-    console.log('🔍 执行本地激活状态检查...');
-
-    // 移除时间限制，简化验证逻辑
-    console.log('✅ 本地激活状态验证通过（无时间限制）');
-    return true;
 }
 
 // 重定向到激活页面的统一函数（优化版，增强防循环机制）
@@ -695,8 +660,8 @@ function redirectToActivation(message) {
     }, redirectDelay);
 }
 
-// 页面加载完成后初始化应用（云端设备指纹验证版）
-document.addEventListener('DOMContentLoaded', async () => {
+// 页面加载完成后初始化应用（优化版，减少手机端死循环）
+document.addEventListener('DOMContentLoaded', () => {
     // 检测是否为手机端
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
@@ -709,18 +674,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 如果是从激活页面跳转过来的，等待更长时间让激活信息稳定
         // 手机端可能需要更长时间
         const delayTime = isMobile ? 1500 : 500;
-        setTimeout(async () => {
-            try {
-                const isValid = await checkActivationStatus();
-                if (isValid) {
-                    new SmartAdvisor();
-                } else {
-                    console.log('❌ 激活检查失败，页面将自动跳转');
-                }
-            } catch (error) {
-                console.error('❌ 激活检查过程中出错:', error);
-                // 出错时不立即重定向，给用户一次机会
+        setTimeout(() => {
+            if (checkActivationStatus()) {
                 new SmartAdvisor();
+            } else {
+                console.log('❌ 激活检查失败，页面将自动跳转');
             }
         }, delayTime);
     } else {
@@ -728,31 +686,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 对于手机端，增加延迟以避免快速重定向循环
         if (isMobile) {
             console.log('📱 检测到手机端，延迟激活检查...');
-            setTimeout(async () => {
-                try {
-                    const isValid = await checkActivationStatus();
-                    if (isValid) {
-                        new SmartAdvisor();
-                    } else {
-                        console.log('❌ 手机端激活检查失败，页面将自动跳转');
-                    }
-                } catch (error) {
-                    console.error('❌ 手机端激活检查过程中出错:', error);
-                    // 出错时不立即重定向，给用户一次机会
+            setTimeout(() => {
+                if (checkActivationStatus()) {
                     new SmartAdvisor();
+                } else {
+                    console.log('❌ 手机端激活检查失败，页面将自动跳转');
                 }
             }, 800);
         } else {
-            try {
-                const isValid = await checkActivationStatus();
-                if (isValid) {
-                    new SmartAdvisor();
-                } else {
-                    console.log('❌ 激活检查失败，页面将自动跳转');
-                }
-            } catch (error) {
-                console.error('❌ 激活检查过程中出错:', error);
-                // 出错时不立即重定向，给用户一次机会
+            if (checkActivationStatus()) {
                 new SmartAdvisor();
             }
         }

@@ -7,7 +7,7 @@
 
 class VikaCloudStorage {
     constructor() {
-        // 维格表配置 - 三表系统（新增设备指纹表）
+        // 维格表配置 - 双表系统
         this.VIKA_CONFIG = {
             token: "uskNUrvWvJoD3VuQ5zW7GYH",
             baseUrl: "https://api.vika.cn/fusion/v1/",
@@ -15,8 +15,6 @@ class VikaCloudStorage {
             approvalDatasheetId: "dstVZvdm5sqCs9NFY4",
             // 激活码使用记录维格表（记录已使用的激活码） - 使用'codeused'列名
             usageDatasheetId: "dstz67JjuBawS8Zam0",
-            // 设备指纹维格表 - 使用'egid'列名
-            deviceFingerprintDatasheetId: "dstm1EwdoQzxp8QGbs",
             fieldKey: "name" // 使用字段名而不是字段ID
         };
 
@@ -103,32 +101,14 @@ class VikaCloudStorage {
         }
 
         console.log(`🌐 维格表API请求: ${method} ${url}`);
-        console.log('📝 请求选项:', options);
-
+        
         const response = await fetch(url, options);
-        console.log('📄 响应状态:', response.status);
-        console.log('📄 响应头:', Object.fromEntries(response.headers.entries()));
-
-        let result;
-        try {
-            result = await response.json();
-            console.log('📄 响应数据:', result);
-        } catch (jsonError) {
-            console.error('❌ JSON解析失败:', jsonError);
-            const textResponse = await response.text();
-            console.error('❌ 原始响应文本:', textResponse);
-            throw new Error(`JSON解析失败: ${jsonError.message}`);
-        }
-
+        const result = await response.json();
+        
         if (!response.ok) {
-            console.error('❌ 维格表API错误详情:', {
-                status: response.status,
-                statusText: response.statusText,
-                result: result
-            });
             throw new Error(`维格表API错误 (${response.status}): ${result.message || response.statusText}`);
         }
-
+        
         return result;
     }
 
@@ -1307,16 +1287,14 @@ Object.assign(VikaCloudStorage.prototype, {
     },
 
     /**
-     * 将激活码写入使用记录表（使用统一API请求）
+     * 将激活码写入使用记录表（使用直接HTTP请求）
      */
     async writeToUsageTable(code, deviceInfo) {
         try {
             console.log(`📝 将激活码 ${code} 写入使用记录表...`);
             console.log(`📝 使用记录表ID: ${this.VIKA_CONFIG.usageDatasheetId}`);
-            console.log(`📝 网络状态: ${navigator.onLine ? '在线' : '离线'}`);
-            console.log(`📝 系统初始化状态: ${this.isInitialized}`);
 
-            // 使用统一API请求
+            // 使用直接HTTP请求，不依赖SDK
             const writeData = {
                 "codeused": code,
                 "usedAt": new Date().toISOString(),
@@ -1324,38 +1302,50 @@ Object.assign(VikaCloudStorage.prototype, {
                 "userAgent": navigator.userAgent.slice(0, 200), // 限制长度
                 "timestamp": new Date().toISOString(),
                 "platform": deviceInfo.platform || 'unknown',
-                "deviceFingerprint": deviceInfo.deviceFingerprint || 'unknown'
+                "deviceId": 'universal-device'
             };
 
             console.log(`📝 准备写入数据:`, writeData);
 
+            // 构造API请求
+            const url = `${this.VIKA_CONFIG.baseUrl}datasheets/${this.VIKA_CONFIG.usageDatasheetId}/records`;
             const requestData = {
                 records: [{
                     fields: writeData
-                }],
-                fieldKey: this.VIKA_CONFIG.fieldKey
+                }]
             };
 
-            console.log(`📝 请求数据:`, JSON.stringify(requestData, null, 2));
-            console.log('📝 目标表ID:', this.VIKA_CONFIG.usageDatasheetId);
+            console.log(`📝 发送POST请求到: ${url}`);
+            console.log(`📝 请求数据:`, requestData);
 
-            const response = await this.makeVikaRequest('POST', '', requestData, null, this.VIKA_CONFIG.usageDatasheetId);
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${this.VIKA_CONFIG.token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            });
 
-            console.log('✅ 激活码已成功写入使用记录表:', code, response);
-            if (response && response.data && response.data.records && response.data.records.length > 0) {
-                console.log('✅ 使用记录ID:', response.data.records[0].recordId);
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('❌ HTTP请求失败:', response.status, errorText);
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
-            return response;
+
+            const responseData = await response.json();
+            console.log(`📝 写入响应:`, responseData);
+
+            if (!responseData.success) {
+                console.error('❌ 写入失败详情:', responseData);
+                throw new Error('写入使用记录表失败: ' + JSON.stringify(responseData));
+            }
+
+            console.log('✅ 激活码已成功写入使用记录表:', code, responseData.data);
+            return responseData.data;
 
         } catch (error) {
             console.error('❌ 写入使用记录表失败:', error);
-            console.error('❌ 错误详情:', {
-                message: error.message,
-                stack: error.stack,
-                code: code,
-                deviceInfo: deviceInfo,
-                tableId: this.VIKA_CONFIG.usageDatasheetId
-            });
             throw error;
         }
     },
@@ -1426,216 +1416,4 @@ Object.assign(VikaCloudStorage.prototype, {
     }
 });
 
-    // ========== 设备指纹管理方法 ==========
-
-    /**
-     * 生成设备指纹
-     */
-    generateDeviceFingerprint() {
-        // 使用多种信息生成设备指纹
-        const fingerprint = {
-            userAgent: navigator.userAgent,
-            language: navigator.language,
-            platform: navigator.platform,
-            screenResolution: `${screen.width}x${screen.height}`,
-            colorDepth: screen.colorDepth,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            cookieEnabled: navigator.cookieEnabled,
-            onlineStatus: navigator.onLine,
-            hardwareConcurrency: navigator.hardwareConcurrency || 'unknown',
-            deviceMemory: navigator.deviceMemory || 'unknown',
-            // 添加时间戳确保唯一性
-            timestamp: Date.now()
-        };
-
-        // 生成哈希值作为设备指纹
-        const fingerprintString = JSON.stringify(fingerprint);
-        let hash = 0;
-        for (let i = 0; i < fingerprintString.length; i++) {
-            const char = fingerprintString.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash; // 转换为32位整数
-        }
-
-        return Math.abs(hash).toString(36);
-    }
-
-    /**
-     * 保存设备指纹到维格表
-     */
-    async saveDeviceFingerprint(activationCode, deviceFingerprint) {
-        if (!this.isOnline || !this.isInitialized) {
-            console.log('⚠️ 离线模式，设备指纹保存到本地');
-            return this.saveDeviceFingerprintLocal(activationCode, deviceFingerprint);
-        }
-
-        try {
-            console.log(`📝 保存设备指纹到维格表: ${activationCode} -> ${deviceFingerprint}`);
-            console.log(`📝 设备指纹表ID: ${this.VIKA_CONFIG.deviceFingerprintDatasheetId}`);
-            console.log(`📝 网络状态: ${navigator.onLine ? '在线' : '离线'}`);
-            console.log(`📝 系统初始化状态: ${this.isInitialized}`);
-
-            const deviceData = {
-                "egid": deviceFingerprint,
-                "activationCode": activationCode,
-                "createdAt": new Date().toISOString(),
-                "userAgent": navigator.userAgent.slice(0, 200),
-                "platform": navigator.platform,
-                "timestamp": Date.now()
-            };
-
-            const requestData = {
-                records: [{
-                    fields: deviceData
-                }],
-                fieldKey: this.VIKA_CONFIG.fieldKey
-            };
-
-            console.log('📝 请求数据:', JSON.stringify(requestData, null, 2));
-            console.log('📝 目标表ID:', this.VIKA_CONFIG.deviceFingerprintDatasheetId);
-
-            const response = await this.makeVikaRequest('POST', '', requestData, null, this.VIKA_CONFIG.deviceFingerprintDatasheetId);
-
-            console.log('✅ 设备指纹已保存到维格表:', response);
-            if (response && response.data && response.data.records && response.data.records.length > 0) {
-                console.log('✅ 设备指纹记录ID:', response.data.records[0].recordId);
-            }
-            return { success: true, message: '设备指纹保存成功' };
-
-        } catch (error) {
-            console.error('❌ 保存设备指纹到维格表失败:', error);
-            console.error('❌ 错误详情:', {
-                message: error.message,
-                stack: error.stack,
-                activationCode: activationCode,
-                deviceFingerprint: deviceFingerprint,
-                tableId: this.VIKA_CONFIG.deviceFingerprintDatasheetId
-            });
-            return this.saveDeviceFingerprintLocal(activationCode, deviceFingerprint);
-        }
-    }
-
-    /**
-     * 从维格表获取设备指纹列表
-     */
-    async getDeviceFingerprints() {
-        if (!this.isOnline || !this.isInitialized) {
-            return this.getLocalDeviceFingerprints();
-        }
-
-        try {
-            console.log('🔍 从维格表获取设备指纹列表...');
-
-            let allRecords = [];
-            let pageToken = null;
-            let pageCount = 0;
-
-            do {
-                const params = {
-                    pageSize: 1000
-                };
-
-                if (pageToken) {
-                    params.pageToken = pageToken;
-                }
-
-                console.log(`📄 获取设备指纹第${pageCount + 1}页数据，参数:`, params);
-                console.log('📄 目标表ID:', this.VIKA_CONFIG.deviceFingerprintDatasheetId);
-                const response = await this.makeVikaRequest('GET', '', null, params, this.VIKA_CONFIG.deviceFingerprintDatasheetId);
-                console.log(`📄 第${pageCount + 1}页API原始响应:`, response);
-
-                if (response.data && response.data.records) {
-                    const records = response.data.records;
-                    allRecords = allRecords.concat(records);
-
-                    pageToken = response.data.pageToken;
-                    pageCount++;
-
-                    if (pageCount >= 10) {
-                        console.warn('⚠️ 已达到最大页数限制(10页)，停止获取');
-                        break;
-                    }
-                } else {
-                    break;
-                }
-
-            } while (pageToken);
-
-            console.log('✅ 设备指纹数据获取完成，总记录数:', allRecords.length);
-
-            // 转换为映射格式
-            const fingerprintMap = {};
-            allRecords.forEach(record => {
-                const fields = record.fields;
-                if (fields.egid && fields.activationCode) {
-                    fingerprintMap[fields.activationCode] = {
-                        deviceFingerprint: fields.egid,
-                        recordId: record.recordId,
-                        createdAt: fields.createdAt
-                    };
-                }
-            });
-
-            return fingerprintMap;
-
-        } catch (error) {
-            console.error('❌ 获取设备指纹失败:', error);
-            return this.getLocalDeviceFingerprints();
-        }
-    }
-
-    /**
-     * 检查激活码的设备指纹是否已存在
-     */
-    async checkDeviceFingerprintExists(activationCode, deviceFingerprint) {
-        try {
-            const fingerprints = await this.getDeviceFingerprints();
-
-            if (fingerprints[activationCode]) {
-                return fingerprints[activationCode].deviceFingerprint === deviceFingerprint;
-            }
-
-            return false;
-
-        } catch (error) {
-            console.error('❌ 检查设备指纹失败:', error);
-            return false;
-        }
-    }
-
-    /**
-     * 本地保存设备指纹（降级方案）
-     */
-    saveDeviceFingerprintLocal(activationCode, deviceFingerprint) {
-        try {
-            const localFingerprints = this.getLocalDeviceFingerprints();
-            localFingerprints[activationCode] = {
-                deviceFingerprint: deviceFingerprint,
-                createdAt: new Date().toISOString()
-            };
-
-            localStorage.setItem('deviceFingerprints', JSON.stringify(localFingerprints));
-            console.log('💾 设备指纹已保存到本地存储');
-            return { success: true, message: '设备指纹保存成功（本地模式）' };
-
-        } catch (error) {
-            console.error('❌ 保存设备指纹到本地失败:', error);
-            return { success: false, message: '设备指纹保存失败' };
-        }
-    }
-
-    /**
-     * 获取本地设备指纹（降级方案）
-     */
-    getLocalDeviceFingerprints() {
-        try {
-            const localData = localStorage.getItem('deviceFingerprints');
-            return localData ? JSON.parse(localData) : {};
-        } catch (error) {
-            console.error('❌ 获取本地设备指纹失败:', error);
-            return {};
-        }
-    }
-});
-
-console.log('📦 维格表云存储系统已加载 v2.0.0 - 三表系统版本（新增设备指纹表）');
+console.log('📦 维格表云存储系统已加载 v2.0.0 - 双表系统版本');
