@@ -1289,14 +1289,14 @@ Object.assign(VikaCloudStorage.prototype, {
     },
 
     /**
-     * 将激活码写入使用记录表（使用直接HTTP请求）
+     * 将激活码写入使用记录表（使用统一API请求）
      */
     async writeToUsageTable(code, deviceInfo) {
         try {
             console.log(`📝 将激活码 ${code} 写入使用记录表...`);
             console.log(`📝 使用记录表ID: ${this.VIKA_CONFIG.usageDatasheetId}`);
 
-            // 使用直接HTTP请求，不依赖SDK
+            // 使用统一API请求
             const writeData = {
                 "codeused": code,
                 "usedAt": new Date().toISOString(),
@@ -1304,47 +1304,24 @@ Object.assign(VikaCloudStorage.prototype, {
                 "userAgent": navigator.userAgent.slice(0, 200), // 限制长度
                 "timestamp": new Date().toISOString(),
                 "platform": deviceInfo.platform || 'unknown',
-                "deviceId": 'universal-device'
+                "deviceFingerprint": deviceInfo.deviceFingerprint || 'unknown'
             };
 
             console.log(`📝 准备写入数据:`, writeData);
 
-            // 构造API请求
-            const url = `${this.VIKA_CONFIG.baseUrl}datasheets/${this.VIKA_CONFIG.usageDatasheetId}/records`;
             const requestData = {
                 records: [{
                     fields: writeData
-                }]
+                }],
+                fieldKey: this.VIKA_CONFIG.fieldKey
             };
 
-            console.log(`📝 发送POST请求到: ${url}`);
-            console.log(`📝 请求数据:`, requestData);
+            console.log(`📝 请求数据:`, JSON.stringify(requestData, null, 2));
 
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${this.VIKA_CONFIG.token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(requestData)
-            });
+            const response = await this.makeVikaRequest('POST', '', requestData, null, this.VIKA_CONFIG.usageDatasheetId);
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('❌ HTTP请求失败:', response.status, errorText);
-                throw new Error(`HTTP ${response.status}: ${errorText}`);
-            }
-
-            const responseData = await response.json();
-            console.log(`📝 写入响应:`, responseData);
-
-            if (!responseData.success) {
-                console.error('❌ 写入失败详情:', responseData);
-                throw new Error('写入使用记录表失败: ' + JSON.stringify(responseData));
-            }
-
-            console.log('✅ 激活码已成功写入使用记录表:', code, responseData.data);
-            return responseData.data;
+            console.log('✅ 激活码已成功写入使用记录表:', code, response);
+            return response;
 
         } catch (error) {
             console.error('❌ 写入使用记录表失败:', error);
@@ -1463,6 +1440,7 @@ Object.assign(VikaCloudStorage.prototype, {
 
         try {
             console.log(`📝 保存设备指纹到维格表: ${activationCode} -> ${deviceFingerprint}`);
+            console.log(`📝 设备指纹表ID: ${this.VIKA_CONFIG.deviceFingerprintDatasheetId}`);
 
             const deviceData = {
                 "egid": deviceFingerprint,
@@ -1476,29 +1454,15 @@ Object.assign(VikaCloudStorage.prototype, {
             const requestData = {
                 records: [{
                     fields: deviceData
-                }]
+                }],
+                fieldKey: this.VIKA_CONFIG.fieldKey
             };
 
-            const url = `${this.VIKA_CONFIG.baseUrl}datasheets/${this.VIKA_CONFIG.deviceFingerprintDatasheetId}/records`;
+            console.log('📝 请求数据:', JSON.stringify(requestData, null, 2));
 
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${this.VIKA_CONFIG.token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(requestData)
-            });
+            const response = await this.makeVikaRequest('POST', '', requestData, null, this.VIKA_CONFIG.deviceFingerprintDatasheetId);
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('❌ 保存设备指纹HTTP请求失败:', response.status, errorText);
-                throw new Error(`HTTP ${response.status}: ${errorText}`);
-            }
-
-            const responseData = await response.json();
-            console.log('✅ 设备指纹已保存到维格表:', responseData);
-
+            console.log('✅ 设备指纹已保存到维格表:', response);
             return { success: true, message: '设备指纹保存成功' };
 
         } catch (error) {
@@ -1531,31 +1495,15 @@ Object.assign(VikaCloudStorage.prototype, {
                     params.pageToken = pageToken;
                 }
 
-                const url = `${this.VIKA_CONFIG.baseUrl}datasheets/${this.VIKA_CONFIG.deviceFingerprintDatasheetId}/records`;
-                const queryString = new URLSearchParams(params).toString();
-                const fullUrl = queryString ? `${url}?${queryString}` : url;
+                console.log(`📄 获取设备指纹第${pageCount + 1}页数据，参数:`, params);
+                const response = await this.makeVikaRequest('GET', '', null, params, this.VIKA_CONFIG.deviceFingerprintDatasheetId);
+                console.log(`📄 第${pageCount + 1}页API原始响应:`, response);
 
-                const response = await fetch(fullUrl, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${this.VIKA_CONFIG.token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('❌ 获取设备指纹HTTP请求失败:', response.status, errorText);
-                    throw new Error(`HTTP ${response.status}: ${errorText}`);
-                }
-
-                const responseData = await response.json();
-
-                if (responseData.data && responseData.data.records) {
-                    const records = responseData.data.records;
+                if (response.data && response.data.records) {
+                    const records = response.data.records;
                     allRecords = allRecords.concat(records);
 
-                    pageToken = responseData.data.pageToken;
+                    pageToken = response.data.pageToken;
                     pageCount++;
 
                     if (pageCount >= 10) {

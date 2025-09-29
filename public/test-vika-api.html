@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>维格表API测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .config-info {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>维格表API测试工具</h1>
+
+        <div class="config-info">
+            <h3>当前配置信息：</h3>
+            <p><strong>Token:</strong> uskNUrvWvJoD3VuQ5zW7GYH</p>
+            <p><strong>审核表ID:</strong> dstVZvdm5sqCs9NFY4</p>
+            <p><strong>使用记录表ID:</strong> dstz67JjuBawS8Zam0</p>
+            <p><strong>设备指纹表ID:</strong> dstm1EwdoQzxp8QGbs</p>
+        </div>
+
+        <div class="test-section">
+            <h3>1. 测试维格表连接</h3>
+            <button onclick="testVikaConnection()">测试连接</button>
+            <div id="connectionResult" class="test-result info">等待测试...</div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. 测试审核表读取</h3>
+            <button onclick="testApprovalTableRead()">读取审核表</button>
+            <div id="approvalReadResult" class="test-result info">等待测试...</div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. 测试使用记录表读取</h3>
+            <button onclick="testUsageTableRead()">读取使用记录表</button>
+            <div id="usageReadResult" class="test-result info">等待测试...</div>
+        </div>
+
+        <div class="test-section">
+            <h3>4. 测试设备指纹表读取</h3>
+            <button onclick="testFingerprintTableRead()">读取设备指纹表</button>
+            <div id="fingerprintReadResult" class="test-result info">等待测试...</div>
+        </div>
+
+        <div class="test-section">
+            <h3>5. 测试设备指纹写入</h3>
+            <button onclick="testFingerprintWrite()">写入测试设备指纹</button>
+            <div id="fingerprintWriteResult" class="test-result info">等待测试...</div>
+        </div>
+
+        <div class="test-section">
+            <h3>6. 测试激活码使用记录写入</h3>
+            <button onclick="testUsageRecordWrite()">写入测试使用记录</button>
+            <div id="usageRecordWriteResult" class="test-result info">等待测试...</div>
+        </div>
+
+        <div class="test-section">
+            <h3>7. 运行所有测试</h3>
+            <button onclick="runAllTests()">运行全部测试</button>
+            <div id="allTestsResult" class="test-result info">等待测试...</div>
+        </div>
+    </div>
+
+    <script>
+        // 维格表配置
+        const VIKA_CONFIG = {
+            token: "uskNUrvWvJoD3VuQ5zW7GYH",
+            baseUrl: "https://api.vika.cn/fusion/v1/",
+            approvalDatasheetId: "dstVZvdm5sqCs9NFY4",
+            usageDatasheetId: "dstz67JjuBawS8Zam0",
+            deviceFingerprintDatasheetId: "dstm1EwdoQzxp8QGbs",
+            fieldKey: "name"
+        };
+
+        // 统一API请求方法
+        async function makeVikaRequest(method, endpoint = '', data = null, params = null, datasheetId = null) {
+            const targetDatasheetId = datasheetId || VIKA_CONFIG.approvalDatasheetId;
+            let url = `${VIKA_CONFIG.baseUrl}datasheets/${targetDatasheetId}/records`;
+
+            if (endpoint) {
+                url += `/${endpoint}`;
+            }
+
+            if (params) {
+                const urlParams = new URLSearchParams(params);
+                url += `?${urlParams}`;
+            }
+
+            const options = {
+                method: method,
+                headers: new Headers({
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${VIKA_CONFIG.token}`
+                })
+            };
+
+            if (data && (method === 'POST' || method === 'PATCH')) {
+                options.body = JSON.stringify(data);
+            }
+
+            console.log(`🌐 API请求: ${method} ${url}`);
+            console.log('📝 请求数据:', data);
+
+            try {
+                const response = await fetch(url, options);
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(`API错误 (${response.status}): ${result.message || response.statusText}`);
+                }
+
+                console.log('✅ API响应:', result);
+                return result;
+            } catch (error) {
+                console.error('❌ API请求失败:', error);
+                throw error;
+            }
+        }
+
+        // 测试连接
+        async function testVikaConnection() {
+            const resultDiv = document.getElementById('connectionResult');
+            resultDiv.className = 'test-result info';
+            resultDiv.textContent = '测试中...';
+
+            try {
+                const response = await makeVikaRequest('GET', '', null, { pageSize: 1 });
+                resultDiv.className = 'test-result success';
+                resultDiv.textContent = `✅ 连接成功！响应: ${JSON.stringify(response).slice(0, 100)}...`;
+            } catch (error) {
+                resultDiv.className = 'test-result error';
+                resultDiv.textContent = `❌ 连接失败: ${error.message}`;
+            }
+        }
+
+        // 测试审核表读取
+        async function testApprovalTableRead() {
+            const resultDiv = document.getElementById('approvalReadResult');
+            resultDiv.className = 'test-result info';
+            resultDiv.textContent = '测试中...';
+
+            try {
+                const response = await makeVikaRequest('GET', '', null, { pageSize: 5 }, VIKA_CONFIG.approvalDatasheetId);
+                resultDiv.className = 'test-result success';
+                resultDiv.textContent = `✅ 审核表读取成功！记录数: ${response.data.records.length}`;
+            } catch (error) {
+                resultDiv.className = 'test-result error';
+                resultDiv.textContent = `❌ 审核表读取失败: ${error.message}`;
+            }
+        }
+
+        // 测试使用记录表读取
+        async function testUsageTableRead() {
+            const resultDiv = document.getElementById('usageReadResult');
+            resultDiv.className = 'test-result info';
+            resultDiv.textContent = '测试中...';
+
+            try {
+                const response = await makeVikaRequest('GET', '', null, { pageSize: 5 }, VIKA_CONFIG.usageDatasheetId);
+                resultDiv.className = 'test-result success';
+                resultDiv.textContent = `✅ 使用记录表读取成功！记录数: ${response.data.records.length}`;
+            } catch (error) {
+                resultDiv.className = 'test-result error';
+                resultDiv.textContent = `❌ 使用记录表读取失败: ${error.message}`;
+            }
+        }
+
+        // 测试设备指纹表读取
+        async function testFingerprintTableRead() {
+            const resultDiv = document.getElementById('fingerprintReadResult');
+            resultDiv.className = 'test-result info';
+            resultDiv.textContent = '测试中...';
+
+            try {
+                const response = await makeVikaRequest('GET', '', null, { pageSize: 5 }, VIKA_CONFIG.deviceFingerprintDatasheetId);
+                resultDiv.className = 'test-result success';
+                resultDiv.textContent = `✅ 设备指纹表读取成功！记录数: ${response.data.records.length}`;
+            } catch (error) {
+                resultDiv.className = 'test-result error';
+                resultDiv.textContent = `❌ 设备指纹表读取失败: ${error.message}`;
+            }
+        }
+
+        // 测试设备指纹写入
+        async function testFingerprintWrite() {
+            const resultDiv = document.getElementById('fingerprintWriteResult');
+            resultDiv.className = 'test-result info';
+            resultDiv.textContent = '测试中...';
+
+            try {
+                const testData = {
+                    records: [{
+                        fields: {
+                            "egid": "test-device-fingerprint-12345",
+                            "activationCode": "TEST123",
+                            "createdAt": new Date().toISOString(),
+                            "userAgent": "Test Agent",
+                            "platform": "Test Platform",
+                            "timestamp": Date.now()
+                        }
+                    }],
+                    fieldKey: VIKA_CONFIG.fieldKey
+                };
+
+                const response = await makeVikaRequest('POST', '', testData, null, VIKA_CONFIG.deviceFingerprintDatasheetId);
+                resultDiv.className = 'test-result success';
+                resultDiv.textContent = `✅ 设备指纹写入成功！记录ID: ${response.data.records[0].recordId}`;
+            } catch (error) {
+                resultDiv.className = 'test-result error';
+                resultDiv.textContent = `❌ 设备指纹写入失败: ${error.message}`;
+            }
+        }
+
+        // 测试激活码使用记录写入
+        async function testUsageRecordWrite() {
+            const resultDiv = document.getElementById('usageRecordWriteResult');
+            resultDiv.className = 'test-result info';
+            resultDiv.textContent = '测试中...';
+
+            try {
+                const testData = {
+                    records: [{
+                        fields: {
+                            "codeused": "TEST123",
+                            "usedAt": new Date().toISOString(),
+                            "usedBy": JSON.stringify({ userAgent: "Test", platform: "Test" }),
+                            "userAgent": "Test Agent",
+                            "timestamp": new Date().toISOString(),
+                            "platform": "Test Platform",
+                            "deviceFingerprint": "test-device-fingerprint-12345"
+                        }
+                    }],
+                    fieldKey: VIKA_CONFIG.fieldKey
+                };
+
+                const response = await makeVikaRequest('POST', '', testData, null, VIKA_CONFIG.usageDatasheetId);
+                resultDiv.className = 'test-result success';
+                resultDiv.textContent = `✅ 使用记录写入成功！记录ID: ${response.data.records[0].recordId}`;
+            } catch (error) {
+                resultDiv.className = 'test-result error';
+                resultDiv.textContent = `❌ 使用记录写入失败: ${error.message}`;
+            }
+        }
+
+        // 运行所有测试
+        async function runAllTests() {
+            const resultDiv = document.getElementById('allTestsResult');
+            resultDiv.className = 'test-result info';
+            resultDiv.textContent = '运行中...';
+
+            const results = [];
+
+            try {
+                await testVikaConnection();
+                results.push('✅ 连接测试通过');
+
+                await testApprovalTableRead();
+                results.push('✅ 审核表读取测试通过');
+
+                await testUsageTableRead();
+                results.push('✅ 使用记录表读取测试通过');
+
+                await testFingerprintTableRead();
+                results.push('✅ 设备指纹表读取测试通过');
+
+                await testFingerprintWrite();
+                results.push('✅ 设备指纹写入测试通过');
+
+                await testUsageRecordWrite();
+                results.push('✅ 使用记录写入测试通过');
+
+                resultDiv.className = 'test-result success';
+                resultDiv.textContent = `🎉 所有测试通过！\n${results.join('\n')}`;
+
+            } catch (error) {
+                resultDiv.className = 'test-result error';
+                resultDiv.textContent = `❌ 测试失败: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
