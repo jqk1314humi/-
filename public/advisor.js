@@ -591,8 +591,8 @@ function checkActivationStatus() {
             return false;
         }
         
-        // 如果使用的是开发者激活码或管理员激活码，直接通过
-        if (userActivationCode === 'jqkkf0922' || userActivationCode === 'ADMIN2024') {
+        // 如果使用的是开发者激活码，直接通过
+        if (userActivationCode === 'jqkkf0922') {
             console.log('✅ 使用开发者/管理员激活码，激活状态有效');
             return true;
         }

@@ -503,7 +503,7 @@ class VikaCloudStorage {
      */
     async initializeDefaultData() {
         try {
-            const defaultCodes = ['ADMIN2024', 'STUDENT001', 'TEACHER001'];
+            const defaultCodes = [];
             const records = [];
             
             // 创建默认激活码
@@ -643,11 +643,7 @@ class VikaCloudStorage {
 
     getLocalActivationCodes() {
         const codes = localStorage.getItem('activationCodes');
-        return codes ? JSON.parse(codes) : {
-            'ADMIN2024': { isUsed: false, usedAt: null, usedBy: null, createdAt: new Date().toISOString() },
-            'STUDENT001': { isUsed: false, usedAt: null, usedBy: null, createdAt: new Date().toISOString() },
-            'TEACHER001': { isUsed: false, usedAt: null, usedBy: null, createdAt: new Date().toISOString() }
-        };
+        return codes ? JSON.parse(codes) : {};
     }
 
     getLocalLogs() {

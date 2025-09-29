@@ -10,9 +10,6 @@ class ActivationSystem {
         
         // 初始激活码列表（不包含开发者激活码）
         this.INITIAL_CODES = [
-            'ADMIN2024',
-            'STUDENT001',
-            'TEACHER001',
             'j6si0f26cig0',
             'polex311eo4e',
             'gwhfntmgol8l',
