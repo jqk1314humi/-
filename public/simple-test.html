@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简单测试页面</title>
+    <!-- 使用CDN或本地版本的Vika SDK -->
+    <!-- <script src="https://unpkg.com/@vikadata/vika@latest/dist/vika.js"></script> -->
+    <script>
+        // 等待Vika SDK加载完成
+        function waitForVikaSDK() {
+            return new Promise((resolve, reject) => {
+                let attempts = 0;
+                const maxAttempts = 50; // 等待5秒
+                
+                const checkVika = () => {
+                    attempts++;
+                    if (typeof Vika !== 'undefined') {
+                        resolve(Vika);
+                    } else if (attempts >= maxAttempts) {
+                        reject(new Error('Vika SDK加载超时'));
+                    } else {
+                        setTimeout(checkVika, 100);
+                    }
+                };
+                
+                checkVika();
+            });
+        }
+        
+        // 动态加载Vika SDK
+        function loadVikaSDK() {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'https://unpkg.com/@vikadata/vika@latest/dist/vika.js';
+                script.onload = () => {
+                    console.log('✅ Vika SDK加载成功');
+                    resolve();
+                };
+                script.onerror = () => {
+                    console.error('❌ Vika SDK加载失败');
+                    reject(new Error('Vika SDK加载失败'));
+                };
+                document.head.appendChild(script);
+            });
+        }
+    </script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        button { padding: 10px 20px; margin: 5px; }
+        .log { background: #f5f5f5; padding: 10px; height: 200px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>激活码双表测试</h1>
+    
+    <div class="test-section">
+        <h3>测试数据</h3>
+        <button onclick="testWriteToSecondTable()">写入第二个表</button>
+        <button onclick="testReadFromSecondTable()">读取第二个表</button>
+        <button onclick="testUseCode()">使用激活码</button>
+        
+        <h4>日志</h4>
+        <div id="log" class="log"></div>
+    </div>
+
+    <script src="cloud-storage-vika-v2.js"></script>
+    <script>
+        let vikaStorage = null;
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                log('🔄 开始初始化...');
+                
+                // 确保VikaCloudStorage已定义
+                if (typeof VikaCloudStorage !== 'undefined') {
+                    log('✅ VikaCloudStorage类已加载');
+                } else {
+                    log('❌ VikaCloudStorage类未加载');
+                    return;
+                }
+                
+                // 动态加载Vika SDK
+                await loadVikaSDK();
+                
+                // 等待Vika SDK就绪
+                await waitForVikaSDK();
+                
+                log('✅ Vika SDK加载成功');
+                
+                // 初始化存储（改为直接创建实例）
+                vikaStorage = new VikaCloudStorage();
+                
+                // 等待存储初始化完成
+                try {
+                    await vikaStorage.getActivationCodes();
+                    log('✅ 存储连接成功');
+                } catch (error) {
+                    log('⚠️ 存储连接测试失败: ' + error.message);
+                }
+                
+                // 测试SDK可用性
+                const vika = new Vika({ token: 'uskNUrvWvJoD3VuQ5zW7GYH', fieldKey: "name" });
+                const datasheet = vika.datasheet("dstVZvdm5sqCs9NFY4");
+                log('✅ SDK测试成功');
+                
+            } catch (error) {
+                log('❌ 初始化失败: ' + error.message);
+                console.error('初始化错误:', error);
+            }
+        });
+
+        function log(message) {
+            const logEl = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            logEl.innerHTML += `[${time}] ${message}<br>`;
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(message);
+        }
+
+        // 测试直接写入第二个表
+        async function testWriteToSecondTable() {
+            try {
+                log('开始测试写入第二个表...');
+                log(`当前Vika对象状态: ${typeof Vika !== 'undefined' ? '✅ 已加载' : '❌ 未加载'}`);
+                
+                if (typeof Vika === 'undefined') {
+                    throw new Error('Vika SDK未加载');
+                }
+                
+                const testCode = 'TEST' + Date.now().toString().slice(-5);
+                log(`测试激活码: ${testCode}`);
+                
+                // 直接使用Vika SDK
+                const vika = new Vika({ token: 'uskNUrvWvJoD3VuQ5zW7GYH', fieldKey: "name" });
+                const usageDatasheet = vika.datasheet("dstz67JjuBawS8Zam0");
+                
+                const writeData = [{
+                    fields: {
+                        "codeused": testCode,
+                        "usedAt": new Date().toISOString(),
+                        "userAgent": navigator.userAgent.slice(0, 50),
+                        "timestamp": new Date().toISOString()
+                    }
+                }];
+                
+                log(`准备写入数据: ${JSON.stringify(writeData)}`);
+                
+                const writeResponse = await usageDatasheet.records.create(writeData);
+                
+                log(`写入响应: ${JSON.stringify(writeResponse)}`);
+                
+                if (writeResponse.success) {
+                    log('✅ 写入成功');
+                    
+                    // 验证写入 - 直接读取
+                    const readResponse = await usageDatasheet.records.get({
+                        params: {
+                            viewId: null, // 获取所有记录
+                        }
+                    });
+                    
+                    if (readResponse.success) {
+                        const records = readResponse.data.records;
+                        const foundRecord = records.find(r => r.fields.codeused === testCode);
+                        log(`${foundRecord ? '✅ 验证成功，找到记录' : '⚠️ 验证失败，未找到记录'}`);
+                        log(`验证记录: ${JSON.stringify(foundRecord)}`);
+                    } else {
+                        log('❌ 验证读取失败: ' + JSON.stringify(readResponse));
+                    }
+                } else {
+                    log('❌ 写入失败: ' + JSON.stringify(writeResponse));
+                }
+                
+            } catch (error) {
+                log('❌ 写入失败: ' + error.message);
+                console.error('写入错误:', error);
+            }
+        }
+
+        // 测试读取第二个表
+        async function testReadFromSecondTable() {
+            try {
+                log('开始测试读取第二个表...');
+                
+                const records = await vikaStorage.getUsageRecords();
+                
+                log(`✅ 读取成功，共 ${records.length} 条记录`);
+                
+                records.forEach((record, index) => {
+                    const fields = record.fields;
+                    log(`记录 ${index + 1}: ${JSON.stringify(fields)}`);
+                });
+                
+            } catch (error) {
+                log('❌ 读取失败: ' + error.message);
+                console.error('读取错误:', error);
+            }
+        }
+
+        // 测试使用激活码
+        async function testUseCode() {
+            try {
+                log('开始测试使用激活码...');
+                
+                if (!vikaStorage) {
+                    log('❌ VikaCloudStorage未初始化');
+                    return;
+                }
+                
+                // 使用现有的激活码进行测试（避免创建新码）
+                const existingCodes = await vikaStorage.getActivationCodes();
+                const availableCodes = Object.keys(existingCodes).filter(code => !existingCodes[code].isUsed);
+                
+                if (availableCodes.length === 0) {
+                    log('❌ 没有可用的激活码进行测试');
+                    return;
+                }
+                
+                const selectedCode = availableCodes[0];
+                log(`使用现有激活码: ${selectedCode}`);
+                
+                // 使用激活码
+                const deviceInfo = {
+                    deviceId: 'test-device-' + Date.now(),
+                    userAgent: navigator.userAgent.slice(0, 50),
+                    timestamp: new Date().toISOString(),
+                    platform: 'test',
+                    language: 'zh-CN'
+                };
+                
+                log('准备使用激活码...');
+                const result = await vikaStorage.useActivationCode(selectedCode, deviceInfo);
+                
+                log('✅ 使用结果: ' + JSON.stringify(result));
+                
+                // 验证是否写入了第二个表
+                const used = await vikaStorage.checkUsageTable(selectedCode);
+                log(`✅ 第一个表验证: ${used ? '已写入' : '未写入'}`);
+                
+            } catch (error) {
+                log('❌ 使用失败: ' + error.message);
+                console.error('使用错误:', error);
+            }
+        }
+    </script>
+</body>
+</html>

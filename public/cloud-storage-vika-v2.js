@@ -1134,33 +1134,54 @@ Object.assign(VikaCloudStorage.prototype, {
     async getUsageRecords() {
         try {
             console.log('📖 从使用记录维格表获取数据...');
-            
+
             let allRecords = [];
             let pageToken = null;
             let pageCount = 0;
-            
+
             do {
                 const params = {
-                    fieldKey: this.VIKA_CONFIG.fieldKey,
                     pageSize: 1000
                 };
-                
+
                 if (pageToken) {
                     params.pageToken = pageToken;
                 }
 
                 console.log(`📄 获取使用记录表第${pageCount + 1}页数据，参数:`, params);
-                const response = await this.makeVikaRequest('GET', '', null, params, this.VIKA_CONFIG.usageDatasheetId);
-                console.log(`📄 使用记录表第${pageCount + 1}页API原始响应:`, response);
-                
-                if (response.data && response.data.records) {
-                    const records = response.data.records;
+
+                // 构造URL和请求参数
+                const url = `${this.VIKA_CONFIG.baseUrl}datasheets/${this.VIKA_CONFIG.usageDatasheetId}/records`;
+                const queryString = new URLSearchParams(params).toString();
+                const fullUrl = queryString ? `${url}?${queryString}` : url;
+
+                console.log(`📄 发送GET请求到: ${fullUrl}`);
+
+                const response = await fetch(fullUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${this.VIKA_CONFIG.token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ 获取使用记录表HTTP请求失败:', response.status, errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+
+                const responseData = await response.json();
+                console.log(`📄 使用记录表第${pageCount + 1}页API原始响应:`, responseData);
+
+                if (responseData.data && responseData.data.records) {
+                    const records = responseData.data.records;
                     allRecords = allRecords.concat(records);
                     console.log(`✅ 使用记录表第${pageCount + 1}页获取到 ${records.length} 条记录`);
-                    
-                    pageToken = response.data.pageToken;
+
+                    pageToken = responseData.data.pageToken;
                     pageCount++;
-                    
+
                     if (pageCount >= 10) {
                         console.warn('⚠️ 使用记录表已达到最大页数限制(10页)，停止获取');
                         break;
@@ -1169,12 +1190,12 @@ Object.assign(VikaCloudStorage.prototype, {
                     console.log('📄 使用记录表没有更多数据');
                     break;
                 }
-                
+
             } while (pageToken);
-            
+
             console.log('✅ 使用记录表数据获取完成，总记录数:', allRecords.length);
             return allRecords;
-            
+
         } catch (error) {
             console.error('❌ 获取使用记录表数据失败:', error);
             return []; // 返回空数组而不是抛出错误
@@ -1213,37 +1234,63 @@ Object.assign(VikaCloudStorage.prototype, {
     },
 
     /**
-     * 将激活码写入使用记录表
+     * 将激活码写入使用记录表（使用直接HTTP请求）
      */
     async writeToUsageTable(code, deviceInfo) {
         try {
             console.log(`📝 将激活码 ${code} 写入使用记录表...`);
-            
-            const { Vika } = window;
-            if (!Vika) {
-                throw new Error('Vika SDK未加载');
+            console.log(`📝 使用记录表ID: ${this.VIKA_CONFIG.usageDatasheetId}`);
+
+            // 使用直接HTTP请求，不依赖SDK
+            const writeData = {
+                "codeused": code,
+                "usedAt": new Date().toISOString(),
+                "usedBy": JSON.stringify(deviceInfo),
+                "userAgent": navigator.userAgent.slice(0, 200), // 限制长度
+                "timestamp": new Date().toISOString(),
+                "platform": deviceInfo.platform || 'unknown',
+                "deviceId": deviceInfo.deviceId || 'unknown'
+            };
+
+            console.log(`📝 准备写入数据:`, writeData);
+
+            // 构造API请求
+            const url = `${this.VIKA_CONFIG.baseUrl}datasheets/${this.VIKA_CONFIG.usageDatasheetId}/records`;
+            const requestData = {
+                records: [{
+                    fields: writeData
+                }]
+            };
+
+            console.log(`📝 发送POST请求到: ${url}`);
+            console.log(`📝 请求数据:`, requestData);
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${this.VIKA_CONFIG.token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('❌ HTTP请求失败:', response.status, errorText);
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
 
-            const vika = new Vika({ token: this.VIKA_CONFIG.token, fieldKey: "name" });
-            const usageDatasheet = vika.datasheet(this.VIKA_CONFIG.usageDatasheetId);
+            const responseData = await response.json();
+            console.log(`📝 写入响应:`, responseData);
 
-            const writeResponse = await usageDatasheet.records.create([{
-                fields: {
-                    "codeused": code,  // 使用记录表使用的列名是codeused
-                    "usedAt": new Date().toISOString(),
-                    "usedBy": JSON.stringify(deviceInfo),
-                    "userAgent": navigator.userAgent,
-                    "timestamp": new Date().toISOString()
-                }
-            }]);
-
-            if (!writeResponse.success) {
-                throw new Error('写入使用记录表失败: ' + JSON.stringify(writeResponse));
+            if (!responseData.success) {
+                console.error('❌ 写入失败详情:', responseData);
+                throw new Error('写入使用记录表失败: ' + JSON.stringify(responseData));
             }
 
-            console.log('✅ 激活码已成功写入使用记录表:', code, writeResponse.data);
-            return writeResponse.data;
-            
+            console.log('✅ 激活码已成功写入使用记录表:', code, responseData.data);
+            return responseData.data;
+
         } catch (error) {
             console.error('❌ 写入使用记录表失败:', error);
             throw error;
@@ -1277,17 +1324,33 @@ Object.assign(VikaCloudStorage.prototype, {
             }
 
             if (recordIdToDelete) {
-                const { Vika } = window;
-                if (Vika) {
-                    const vika = new Vika({ token: this.VIKA_CONFIG.token, fieldKey: "name" });
-                    const usageDatasheet = vika.datasheet(this.VIKA_CONFIG.usageDatasheetId);
-                    
-                    const response = await usageDatasheet.records.delete([recordIdToDelete]);
-                    console.log('✅ 已从使用记录表中删除激活码:', code);
-                    return response;
-                } else {
-                    throw new Error('Vika SDK未加载');
+                // 使用直接HTTP请求
+                const url = `${this.VIKA_CONFIG.baseUrl}datasheets/${this.VIKA_CONFIG.usageDatasheetId}/records`;
+                const requestData = {
+                    records: [recordIdToDelete]
+                };
+
+                console.log(`🗑️ 发送DELETE请求到: ${url}`);
+                console.log(`🗑️ 删除记录ID:`, recordIdToDelete);
+
+                const response = await fetch(url, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${this.VIKA_CONFIG.token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ 删除HTTP请求失败:', response.status, errorText);
+                    throw new Error(`删除失败 HTTP ${response.status}: ${errorText}`);
                 }
+
+                const responseData = await response.json();
+                console.log('✅ 已从使用记录表中删除激活码:', code, responseData);
+                return responseData;
             } else {
                 console.log(`⚠️ 在使用记录表中未找到激活码 ${code}`);
                 return null;

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vika 调试测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .log { background: #f5f5f5; padding: 10px; height: 300px; overflow-y: auto; border: 1px solid #ccc; }
+        .error { color: red; }
+        .success { color: green; }
+        input { padding: 8px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Vika SDK 调试测试</h1>
+    
+    <div class="section">
+        <h3>1. SDK加载状态</h3>
+        <button onclick="checkSDK()">检查SDK状态</button>
+        <button onclick="loadSDK()">手动加载SDK</button>
+        <div id="sdkStatus"></div>
+    </div>
+    
+    <div class="section">
+        <h3>2. 测试写入第二个表</h3>
+        <input type="text" id="testCode" placeholder="输入测试激活码" value="TEST12345">
+        <button onclick="testWriteDirect()">直接写入第二个表</button>
+        <button onclick="testReadDirect()">读取第二个表</button>
+        <div id="writeStatus"></div>
+    </div>
+    
+    <div class="section">
+        <h3>3. 日志</h3>
+        <button onclick="clearLog()">清空日志</button>
+        <div id="log" class="log"></div>
+    </div>
+
+    <!-- 手动加载Vika SDK -->
+    <script>
+        window.VikaLoaded = false;
+        
+        function loadSDK() {
+            return new Promise((resolve, reject) => {
+                if (window.VikaLoaded) {
+                    resolve();
+                    return;
+                }
+                
+                const script = document.createElement('script');
+                script.src = 'https://unpkg.com/@vikadata/vika@latest/dist/vika.js';
+                script.onload = () => {
+                    console.log('✅ Vika SDK 加载成功');
+                    window.VikaLoaded = true;
+                    resolve();
+                };
+                script.onerror = () => {
+                    console.error('❌ Vika SDK 加载失败');
+                    reject(new Error('SDK加载失败'));
+                };
+                document.head.appendChild(script);
+            });
+        }
+        
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : '';
+            logEl.innerHTML += `<div class="${className}">[${time}] ${message}</div>`;
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(message);
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        function checkSDK() {
+            const statusEl = document.getElementById('sdkStatus');
+            if (typeof Vika !== 'undefined') {
+                statusEl.innerHTML = '<span class="success">✅ Vika SDK 已加载</span>';
+                log('SDK状态: 已加载', 'success');
+                
+                // 测试基本功能
+                try {
+                    const vika = new Vika({ token: 'uskNUrvWvJoD3VuQ5zW7GYH', fieldKey: "name" });
+                    log('Vika实例创建成功', 'success');
+                } catch (error) {
+                    log('Vika实例创建失败: ' + error.message, 'error');
+                }
+            } else {
+                statusEl.innerHTML = '<span class="error">❌ Vika SDK 未加载</span>';
+                log('SDK状态: 未加载', 'error');
+            }
+        }
+        
+        async function testWriteDirect() {
+            try {
+                if (typeof Vika === 'undefined') {
+                    throw new Error('SDK未加载');
+                }
+                
+                const testCode = document.getElementById('testCode').value || 'TEST12345';
+                log(`开始测试写入第二个表，激活码: ${testCode}`);
+                
+                const vika = new Vika({ token: 'uskNUrvWvJoD3VuQ5zW7GYH', fieldKey: "name" });
+                const datasheet = vika.datasheet("dstz67JjuBawS8Zam0"); // 使用记录表
+                
+                const writeData = [{
+                    fields: {
+                        "codeused": testCode,
+                        "usedAt": new Date().toISOString(),
+                        "userAgent": navigator.userAgent.slice(0, 50),
+                        "timestamp": new Date().toISOString(),
+                        "testData": "测试数据"
+                    }
+                }];
+                
+                log(`写入数据: ${JSON.stringify(writeData)}`);
+                
+                const response = await datasheet.records.create(writeData);
+                
+                log(`写入响应: ${JSON.stringify(response)}`);
+                
+                if (response.success) {
+                    document.getElementById('writeStatus').innerHTML = '<span class="success">✅ 写入成功</span>';
+                    log('✅ 写入成功', 'success');
+                } else {
+                    document.getElementById('writeStatus').innerHTML = '<span class="error">❌ 写入失败</span>';
+                    log('❌ 写入失败: ' + JSON.stringify(response), 'error');
+                }
+                
+            } catch (error) {
+                document.getElementById('writeStatus').innerHTML = '<span class="error">❌ 错误: ' + error.message + '</span>';
+                log('❌ 错误: ' + error.message, 'error');
+                console.error('写入错误:', error);
+            }
+        }
+        
+        async function testReadDirect() {
+            try {
+                if (typeof Vika === 'undefined') {
+                    throw new Error('SDK未加载');
+                }
+                
+                log('开始测试读取第二个表...');
+                
+                const vika = new Vika({ token: 'uskNUrvWvJoD3VuQ5zW7GYH', fieldKey: "name" });
+                const datasheet = vika.datasheet("dstz67JjuBawS8Zam0"); // 使用记录表
+                
+                const response = await datasheet.records.get();
+                
+                log(`读取响应: ${JSON.stringify(response)}`);
+                
+                if (response.success) {
+                    const records = response.data.records;
+                    log(`✅ 读取成功，共 ${records.length} 条记录`, 'success');
+                    
+                    records.forEach((record, index) => {
+                        log(`记录 ${index + 1}: ${JSON.stringify(record.fields)}`);
+                    });
+                } else {
+                    log('❌ 读取失败: ' + JSON.stringify(response), 'error');
+                }
+                
+            } catch (error) {
+                log('❌ 读取错误: ' + error.message, 'error');
+                console.error('读取错误:', error);
+            }
+        }
+        
+        // 页面加载时自动检查SDK
+        document.addEventListener('DOMContentLoaded', () => {
+            checkSDK();
+            log('页面加载完成，开始检查SDK状态');
+        });
+    </script>
+</body>
+</html>

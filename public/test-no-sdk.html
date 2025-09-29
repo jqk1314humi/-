@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>无SDK双表测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .log { background: #f5f5f5; padding: 10px; height: 300px; overflow-y: auto; border: 1px solid #ccc; }
+        .error { color: red; }
+        .success { color: green; }
+        input { padding: 8px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>无SDK双表测试</h1>
+
+    <div class="section">
+        <h3>1. 直接写入第二个表测试</h3>
+        <input type="text" id="testCodeInput" placeholder="输入测试激活码" value="TEST12345">
+        <button onclick="testWriteSecondTable()">写入第二个表</button>
+        <button onclick="testReadSecondTable()">读取第二个表</button>
+        <div id="writeResult"></div>
+    </div>
+
+    <div class="section">
+        <h3>2. 完整激活流程测试</h3>
+        <input type="text" id="activationCodeInput" placeholder="输入激活码" value="TEST67890">
+        <button onclick="testFullActivation()">测试完整激活</button>
+        <div id="activationResult"></div>
+    </div>
+
+    <div class="section">
+        <h3>3. 日志</h3>
+        <button onclick="clearLog()">清空日志</button>
+        <div id="log" class="log"></div>
+    </div>
+
+    <script>
+        // Vika配置
+        const VIKA_CONFIG = {
+            token: 'uskNUrvWvJoD3VuQ5zW7GYH',
+            baseUrl: 'https://api.vika.cn/fusion/v1/',
+            approvalDatasheetId: 'dstVZvdm5sqCs9NFY4',
+            usageDatasheetId: 'dstz67JjuBawS8Zam0',
+            fieldKey: 'name'
+        };
+
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : '';
+            logEl.innerHTML += `<div class="${className}">[${time}] ${message}</div>`;
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(message);
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        // 直接写入第二个表
+        async function testWriteSecondTable() {
+            try {
+                log('开始测试写入第二个表...');
+
+                const testCode = document.getElementById('testCodeInput').value;
+                const deviceInfo = {
+                    deviceId: 'test-device-' + Date.now(),
+                    userAgent: navigator.userAgent.slice(0, 100),
+                    timestamp: new Date().toISOString(),
+                    platform: 'test',
+                    language: 'zh-CN'
+                };
+
+                const writeData = {
+                    "codeused": testCode,
+                    "usedAt": new Date().toISOString(),
+                    "usedBy": JSON.stringify(deviceInfo),
+                    "userAgent": navigator.userAgent.slice(0, 200),
+                    "timestamp": new Date().toISOString(),
+                    "platform": deviceInfo.platform,
+                    "deviceId": deviceInfo.deviceId
+                };
+
+                const url = `${VIKA_CONFIG.baseUrl}datasheets/${VIKA_CONFIG.usageDatasheetId}/records`;
+                const requestData = {
+                    records: [{
+                        fields: writeData
+                    }]
+                };
+
+                log(`发送POST请求到: ${url}`);
+                log(`写入数据: ${JSON.stringify(writeData)}`);
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${VIKA_CONFIG.token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                const responseData = await response.json();
+                log(`响应: ${JSON.stringify(responseData)}`);
+
+                if (responseData.success) {
+                    document.getElementById('writeResult').innerHTML = '<span class="success">✅ 写入成功</span>';
+                    log('✅ 写入成功', 'success');
+                } else {
+                    document.getElementById('writeResult').innerHTML = '<span class="error">❌ 写入失败</span>';
+                    log('❌ 写入失败: ' + JSON.stringify(responseData), 'error');
+                }
+
+            } catch (error) {
+                document.getElementById('writeResult').innerHTML = '<span class="error">❌ 错误: ' + error.message + '</span>';
+                log('❌ 错误: ' + error.message, 'error');
+                console.error('写入错误:', error);
+            }
+        }
+
+        // 读取第二个表
+        async function testReadSecondTable() {
+            try {
+                log('开始测试读取第二个表...');
+
+                const url = `${VIKA_CONFIG.baseUrl}datasheets/${VIKA_CONFIG.usageDatasheetId}/records`;
+
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${VIKA_CONFIG.token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const responseData = await response.json();
+                log(`读取响应: ${JSON.stringify(responseData)}`);
+
+                if (responseData.success) {
+                    const records = responseData.data.records;
+                    log(`✅ 读取成功，共 ${records.length} 条记录`, 'success');
+
+                    records.forEach((record, index) => {
+                        log(`记录 ${index + 1}: ${JSON.stringify(record.fields)}`);
+                    });
+                } else {
+                    log('❌ 读取失败: ' + JSON.stringify(responseData), 'error');
+                }
+
+            } catch (error) {
+                log('❌ 读取错误: ' + error.message, 'error');
+                console.error('读取错误:', error);
+            }
+        }
+
+        // 完整激活流程测试
+        async function testFullActivation() {
+            try {
+                log('开始测试完整激活流程...');
+
+                const activationCode = document.getElementById('activationCodeInput').value;
+
+                // 1. 先检查激活码是否在审核表中
+                log('1. 检查激活码是否存在于审核表...');
+                const checkUrl = `${VIKA_CONFIG.baseUrl}datasheets/${VIKA_CONFIG.approvalDatasheetId}/records`;
+                const checkResponse = await fetch(checkUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${VIKA_CONFIG.token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const checkData = await checkResponse.json();
+                let codeExists = false;
+
+                if (checkData.success) {
+                    const records = checkData.data.records;
+                    for (const record of records) {
+                        const fields = record.fields;
+                        const codeFields = ['code', 'Code', 'CODE'];
+                        for (const fieldName of codeFields) {
+                            if (fields[fieldName] === activationCode) {
+                                codeExists = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (!codeExists) {
+                    document.getElementById('activationResult').innerHTML = '<span class="error">❌ 激活码不存在</span>';
+                    log('❌ 激活码不存在于审核表', 'error');
+                    return;
+                }
+
+                log('✅ 激活码存在于审核表');
+
+                // 2. 检查是否在使用记录表中
+                log('2. 检查激活码是否已在使用记录表中...');
+                const usageUrl = `${VIKA_CONFIG.baseUrl}datasheets/${VIKA_CONFIG.usageDatasheetId}/records`;
+                const usageResponse = await fetch(usageUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${VIKA_CONFIG.token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const usageData = await usageResponse.json();
+                let alreadyUsed = false;
+
+                if (usageData.success) {
+                    const records = usageData.data.records;
+                    for (const record of records) {
+                        const fields = record.fields;
+                        const codeFields = ['codeused', 'Codeused', 'CODEUSED', 'codeUsed'];
+                        for (const fieldName of codeFields) {
+                            if (fields[fieldName] === activationCode) {
+                                alreadyUsed = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (alreadyUsed) {
+                    document.getElementById('activationResult').innerHTML = '<span class="error">❌ 激活码已被使用</span>';
+                    log('❌ 激活码已被使用', 'error');
+                    return;
+                }
+
+                log('✅ 激活码未在使用记录表中');
+
+                // 3. 写入使用记录表
+                log('3. 写入使用记录表...');
+                const deviceInfo = {
+                    deviceId: 'test-device-' + Date.now(),
+                    userAgent: navigator.userAgent.slice(0, 100),
+                    timestamp: new Date().toISOString(),
+                    platform: 'test',
+                    language: 'zh-CN'
+                };
+
+                const writeData = {
+                    "codeused": activationCode,
+                    "usedAt": new Date().toISOString(),
+                    "usedBy": JSON.stringify(deviceInfo),
+                    "userAgent": navigator.userAgent.slice(0, 200),
+                    "timestamp": new Date().toISOString(),
+                    "platform": deviceInfo.platform,
+                    "deviceId": deviceInfo.deviceId
+                };
+
+                const writeUrl = `${VIKA_CONFIG.baseUrl}datasheets/${VIKA_CONFIG.usageDatasheetId}/records`;
+                const writeRequestData = {
+                    records: [{
+                        fields: writeData
+                    }]
+                };
+
+                const writeResponse = await fetch(writeUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${VIKA_CONFIG.token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(writeRequestData)
+                });
+
+                const writeResult = await writeResponse.json();
+
+                if (writeResult.success) {
+                    document.getElementById('activationResult').innerHTML = '<span class="success">✅ 激活成功</span>';
+                    log('✅ 激活成功', 'success');
+                } else {
+                    document.getElementById('activationResult').innerHTML = '<span class="error">❌ 激活失败</span>';
+                    log('❌ 激活失败: ' + JSON.stringify(writeResult), 'error');
+                }
+
+            } catch (error) {
+                document.getElementById('activationResult').innerHTML = '<span class="error">❌ 错误: ' + error.message + '</span>';
+                log('❌ 错误: ' + error.message, 'error');
+                console.error('激活错误:', error);
+            }
+        }
+    </script>
+</body>
+</html>
