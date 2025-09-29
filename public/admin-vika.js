@@ -553,38 +553,201 @@ class AdminSystem {
         if (!confirm(`确定要重置激活码 "${code}" 吗？这将允许该激活码重新使用。`)) {
             return;
         }
-        
+
         try {
-            if (this.vikaStorage && this.vikaStorage.isInitialized) {
-                const result = await this.vikaStorage.resetActivationCode(code);
-                if (result.success) {
-                    this.showNotification(`激活码 ${code} 重置成功`, 'success');
-                    await this.refreshData();
-                } else {
-                    this.showNotification(result.message || '重置失败', 'error');
-                }
-            } else {
-                // 本地模式
-                const codes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
-                if (codes[code]) {
-                    codes[code] = {
-                        ...codes[code],
-                        isUsed: false,
-                        usedAt: null,
-                        usedBy: null
-                    };
-                    
-                    localStorage.setItem('activationCodes', JSON.stringify(codes));
-                    this.showNotification(`激活码 ${code} 重置成功（本地模式）`, 'success');
-                    await this.refreshData();
-                } else {
-                    this.showNotification('激活码不存在', 'error');
-                }
-            }
-            
+            // 1. 首先尝试从使用记录表中删除该激活码记录
+            await this.deleteFromUsageTable(code);
+
+            // 2. 重置审核表中的激活码状态
+            await this.resetApprovalTableStatus(code);
+
+            // 3. 添加重置日志
+            await this.addResetLog(code);
+
+            this.showNotification(`激活码 ${code} 重置成功`, 'success');
+            await this.refreshData();
+
         } catch (error) {
             console.error('重置激活码失败:', error);
             this.showNotification('重置失败: ' + error.message, 'error');
+        }
+    }
+
+    /**
+     * 从使用记录表中删除激活码记录
+     */
+    async deleteFromUsageTable(code) {
+        const VIKA_CONFIG = {
+            token: 'uskNUrvWvJoD3VuQ5zW7GYH',
+            baseUrl: 'https://api.vika.cn/fusion/v1/',
+            usageDatasheetId: 'dstz67JjuBawS8Zam0'
+        };
+
+        try {
+            console.log(`🗑️ 从使用记录表中删除激活码 ${code}...`);
+
+            // 获取使用记录表中的所有记录
+            const response = await fetch(`${VIKA_CONFIG.baseUrl}datasheets/${VIKA_CONFIG.usageDatasheetId}/records`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${VIKA_CONFIG.token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`获取使用记录失败: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const records = data.data.records;
+
+            // 查找要删除的记录
+            let recordToDelete = null;
+            for (const record of records) {
+                const fields = record.fields;
+                const possibleCodeFields = ['codeused', 'Codeused', 'CODEUSED', 'codeUsed'];
+                for (const fieldName of possibleCodeFields) {
+                    if (fields[fieldName] === code) {
+                        recordToDelete = record;
+                        break;
+                    }
+                }
+                if (recordToDelete) break;
+            }
+
+            if (recordToDelete) {
+                // 删除找到的记录
+                const deleteResponse = await fetch(`${VIKA_CONFIG.baseUrl}datasheets/${VIKA_CONFIG.usageDatasheetId}/records`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${VIKA_CONFIG.token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        records: [recordToDelete.recordId]
+                    })
+                });
+
+                if (!deleteResponse.ok) {
+                    throw new Error(`删除使用记录失败: ${deleteResponse.status}`);
+                }
+
+                console.log('✅ 已从使用记录表中删除激活码:', code);
+            } else {
+                console.log(`⚠️ 在使用记录表中未找到激活码 ${code}`);
+            }
+
+        } catch (error) {
+            console.error('❌ 从使用记录表删除激活码失败:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * 重置审核表中的激活码状态
+     */
+    async resetApprovalTableStatus(code) {
+        const VIKA_CONFIG = {
+            token: 'uskNUrvWvJoD3VuQ5zW7GYH',
+            baseUrl: 'https://api.vika.cn/fusion/v1/',
+            approvalDatasheetId: 'dstVZvdm5sqCs9NFY4'
+        };
+
+        try {
+            console.log(`🔄 重置审核表中激活码 ${code} 的状态...`);
+
+            // 获取审核表中的记录
+            const response = await fetch(`${VIKA_CONFIG.baseUrl}datasheets/${VIKA_CONFIG.approvalDatasheetId}/records`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${VIKA_CONFIG.token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`获取审核表记录失败: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const records = data.data.records;
+
+            // 查找要重置的记录
+            let recordToUpdate = null;
+            for (const record of records) {
+                const fields = record.fields;
+                const possibleCodeFields = ['code', 'Code', 'CODE'];
+                for (const fieldName of possibleCodeFields) {
+                    if (fields[fieldName] === code) {
+                        recordToUpdate = record;
+                        break;
+                    }
+                }
+                if (recordToUpdate) break;
+            }
+
+            if (recordToUpdate) {
+                // 重置记录状态
+                const updateResponse = await fetch(`${VIKA_CONFIG.baseUrl}datasheets/${VIKA_CONFIG.approvalDatasheetId}/records`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${VIKA_CONFIG.token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        records: [{
+                            recordId: recordToUpdate.recordId,
+                            fields: {
+                                isUsed: false,
+                                usedAt: null,
+                                usedBy: null,
+                                situation: '',
+                                Situation: '',
+                                SITUATION: '',
+                                status: '',
+                                Status: '',
+                                STATUS: ''
+                            }
+                        }],
+                        fieldKey: 'name'
+                    })
+                });
+
+                if (!updateResponse.ok) {
+                    throw new Error(`重置审核表状态失败: ${updateResponse.status}`);
+                }
+
+                console.log('✅ 已重置审核表中激活码状态:', code);
+            } else {
+                console.log(`⚠️ 在审核表中未找到激活码 ${code}`);
+            }
+
+        } catch (error) {
+            console.error('❌ 重置审核表状态失败:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * 添加重置日志
+     */
+    async addResetLog(code) {
+        try {
+            const logRecord = [{
+                code: code,
+                action: 'reset',
+                timestamp: new Date().toISOString(),
+                adminAction: true
+            }];
+
+            // 如果有云存储，添加日志到云端
+            if (this.vikaStorage && this.vikaStorage.isInitialized) {
+                await this.vikaStorage.addLog(code, 'reset', null);
+            }
+
+        } catch (error) {
+            console.error('添加重置日志失败:', error);
         }
     }
     
