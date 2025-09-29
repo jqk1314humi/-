@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员功能测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .log { background: #f5f5f5; padding: 10px; height: 300px; overflow-y: auto; }
+        .error { color: red; }
+        .success { color: green; }
+        input { padding: 8px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>管理员功能测试</h1>
+
+    <div class="section">
+        <h3>1. 测试激活码管理</h3>
+        <input type="text" id="testCodeInput" placeholder="输入激活码" value="TESTADMIN1">
+        <button onclick="testResetCode()">重置激活码</button>
+        <button onclick="testDeleteCode()">删除激活码</button>
+        <button onclick="testUseCode()">使用激活码</button>
+        <div id="result"></div>
+    </div>
+
+    <div class="section">
+        <h3>2. 查看激活码状态</h3>
+        <button onclick="testGetCodes()">获取激活码列表</button>
+        <button onclick="testGetUsageRecords()">获取使用记录</button>
+        <div id="codesOutput"></div>
+    </div>
+
+    <div class="section">
+        <h3>3. 日志</h3>
+        <button onclick="clearLog()">清空日志</button>
+        <div id="log" class="log"></div>
+    </div>
+
+    <script src="cloud-storage-vika-v2.js"></script>
+    <script>
+        let vikaStorage = null;
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                vikaStorage = await waitForVikaStorage();
+                log('✅ 存储连接成功', 'success');
+            } catch (error) {
+                log('❌ 存储连接失败: ' + error.message, 'error');
+            }
+        });
+
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : '';
+            logEl.innerHTML += `<div class="${className}">[${time}] ${message}</div>`;
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(message);
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        // 测试重置激活码
+        async function testResetCode() {
+            try {
+                const code = document.getElementById('testCodeInput').value;
+                log(`开始测试重置激活码: ${code}`);
+
+                const result = await vikaStorage.resetActivationCode(code);
+                log(`重置结果: ${JSON.stringify(result)}`, result.success ? 'success' : 'error');
+
+                document.getElementById('result').innerHTML = `<div class="${result.success ? 'success' : 'error'}">${result.message}</div>`;
+
+            } catch (error) {
+                log('❌ 重置失败: ' + error.message, 'error');
+                document.getElementById('result').innerHTML = `<div class="error">重置失败: ${error.message}</div>`;
+            }
+        }
+
+        // 测试删除激活码
+        async function testDeleteCode() {
+            try {
+                const code = document.getElementById('testCodeInput').value;
+                log(`开始测试删除激活码: ${code}`);
+
+                const result = await vikaStorage.deleteActivationCode(code);
+                log(`删除结果: ${JSON.stringify(result)}`, result.success ? 'success' : 'error');
+
+                document.getElementById('result').innerHTML = `<div class="${result.success ? 'success' : 'error'}">${result.message}</div>`;
+
+            } catch (error) {
+                log('❌ 删除失败: ' + error.message, 'error');
+                document.getElementById('result').innerHTML = `<div class="error">删除失败: ${error.message}</div>`;
+            }
+        }
+
+        // 测试使用激活码
+        async function testUseCode() {
+            try {
+                const code = document.getElementById('testCodeInput').value;
+                log(`开始测试使用激活码: ${code}`);
+
+                const deviceInfo = {
+                    deviceId: 'test-device-' + Date.now(),
+                    userAgent: navigator.userAgent.slice(0, 50),
+                    timestamp: new Date().toISOString(),
+                    platform: 'test',
+                    language: 'zh-CN'
+                };
+
+                const result = await vikaStorage.useActivationCode(code, deviceInfo);
+                log(`使用结果: ${JSON.stringify(result)}`, result.success ? 'success' : 'error');
+
+                document.getElementById('result').innerHTML = `<div class="${result.success ? 'success' : 'error'}">${result.message}</div>`;
+
+            } catch (error) {
+                log('❌ 使用失败: ' + error.message, 'error');
+                document.getElementById('result').innerHTML = `<div class="error">使用失败: ${error.message}</div>`;
+            }
+        }
+
+        // 获取激活码列表
+        async function testGetCodes() {
+            try {
+                log('开始获取激活码列表...');
+
+                const codes = await vikaStorage.getActivationCodes();
+                const codesOutput = document.getElementById('codesOutput');
+                codesOutput.innerHTML = `<pre>${JSON.stringify(codes, null, 2)}</pre>`;
+
+                log(`✅ 获取成功，共 ${Object.keys(codes).length} 个激活码`, 'success');
+
+            } catch (error) {
+                log('❌ 获取激活码失败: ' + error.message, 'error');
+            }
+        }
+
+        // 获取使用记录
+        async function testGetUsageRecords() {
+            try {
+                log('开始获取使用记录...');
+
+                const records = await vikaStorage.getUsageRecords();
+                const codesOutput = document.getElementById('codesOutput');
+                codesOutput.innerHTML = `<pre>${JSON.stringify(records, null, 2)}</pre>`;
+
+                log(`✅ 获取成功，共 ${records.length} 条记录`, 'success');
+
+            } catch (error) {
+                log('❌ 获取使用记录失败: ' + error.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,10 +1,10 @@
-/* 可爱洋气的智能导员样式 v3.0 */
+/* 可爱洋气的智能导员样�?v3.0 */
 
-/* 移除Google字体引用，使用系统兼容字体 */
+/* 移除Google字体引用，使用系统兼容字�?*/
 
 /* CSS变量定义 */
 :root {
-    /* 可爱的渐变色彩 */
+    /* 可爱的渐变色�?*/
     --primary-gradient: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
     --primary-gradient-webkit: -webkit-linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
     --cute-pink: #ff9a9e;
@@ -25,7 +25,7 @@
     --text-secondary: #6b7280;
     --text-light: #9ca3af;
     
-    /* 圆角和阴影 */
+    /* 圆角和阴�?*/
     --radius-sm: 0.5rem;
     --radius-md: 1rem;
     --radius-lg: 1.5rem;
@@ -43,7 +43,7 @@
     box-sizing: border-box;
 }
 
-/* 微信浏览器兼容性修复 */
+/* 微信浏览器兼容性修�?*/
 * {
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
@@ -53,7 +53,7 @@
     user-select: none;
 }
 
-/* 微信浏览器backdrop-filter兼容性 */
+/* 微信浏览器backdrop-filter兼容�?*/
 @supports not (backdrop-filter: blur(20px)) {
     .card, .header, .chat-window {
         background: rgba(255, 255, 255, 0.95) !important;
@@ -77,7 +77,7 @@ input, textarea {
     transform: translateZ(0);
 }
 
-/* 修复微信浏览器中可能出现的动画问题 */
+/* 修复微信浏览器中可能出现的动画问�?*/
 @keyframes avatarBounce {
     0%, 100% {
         -webkit-transform: scale(1);
@@ -109,7 +109,7 @@ body {
     -webkit-overflow-scrolling: touch;
 }
 
-/* 可爱的背景装饰 */
+/* 可爱的背景装�?*/
 body::before {
     content: '';
     position: fixed;
@@ -133,7 +133,7 @@ body::before {
     50% { opacity: 0.8; }
 }
 
-/* 动态几何图案背景 */
+/* 动态几何图案背�?*/
 body::after {
     content: '';
     position: fixed;
@@ -142,7 +142,7 @@ body::after {
     width: 100%;
     height: 100%;
     background:
-        /* 三角形图案 */
+        /* 三角形图�?*/
         linear-gradient(45deg, transparent 40%, rgba(255, 107, 157, 0.05) 40%, rgba(255, 107, 157, 0.05) 60%, transparent 60%),
         linear-gradient(-45deg, transparent 40%, rgba(168, 85, 247, 0.05) 40%, rgba(168, 85, 247, 0.05) 60%, transparent 60%);
     background-size: 60px 60px, 80px 80px;
@@ -157,7 +157,7 @@ body::after {
     100% { background-position: 60px 60px, 90px 90px; }
 }
 
-/* 激活页面样式 */
+/* 激活页面样�?*/
 .activation-page {
     min-height: 100vh;
     display: flex;
@@ -173,7 +173,7 @@ body::after {
     position: relative;
 }
 
-/* 可爱的浮动装饰 */
+/* 可爱的浮动装�?*/
 .activation-container::before,
 .activation-container::after {
     content: '';
@@ -479,7 +479,7 @@ body::after {
     position: relative;
 }
 
-/* 怀抱背景 */
+/* 怀抱背�?*/
 .hugging-background {
     position: absolute;
     top: 0;
@@ -496,7 +496,7 @@ body::after {
 .hugging-character {
     width: 400px;
     height: 500px;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500"><defs><radialGradient id="skin" cx="50%" cy="30%" r="60%"><stop offset="0%" stop-color="%23fdbcb4"/><stop offset="100%" stop-color="%23f4a59c"/></radialGradient><linearGradient id="hair" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%23654321"/><stop offset="100%" stop-color="%234a3728"/></linearGradient><linearGradient id="shirt" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%23ff6b9d"/><stop offset="100%" stop-color="%23c44569"/></linearGradient></defs><circle cx="200" cy="120" r="60" fill="url(%23skin)"/><ellipse cx="200" cy="80" rx="70" ry="50" fill="url(%23hair)"/><rect x="150" y="180" width="100" height="120" rx="20" fill="url(%23shirt)"/><circle cx="170" cy="140" r="8" fill="%23000"/><circle cx="230" cy="140" r="8" fill="%23000"/><path d="M 180 160 Q 200 170 220 160" stroke="%23000" stroke-width="2" fill="none"/><ellipse cx="160" cy="200" rx="25" ry="40" fill="%23ff6b9d" opacity="0.7"/><ellipse cx="240" cy="200" rx="25" ry="40" fill="%23ff6b9d" opacity="0.7"/><text x="200" y="450" text-anchor="middle" font-family="Arial" font-size="24" fill="%23ff6b9d">🤗 抱着你</text></svg>') center/contain no-repeat;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500"><defs><radialGradient id="skin" cx="50%" cy="30%" r="60%"><stop offset="0%" stop-color="%23fdbcb4"/><stop offset="100%" stop-color="%23f4a59c"/></radialGradient><linearGradient id="hair" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%23654321"/><stop offset="100%" stop-color="%234a3728"/></linearGradient><linearGradient id="shirt" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%23ff6b9d"/><stop offset="100%" stop-color="%23c44569"/></linearGradient></defs><circle cx="200" cy="120" r="60" fill="url(%23skin)"/><ellipse cx="200" cy="80" rx="70" ry="50" fill="url(%23hair)"/><rect x="150" y="180" width="100" height="120" rx="20" fill="url(%23shirt)"/><circle cx="170" cy="140" r="8" fill="%23000"/><circle cx="230" cy="140" r="8" fill="%23000"/><path d="M 180 160 Q 200 170 220 160" stroke="%23000" stroke-width="2" fill="none"/><ellipse cx="160" cy="200" rx="25" ry="40" fill="%23ff6b9d" opacity="0.7"/><ellipse cx="240" cy="200" rx="25" ry="40" fill="%23ff6b9d" opacity="0.7"/><text x="200" y="450" text-anchor="middle" font-family="Arial" font-size="24" fill="%23ff6b9d">🤗 抱着�?/text></svg>') center/contain no-repeat;
     opacity: 0.3;
     animation: characterBreathe 4s ease-in-out infinite;
 }
@@ -579,11 +579,11 @@ body::after {
 }
 
 .card-title::before {
-    content: '✨';
+    content: '�?;
     font-size: 1.1rem;
 }
 
-/* 快速提问列表 */
+/* 快速提问列�?*/
 .question-list {
     list-style: none;
     display: flex;
@@ -637,7 +637,7 @@ body::after {
     font-size: 0.95rem;
 }
 
-/* 系统状态卡片样式 */
+/* 系统状态卡片样�?*/
 .system-status-card {
     background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
     border: 1px solid rgba(16, 185, 129, 0.2);
@@ -721,7 +721,7 @@ body::after {
     position: relative;
 }
 
-/* 聊天背景的可爱装饰 */
+/* 聊天背景的可爱装�?*/
 .chat-messages::before {
     content: '';
     position: absolute;
@@ -743,7 +743,7 @@ body::after {
     50% { opacity: 0.3; }
 }
 
-/* 隐藏滚动条 */
+/* 隐藏滚动�?*/
 .chat-messages::-webkit-scrollbar {
     width: 0px;
     display: none;
@@ -1173,7 +1173,7 @@ body::after {
     box-shadow: var(--shadow-md);
 }
 
-/* 响应式设计 - Footer */
+/* 响应式设�?- Footer */
 @media (max-width: 768px) {
     .footer {
         flex-direction: column;
@@ -1231,7 +1231,7 @@ body::after {
     background: linear-gradient(135deg, var(--cute-blue), #2563eb);
 }
 
-/* 响应式设计 */
+/* 响应式设�?*/
 @media (max-width: 1200px) {
     .main-content {
         gap: 1rem;
@@ -1335,7 +1335,7 @@ body::after {
 }
 
 .sparkle::after {
-    content: '✨';
+    content: '�?;
     position: absolute;
     top: -10px;
     right: -10px;
@@ -1363,7 +1363,7 @@ body::after {
     to { transform: rotate(360deg); }
 }
 
-/* 成功检查标记动画 */
+/* 成功检查标记动�?*/
 .checkmark {
     display: inline-block;
     width: 20px;
@@ -1404,7 +1404,7 @@ body::after {
     100% { width: 6px; }
 }
 
-/* 可爱的装饰元素 */
+/* 可爱的装饰元�?*/
 .cute-decorations {
     position: fixed;
     top: 0;
@@ -1416,7 +1416,7 @@ body::after {
     overflow: hidden;
 }
 
-/* 浮动的贴纸元素 */
+/* 浮动的贴纸元�?*/
 .sticker {
     position: absolute;
     font-size: 2rem;
@@ -1522,7 +1522,7 @@ body::after {
     }
 }
 
-/* 闪烁的星星背景 */
+/* 闪烁的星星背�?*/
 .stars {
     position: fixed;
     top: 0;
@@ -1573,7 +1573,7 @@ body::after {
     100% { background-position: 0% 50%; }
 }
 
-/* 可爱的心形装饰 */
+/* 可爱的心形装�?*/
 .heart {
     position: absolute;
     color: #ff6b9d;
@@ -1662,7 +1662,7 @@ body::after {
     }
 }
 
-/* 更多可爱的装饰元素 */
+/* 更多可爱的装饰元�?*/
 .floating-hearts {
     position: fixed;
     top: 0;
@@ -1821,7 +1821,7 @@ body::after {
     100% { transform: rotate(360deg); }
 }
 
-/* 漂浮的云朵 */
+/* 漂浮的云�?*/
 .floating-clouds {
     position: fixed;
     top: 0;
@@ -1846,7 +1846,7 @@ body::after {
     border-radius: 50px;
 }
 
-/* 为不同云朵设置不同颜色 */
+/* 为不同云朵设置不同颜�?*/
 .cloud:nth-child(1) {
     background: rgba(255, 255, 255, 0.4);
     box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
@@ -1922,7 +1922,7 @@ body::after {
 }
 
 .cloud:nth-child(4)::after {
-    content: '⭐';
+    content: '�?;
     position: absolute;
     top: 50%;
     right: 10px;
@@ -1973,607 +1973,5 @@ body::after {
     opacity: 0.8;
 }
 
-.cloud:nth-child(7) {
-    background: rgba(221, 160, 221, 0.3);
-    box-shadow: 0 0 20px rgba(221, 160, 221, 0.3);
-    position: relative;
-}
 
-.cloud:nth-child(7)::before,
-.cloud:nth-child(7)::after {
-    background: rgba(221, 160, 221, 0.3);
-}
-
-.cloud:nth-child(7)::after {
-    content: '✨';
-    position: absolute;
-    top: 50%;
-    right: 8px;
-    transform: translateY(-50%);
-    font-size: 1.1rem;
-    opacity: 0.7;
-}
-
-.cloud:nth-child(8) {
-    background: rgba(255, 218, 185, 0.3);
-    box-shadow: 0 0 20px rgba(255, 218, 185, 0.3);
-    position: relative;
-}
-
-.cloud:nth-child(8)::before,
-.cloud:nth-child(8)::after {
-    background: rgba(255, 218, 185, 0.3);
-}
-
-.cloud:nth-child(8)::after {
-    content: '🌙';
-    position: absolute;
-    top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
-    font-size: 1rem;
-    opacity: 0.8;
-}
-
-.cloud:nth-child(9) {
-    width: 95px;
-    height: 48px;
-    top: 10%;
-    left: -95px;
-    animation: cloudFloatFast 18s ease-in-out infinite;
-    animation-delay: 3s;
-}
-
-.cloud:nth-child(9)::before {
-    width: 58px;
-    height: 58px;
-    top: -29px;
-    left: 16px;
-}
-
-.cloud:nth-child(9)::after {
-    width: 68px;
-    height: 48px;
-    top: -19px;
-    right: 18px;
-}
-
-.cloud:nth-child(9) {
-    background: rgba(255, 105, 180, 0.3);
-    box-shadow: 0 0 20px rgba(255, 105, 180, 0.3);
-    position: relative;
-}
-
-.cloud:nth-child(9)::before,
-.cloud:nth-child(9)::after {
-    background: rgba(255, 105, 180, 0.3);
-}
-
-.cloud:nth-child(9)::after {
-    content: '🌺';
-    position: absolute;
-    top: 50%;
-    right: 12px;
-    transform: translateY(-50%);
-    font-size: 1.1rem;
-    opacity: 0.8;
-}
-
-.cloud:nth-child(10) {
-    width: 85px;
-    height: 42px;
-    top: 65%;
-    right: -85px;
-    animation: cloudFloatFast 20s ease-in-out infinite;
-    animation-delay: 7s;
-}
-
-.cloud:nth-child(10)::before {
-    width: 52px;
-    height: 52px;
-    top: -26px;
-    left: 14px;
-}
-
-.cloud:nth-child(10)::after {
-    width: 62px;
-    height: 42px;
-    top: -16px;
-    right: 16px;
-}
-
-.cloud:nth-child(10) {
-    background: rgba(0, 191, 255, 0.3);
-    box-shadow: 0 0 20px rgba(0, 191, 255, 0.3);
-    position: relative;
-}
-
-.cloud:nth-child(10)::before,
-.cloud:nth-child(10)::after {
-    background: rgba(0, 191, 255, 0.3);
-}
-
-.cloud:nth-child(10)::after {
-    content: '🌊';
-    position: absolute;
-    top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
-    font-size: 1rem;
-    opacity: 0.8;
-}
-
-.cloud:nth-child(11) {
-    width: 75px;
-    height: 38px;
-    top: 35%;
-    left: -75px;
-    animation: cloudFloatFast 22s ease-in-out infinite;
-    animation-delay: 11s;
-}
-
-.cloud:nth-child(11)::before {
-    width: 48px;
-    height: 48px;
-    top: -24px;
-    left: 10px;
-}
-
-.cloud:nth-child(11)::after {
-    width: 58px;
-    height: 38px;
-    top: -14px;
-    right: 14px;
-}
-
-.cloud:nth-child(11) {
-    background: rgba(50, 205, 50, 0.3);
-    box-shadow: 0 0 20px rgba(50, 205, 50, 0.3);
-    position: relative;
-}
-
-.cloud:nth-child(11)::before,
-.cloud:nth-child(11)::after {
-    background: rgba(50, 205, 50, 0.3);
-}
-
-.cloud:nth-child(11)::after {
-    content: '🍀';
-    position: absolute;
-    top: 50%;
-    right: 8px;
-    transform: translateY(-50%);
-    font-size: 1.1rem;
-    opacity: 0.8;
-}
-
-.cloud:nth-child(12) {
-    width: 90px;
-    height: 45px;
-    top: 85%;
-    right: -90px;
-    animation: cloudFloatFast 19s ease-in-out infinite;
-    animation-delay: 14s;
-}
-
-.cloud:nth-child(12)::before {
-    width: 55px;
-    height: 55px;
-    top: -28px;
-    left: 12px;
-}
-
-.cloud:nth-child(12)::after {
-    width: 65px;
-    height: 45px;
-    top: -18px;
-    right: 18px;
-}
-
-.cloud:nth-child(12) {
-    background: rgba(255, 69, 0, 0.3);
-    box-shadow: 0 0 20px rgba(255, 69, 0, 0.3);
-    position: relative;
-}
-
-.cloud:nth-child(12)::before,
-.cloud:nth-child(12)::after {
-    background: rgba(255, 69, 0, 0.3);
-}
-
-.cloud:nth-child(12)::after {
-    content: '🔥';
-    position: absolute;
-    top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
-    font-size: 1rem;
-    opacity: 0.8;
-}
-
-.cloud:nth-child(13) {
-    width: 70px;
-    height: 35px;
-    top: 20%;
-    left: -70px;
-    animation: cloudFloatFast 24s ease-in-out infinite;
-    animation-delay: 1s;
-}
-
-.cloud:nth-child(13)::before {
-    width: 45px;
-    height: 45px;
-    top: -22px;
-    left: 8px;
-}
-
-.cloud:nth-child(13)::after {
-    width: 55px;
-    height: 35px;
-    top: -12px;
-    right: 12px;
-}
-
-.cloud:nth-child(13) {
-    background: rgba(138, 43, 226, 0.3);
-    box-shadow: 0 0 20px rgba(138, 43, 226, 0.3);
-    position: relative;
-}
-
-.cloud:nth-child(13)::before,
-.cloud:nth-child(13)::after {
-    background: rgba(138, 43, 226, 0.3);
-}
-
-.cloud:nth-child(13)::after {
-    content: '💜';
-    position: absolute;
-    top: 50%;
-    right: 8px;
-    transform: translateY(-50%);
-    font-size: 1.1rem;
-    opacity: 0.8;
-}
-
-.cloud:nth-child(14) {
-    width: 80px;
-    height: 40px;
-    top: 55%;
-    right: -80px;
-    animation: cloudFloatFast 17s ease-in-out infinite;
-    animation-delay: 9s;
-}
-
-.cloud:nth-child(14)::before {
-    width: 50px;
-    height: 50px;
-    top: -25px;
-    left: 10px;
-}
-
-.cloud:nth-child(14)::after {
-    width: 60px;
-    height: 40px;
-    top: -15px;
-    right: 15px;
-}
-
-.cloud:nth-child(14) {
-    background: rgba(255, 215, 0, 0.3);
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
-    position: relative;
-}
-
-.cloud:nth-child(14)::before,
-.cloud:nth-child(14)::after {
-    background: rgba(255, 215, 0, 0.3);
-}
-
-.cloud:nth-child(14)::after {
-    content: '👑';
-    position: absolute;
-    top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
-    font-size: 1rem;
-    opacity: 0.8;
-}
-
-.cloud:nth-child(15) {
-    width: 88px;
-    height: 44px;
-    top: 75%;
-    left: -88px;
-    animation: cloudFloatFast 21s ease-in-out infinite;
-    animation-delay: 13s;
-}
-
-.cloud:nth-child(15)::before {
-    width: 54px;
-    height: 54px;
-    top: -27px;
-    left: 13px;
-}
-
-.cloud:nth-child(15)::after {
-    width: 64px;
-    height: 44px;
-    top: -17px;
-    right: 17px;
-}
-
-.cloud:nth-child(15) {
-    background: rgba(220, 20, 60, 0.3);
-    box-shadow: 0 0 20px rgba(220, 20, 60, 0.3);
-    position: relative;
-}
-
-.cloud:nth-child(15)::before,
-.cloud:nth-child(15)::after {
-    background: rgba(220, 20, 60, 0.3);
-}
-
-.cloud:nth-child(15)::after {
-    content: '🌹';
-    position: absolute;
-    top: 50%;
-    right: 11px;
-    transform: translateY(-50%);
-    font-size: 1rem;
-    opacity: 0.8;
-}
-
-.cloud:nth-child(16) {
-    width: 78px;
-    height: 39px;
-    top: 45%;
-    right: -78px;
-    animation: cloudFloatFast 23s ease-in-out infinite;
-    animation-delay: 16s;
-}
-
-.cloud:nth-child(16)::before {
-    width: 49px;
-    height: 49px;
-    top: -25px;
-    left: 11px;
-}
-
-.cloud:nth-child(16)::after {
-    width: 59px;
-    height: 39px;
-    top: -15px;
-    right: 15px;
-}
-
-.cloud:nth-child(16) {
-    background: rgba(64, 224, 208, 0.3);
-    box-shadow: 0 0 20px rgba(64, 224, 208, 0.3);
-    position: relative;
-}
-
-.cloud:nth-child(16)::before,
-.cloud:nth-child(16)::after {
-    background: rgba(64, 224, 208, 0.3);
-}
-
-.cloud:nth-child(16)::after {
-    content: '🦋';
-    position: absolute;
-    top: 50%;
-    right: 9px;
-    transform: translateY(-50%);
-    font-size: 1.1rem;
-    opacity: 0.8;
-}
-
-.cloud:nth-child(1) {
-    width: 80px;
-    height: 40px;
-    top: 15%;
-    left: -80px;
-    animation-delay: 0s;
-}
-
-.cloud:nth-child(1)::before {
-    width: 50px;
-    height: 50px;
-    top: -25px;
-    left: 10px;
-}
-
-.cloud:nth-child(1)::after {
-    width: 60px;
-    height: 40px;
-    top: -15px;
-    right: 15px;
-}
-
-.cloud:nth-child(2) {
-    width: 60px;
-    height: 30px;
-    top: 35%;
-    right: -60px;
-    animation-delay: 8s;
-}
-
-.cloud:nth-child(2)::before {
-    width: 40px;
-    height: 40px;
-    top: -20px;
-    left: 5px;
-}
-
-.cloud:nth-child(2)::after {
-    width: 50px;
-    height: 30px;
-    top: -10px;
-    right: 10px;
-}
-
-.cloud:nth-child(3) {
-    width: 100px;
-    height: 50px;
-    top: 5%;
-    left: -100px;
-    animation-delay: 15s;
-}
-
-.cloud:nth-child(3)::before {
-    width: 60px;
-    height: 60px;
-    top: -30px;
-    left: 15px;
-}
-
-.cloud:nth-child(3)::after {
-    width: 70px;
-    height: 50px;
-    top: -20px;
-    right: 20px;
-}
-
-.cloud:nth-child(4) {
-    width: 70px;
-    height: 35px;
-    top: 50%;
-    right: -70px;
-    animation-delay: 5s;
-}
-
-.cloud:nth-child(4)::before {
-    width: 45px;
-    height: 45px;
-    top: -22px;
-    left: 8px;
-}
-
-.cloud:nth-child(4)::after {
-    width: 55px;
-    height: 35px;
-    top: -12px;
-    right: 12px;
-}
-
-.cloud:nth-child(5) {
-    width: 90px;
-    height: 45px;
-    top: 25%;
-    left: -90px;
-    animation-delay: 20s;
-}
-
-.cloud:nth-child(5)::before {
-    width: 55px;
-    height: 55px;
-    top: -28px;
-    left: 12px;
-}
-
-.cloud:nth-child(5)::after {
-    width: 65px;
-    height: 45px;
-    top: -18px;
-    right: 18px;
-}
-
-.cloud:nth-child(6) {
-    width: 65px;
-    height: 32px;
-    top: 70%;
-    right: -65px;
-    animation-delay: 12s;
-}
-
-.cloud:nth-child(6)::before {
-    width: 42px;
-    height: 42px;
-    top: -21px;
-    left: 6px;
-}
-
-.cloud:nth-child(6)::after {
-    width: 52px;
-    height: 32px;
-    top: -11px;
-    right: 11px;
-}
-
-.cloud:nth-child(7) {
-    width: 85px;
-    height: 42px;
-    top: 40%;
-    left: -85px;
-    animation-delay: 25s;
-}
-
-.cloud:nth-child(7)::before {
-    width: 52px;
-    height: 52px;
-    top: -26px;
-    left: 14px;
-}
-
-.cloud:nth-child(7)::after {
-    width: 62px;
-    height: 42px;
-    top: -16px;
-    right: 16px;
-}
-
-.cloud:nth-child(8) {
-    width: 75px;
-    height: 38px;
-    top: 80%;
-    right: -75px;
-    animation-delay: 18s;
-}
-
-.cloud:nth-child(8)::before {
-    width: 48px;
-    height: 48px;
-    top: -24px;
-    left: 10px;
-}
-
-.cloud:nth-child(8)::after {
-    width: 58px;
-    height: 38px;
-    top: -14px;
-    right: 14px;
-}
-
-@keyframes cloudFloat {
-    0% {
-        transform: translateX(-100px);
-        opacity: 0;
-    }
-    15% {
-        opacity: 0.7;
-    }
-    85% {
-        opacity: 0.7;
-    }
-    100% {
-        transform: translateX(calc(100vw + 100px));
-        opacity: 0;
-    }
-}
-
-/* 快速云朵动画 */
-@keyframes cloudFloatFast {
-    0% {
-        transform: translateX(-80px);
-        opacity: 0;
-    }
-    20% {
-        opacity: 0.8;
-    }
-    80% {
-        opacity: 0.8;
-    }
-    100% {
-        transform: translateX(calc(100vw + 80px));
-        opacity: 0;
-    }
-}
+/* 由于只保�?个云朵，以下样式被删除以优化性能 */

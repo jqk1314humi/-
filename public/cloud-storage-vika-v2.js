@@ -289,51 +289,80 @@ class VikaCloudStorage {
         }
 
         try {
-            console.log('🔍 从维格表获取激活码数据...');
-            
-            // 不使用过滤公式，获取所有记录
-            const records = await this.getRecords();
-            console.log('📊 获取到记录数量:', records.length);
-            
+            console.log('🔍 从维格表获取激活码数据（双表系统）...');
+
+            // 1. 获取审核表的激活码
+            const approvalRecords = await this.getRecords();
+            console.log('📊 审核表获取到记录数量:', approvalRecords.length);
+
+            // 2. 获取使用记录表的已使用激活码
+            const usedCodes = new Set();
+            try {
+                const usageRecords = await this.getUsageRecords();
+                console.log('📊 使用记录表获取到记录数量:', usageRecords.length);
+
+                usageRecords.forEach((record) => {
+                    const fields = record.fields;
+                    // 使用记录表使用的列名是codeused
+                    const possibleCodeFields = ['codeused', 'Codeused', 'CODEUSED', 'codeUsed'];
+                    for (const fieldName of possibleCodeFields) {
+                        if (fields[fieldName] && typeof fields[fieldName] === 'string') {
+                            if (/^[A-Za-z0-9]{6,}$/.test(fields[fieldName])) {
+                                usedCodes.add(fields[fieldName]);
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.log('⚠️ 获取使用记录表失败，继续使用审核表数据:', error.message);
+            }
+
+            console.log('📋 已使用激活码列表:', Array.from(usedCodes));
+
             const codes = {};
-            
-            records.forEach((record, index) => {
+
+            // 3. 处理审核表的激活码
+            approvalRecords.forEach((record, index) => {
                 const fields = record.fields;
-                
+
                 // 只在前5条记录显示详细信息，避免日志过多
                 if (index < 5) {
-                    console.log(`记录${index + 1}:`, fields);
+                    console.log(`审核表记录${index + 1}:`, fields);
                 }
-                
+
                 // 尝试多种可能的字段名来查找激活码
                 let codeValue = null;
                 let foundFieldName = null;
                 const possibleCodeFields = ['code', 'Code', 'CODE', 'activationCode', 'activation_code'];
-                
+
                 for (const fieldName of possibleCodeFields) {
                     if (fields[fieldName] && typeof fields[fieldName] === 'string') {
                         // 检查是否像激活码（字母数字组合，长度大于6）
                         if (/^[A-Za-z0-9]{6,}$/.test(fields[fieldName])) {
                             codeValue = fields[fieldName];
                             foundFieldName = fieldName;
-                            console.log(`✅ 在字段"${fieldName}"中找到激活码:`, codeValue);
+                            console.log(`✅ 在审核表字段"${fieldName}"中找到激活码:`, codeValue);
                             break;
                         }
                     }
                 }
-                
+
                 if (codeValue) {
+                    // 检查是否在使用记录表中（已使用）
+                    const isUsedInUsageTable = usedCodes.has(codeValue);
+
                     codes[codeValue] = {
-                        isUsed: this.parseBoolean(fields.isUsed || fields.IsUsed || fields.used || fields.Used) || false,
+                        isUsed: this.parseBoolean(fields.isUsed || fields.IsUsed || fields.used || fields.Used) || isUsedInUsageTable,
                         usedAt: fields.usedAt || fields.UsedAt || fields.used_at || null,
                         usedBy: this.parseJSON(fields.usedBy || fields.UsedBy || fields.used_by) || null,
                         situation: fields.situation || fields.Situation || fields.SITUATION ||
-                                  fields.status || fields.Status || fields.STATUS || '',  // 读取多种situation字段
+                                  fields.status || fields.Status || fields.STATUS || (isUsedInUsageTable ? '1' : ''),  // 读取多种situation字段
                         createdAt: fields.createdAt || fields.CreatedAt || fields.created_at || new Date().toISOString(),
                         recordId: record.recordId,
-                        sourceField: foundFieldName // 记录来源字段名
+                        sourceField: foundFieldName, // 记录来源字段名
+                        usedInUsageTable: isUsedInUsageTable // 标记是否在使用记录表中找到
                     };
-                    
+
                     // 只显示前几个激活码的详细信息
                     if (Object.keys(codes).length <= 5) {
                         console.log(`📝 激活码 ${codeValue} 数据:`, codes[codeValue]);
@@ -341,20 +370,26 @@ class VikaCloudStorage {
                 } else {
                     // 如果没找到激活码，记录一下（只显示前几条）
                     if (index < 3) {
-                        console.log(`⚠️ 记录${index + 1}中未找到有效的激活码字段`);
+                        console.log(`⚠️ 审核表记录${index + 1}中未找到有效的激活码字段`);
                     }
                 }
             });
-            
-            console.log('🎯 解析完成，激活码总数:', Object.keys(codes).length);
+
+            console.log('🎯 双表解析完成，激活码总数:', Object.keys(codes).length);
             console.log('📋 激活码列表:', Object.keys(codes));
-            
+            console.log('📊 统计:', {
+                total: Object.keys(codes).length,
+                used: Object.values(codes).filter(c => c.isUsed).length,
+                unused: Object.values(codes).filter(c => !c.isUsed).length,
+                usedInUsageTable: Object.values(codes).filter(c => c.usedInUsageTable).length
+            });
+
             // 更新缓存
             this.cache.codes = codes;
             this.saveToLocalStorage('activationCodes', codes);
-            
+
             return codes;
-            
+
         } catch (error) {
             console.error('❌ 获取激活码失败:', error);
             return this.getLocalActivationCodes();
@@ -635,35 +670,44 @@ class VikaCloudStorage {
         try {
             const codes = await this.getActivationCodes();
             const codeInfo = codes[code];
-            
+
             if (!codeInfo) {
                 throw new Error('激活码不存在');
             }
 
-            // 1. 从使用记录表中删除该激活码记录
-            await this.deleteFromUsageTable(code);
+            // 1. 从使用记录表中删除该激活码记录（如果存在）
+            try {
+                await this.deleteFromUsageTable(code);
+                console.log('✅ 从使用记录表中删除激活码成功');
+            } catch (error) {
+                console.log('⚠️ 从使用记录表中删除激活码失败，继续重置审核表:', error.message);
+            }
 
             // 2. 重置审核维格表中的激活码状态
-            const updateData = [{
-                recordId: codeInfo.recordId,
-                fields: {
-                    isUsed: false,
-                    usedAt: null,
-                    usedBy: null,
-                    situation: '',  // 重置时将situation设为空
-                    Situation: '',  // 尝试多种字段名
-                    SITUATION: '',
-                    status: '',
-                    Status: '',
-                    STATUS: ''
-                }
-            }];
+            const updateData = {
+                records: [{
+                    recordId: codeInfo.recordId,
+                    fields: {
+                        isUsed: false,
+                        usedAt: null,
+                        usedBy: null,
+                        situation: '',  // 重置时将situation设为空
+                        Situation: '',  // 尝试多种字段名
+                        SITUATION: '',
+                        status: '',
+                        Status: '',
+                        STATUS: ''
+                    }
+                }],
+                fieldKey: this.VIKA_CONFIG.fieldKey
+            };
 
-            await this.updateRecords(updateData);
-            
+            const response = await this.makeVikaRequest('PATCH', '', updateData);
+            console.log('✅ 审核表重置响应:', response);
+
             // 添加重置日志
             await this.addLog(code, 'reset', null);
-            
+
             // 更新本地缓存
             codes[code] = {
                 ...codeInfo,
@@ -672,11 +716,11 @@ class VikaCloudStorage {
                 usedBy: null,
                 situation: ''  // 本地缓存也重置situation为空
             };
-            
+
             this.saveToLocalStorage('activationCodes', codes);
-            
+
             return { success: true, message: '重置成功' };
-            
+
         } catch (error) {
             console.error('重置激活码失败:', error);
             return this.resetActivationCodeLocal(code);
@@ -694,23 +738,32 @@ class VikaCloudStorage {
         try {
             const codes = await this.getActivationCodes();
             const codeInfo = codes[code];
-            
+
             if (!codeInfo) {
                 throw new Error('激活码不存在');
             }
 
-            // 删除记录
-            await this.deleteRecords([codeInfo.recordId]);
-            
+            // 1. 从使用记录表中删除该激活码记录（如果存在）
+            try {
+                await this.deleteFromUsageTable(code);
+                console.log('✅ 从使用记录表中删除激活码成功');
+            } catch (error) {
+                console.log('⚠️ 从使用记录表中删除激活码失败，继续删除审核表:', error.message);
+            }
+
+            // 2. 从审核表中删除激活码记录
+            const deleteResponse = await this.deleteRecords([codeInfo.recordId]);
+            console.log('✅ 审核表删除响应:', deleteResponse);
+
             // 添加删除日志
             await this.addLog(code, 'deleted', null);
-            
+
             // 更新本地缓存
             delete codes[code];
             this.saveToLocalStorage('activationCodes', codes);
-            
+
             return { success: true, message: '删除成功' };
-            
+
         } catch (error) {
             console.error('删除激活码失败:', error);
             return this.deleteActivationCodeLocal(code);

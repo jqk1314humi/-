@@ -274,15 +274,11 @@ class AdminSystem {
      */
     displayStats() {
         const stats = this.currentData.stats;
-        
-        // 更新统计卡片
+
+        // 更新统计信息
         this.updateElement('totalCodes', stats.total);
         this.updateElement('usedCodes', stats.used);
-        this.updateElement('unusedCodes', stats.unused);
-        
-        // 更新使用率
-        const usageRate = stats.total > 0 ? ((stats.used / stats.total) * 100).toFixed(1) : 0;
-        this.updateElement('usageRate', usageRate + '%');
+        this.updateElement('availableCodes', stats.unused);
     }
     
     /**
