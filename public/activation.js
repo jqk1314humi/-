@@ -55,11 +55,39 @@ class ActivationSystem {
     }
     
     /**
-     * 生成设备指纹 - 简化为固定值，允许跨设备使用
+     * 生成设备指纹 - 使用真实的设备信息生成唯一指纹
      */
     generateDeviceFingerprint() {
-        // 简化为固定设备ID，允许激活码在任何设备上使用
-        return 'universal-device';
+        // 使用云存储系统生成设备指纹
+        if (this.cloudStorage && this.cloudStorage.generateDeviceFingerprint) {
+            return this.cloudStorage.generateDeviceFingerprint();
+        }
+
+        // 备用方法：使用浏览器指纹
+        const fingerprint = {
+            userAgent: navigator.userAgent,
+            language: navigator.language,
+            platform: navigator.platform,
+            screenResolution: `${screen.width}x${screen.height}`,
+            colorDepth: screen.colorDepth,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            cookieEnabled: navigator.cookieEnabled,
+            onlineStatus: navigator.onLine,
+            hardwareConcurrency: navigator.hardwareConcurrency || 'unknown',
+            deviceMemory: navigator.deviceMemory || 'unknown',
+            timestamp: Date.now()
+        };
+
+        // 生成哈希值作为设备指纹
+        const fingerprintString = JSON.stringify(fingerprint);
+        let hash = 0;
+        for (let i = 0; i < fingerprintString.length; i++) {
+            const char = fingerprintString.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // 转换为32位整数
+        }
+
+        return Math.abs(hash).toString(36);
     }
     
     /**
@@ -192,32 +220,48 @@ class ActivationSystem {
             }
             
             console.log('验证现有激活状态:', currentActivation);
-            
+
             // 如果是开发者激活码，允许继续使用
             if (currentActivation.code === this.DEVELOPER_CODE) {
                 console.log('开发者激活码验证通过');
                 this.redirectToApp();
                 return;
             }
-            
+
             // 验证普通激活码
-            const codes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
+            let codes;
+            if (this.cloudStorage) {
+                codes = await this.cloudStorage.getActivationCodes();
+            } else {
+                codes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
+            }
             const codeData = codes[currentActivation.code];
-            
+
             if (!codeData) {
                 console.warn('激活码不存在，清除激活状态');
                 this.clearActivationStatus();
                 return;
             }
-            
+
             if (!codeData.used) {
                 console.warn('激活码未被标记为已使用，清除激活状态');
                 this.clearActivationStatus();
                 return;
             }
-            
-            // 设备指纹验证已移除，允许跨设备使用
-            
+
+            // 检查设备指纹是否匹配（如果是新设备，需要重新激活）
+            const currentDeviceFingerprint = this.generateDeviceFingerprint();
+            if (codeData.deviceFingerprint && codeData.deviceFingerprint !== currentDeviceFingerprint) {
+                // 检查是否在维格表中有记录（允许已记录设备指纹的重复激活）
+                const deviceFingerprintExists = await this.checkDeviceFingerprintInVika(currentActivation.code, currentDeviceFingerprint);
+
+                if (!deviceFingerprintExists) {
+                    console.warn('设备指纹不匹配，且维格表中无记录，清除激活状态');
+                    this.clearActivationStatus();
+                    return;
+                }
+            }
+
             console.log('激活状态验证通过');
             this.redirectToApp();
             
@@ -386,11 +430,25 @@ class ActivationSystem {
             
             if (codeData.used) {
                 const usedTime = new Date(codeData.usedAt).toLocaleString('zh-CN');
-                const deviceInfo = codeData.deviceFingerprint ? 
+                const deviceInfo = codeData.deviceFingerprint ?
                     `设备ID: ${codeData.deviceFingerprint}` : '未知设备';
-                
-                // 检查是否是同一设备
-                if (codeData.deviceFingerprint === this.deviceFingerprint) {
+
+                // 生成当前设备的指纹
+                const currentDeviceFingerprint = this.generateDeviceFingerprint();
+
+                // 检查设备指纹是否在维格表中（允许已记录设备指纹的重复激活）
+                const deviceFingerprintExists = await this.checkDeviceFingerprintInVika(code, currentDeviceFingerprint);
+
+                if (deviceFingerprintExists) {
+                    console.log('✅ 检测到已记录的设备指纹，允许重复激活');
+                    return {
+                        success: true,
+                        message: '设备指纹验证通过，允许重复激活'
+                    };
+                }
+
+                // 检查是否是同一设备（基于本地缓存）
+                if (codeData.deviceFingerprint === currentDeviceFingerprint) {
                     return {
                         success: false,
                         message: `该激活码已在当前设备激活\\n激活时间: ${usedTime}\\n如需重新激活，请联系管理员重置`
@@ -432,27 +490,42 @@ class ActivationSystem {
     async performActivation(code) {
         try {
             console.log('执行激活:', code);
-            
+
+            // 生成设备指纹
+            const deviceFingerprint = this.generateDeviceFingerprint();
+            console.log('设备指纹:', deviceFingerprint);
+
             // 如果是普通激活码，标记为已使用
             if (code !== this.DEVELOPER_CODE) {
                 await this.markCodeAsUsed(code);
             }
-            
+
+            // 保存设备指纹到维格表
+            if (this.cloudStorage && this.cloudStorage.saveDeviceFingerprint) {
+                try {
+                    await this.cloudStorage.saveDeviceFingerprint(code, deviceFingerprint);
+                    console.log('✅ 设备指纹已保存到维格表');
+                } catch (error) {
+                    console.warn('⚠️ 保存设备指纹到维格表失败:', error);
+                }
+            }
+
             // 设置当前激活状态
             const activationData = {
                 activated: true,
                 code: code,
                 activatedAt: Date.now(),
+                deviceFingerprint: deviceFingerprint,
                 version: '3.0'
             };
-            
+
             localStorage.setItem('currentActivation', JSON.stringify(activationData));
-            
+
             // 记录激活日志
             this.logActivation(code);
-            
+
             console.log('激活完成');
-            
+
         } catch (error) {
             console.error('激活执行失败:', error);
             throw error;
@@ -460,21 +533,40 @@ class ActivationSystem {
     }
     
     /**
+     * 检查设备指纹是否在维格表中
+     */
+    async checkDeviceFingerprintInVika(activationCode, deviceFingerprint) {
+        try {
+            if (this.cloudStorage && this.cloudStorage.checkDeviceFingerprintExists) {
+                return await this.cloudStorage.checkDeviceFingerprintExists(activationCode, deviceFingerprint);
+            }
+            return false;
+        } catch (error) {
+            console.error('检查设备指纹失败:', error);
+            return false;
+        }
+    }
+
+    /**
      * 标记激活码为已使用
      */
     async markCodeAsUsed(code) {
         try {
+            // 生成设备指纹
+            const deviceFingerprint = this.generateDeviceFingerprint();
+
             // 如果有云存储，使用云存储的原子操作
             if (this.cloudStorage) {
                 const deviceInfo = {
-                    ...this.getClientInfo()
+                    ...this.getClientInfo(),
+                    deviceFingerprint: deviceFingerprint
                 };
-                
+
                 const success = await this.cloudStorage.useActivationCode(code, deviceInfo);
                 if (!success) {
                     throw new Error('云端激活码使用失败');
                 }
-                
+
                 console.log('激活码已在云端标记为已使用:', code);
                 return;
             }
@@ -482,21 +574,22 @@ class ActivationSystem {
             // 降级到本地存储
             const codes = JSON.parse(localStorage.getItem('activationCodes') || '{}');
             const codeData = codes[code];
-            
+
             if (!codeData) {
                 throw new Error('激活码不存在');
             }
-            
+
             if (codeData.used) {
                 throw new Error('激活码已被使用');
             }
-            
+
             // 更新激活码状态
             codes[code] = {
                 ...codeData,
                 used: true,
                 usedAt: Date.now(),
                 usedBy: this.getClientInfo(),
+                deviceFingerprint: deviceFingerprint,
                 status: 'used',
                 version: '4.0'
             };

@@ -315,12 +315,31 @@ class ActivationSystem {
             // 同时检查isUsed和situation字段
             const isUsed = codeInfo.isUsed || (codeInfo.situation === 1);
 
-            // 检查是否已被使用（移除设备绑定限制）
+            // 检查是否已被使用（基于设备指纹的重复激活）
             if (isUsed) {
-                return {
-                    success: false,
-                    message: '该激活码已被使用'
-                };
+                // 生成当前设备的指纹
+                const currentDeviceFingerprint = this.generateDeviceFingerprint();
+
+                // 检查设备指纹是否在维格表中（允许已记录设备指纹的重复激活）
+                const deviceFingerprintExists = await this.checkDeviceFingerprintInVika(code, currentDeviceFingerprint);
+
+                if (deviceFingerprintExists) {
+                    console.log('✅ 检测到已记录的设备指纹，允许重复激活');
+                    return { success: true, message: '设备指纹验证通过，允许重复激活' };
+                }
+
+                // 检查是否是同一设备（基于本地缓存）
+                if (codeInfo.deviceFingerprint === currentDeviceFingerprint) {
+                    return {
+                        success: false,
+                        message: '该激活码已在当前设备激活，如需重新激活，请联系管理员重置'
+                    };
+                } else {
+                    return {
+                        success: false,
+                        message: '该激活码已被其他设备使用'
+                    };
+                }
             }
             
             // 激活码可用，标记为已使用
@@ -346,6 +365,21 @@ class ActivationSystem {
     }
     
     /**
+     * 检查设备指纹是否在维格表中
+     */
+    async checkDeviceFingerprintInVika(activationCode, deviceFingerprint) {
+        try {
+            if (this.vikaStorage && this.vikaStorage.checkDeviceFingerprintExists) {
+                return await this.vikaStorage.checkDeviceFingerprintExists(activationCode, deviceFingerprint);
+            }
+            return false;
+        } catch (error) {
+            console.error('检查设备指纹失败:', error);
+            return false;
+        }
+    }
+
+    /**
      * 处理开发者激活码
      */
     async handleDeveloperCode() {
@@ -366,12 +400,34 @@ class ActivationSystem {
      */
     async markCodeAsUsed(code, deviceInfo) {
         try {
+            // 生成设备指纹
+            const deviceFingerprint = this.generateDeviceFingerprint();
+            console.log('设备指纹:', deviceFingerprint);
+
+            // 添加设备指纹到设备信息
+            const enhancedDeviceInfo = {
+                ...deviceInfo,
+                deviceFingerprint: deviceFingerprint
+            };
+
             if (this.vikaStorage && this.vikaStorage.isInitialized) {
                 // 使用维格表云存储
-                return await this.vikaStorage.useActivationCode(code, deviceInfo);
+                const result = await this.vikaStorage.useActivationCode(code, enhancedDeviceInfo);
+
+                // 保存设备指纹到维格表
+                if (result.success && this.vikaStorage.saveDeviceFingerprint) {
+                    try {
+                        await this.vikaStorage.saveDeviceFingerprint(code, deviceFingerprint);
+                        console.log('✅ 设备指纹已保存到维格表');
+                    } catch (error) {
+                        console.warn('⚠️ 保存设备指纹到维格表失败:', error);
+                    }
+                }
+
+                return result;
             } else {
                 // 使用本地存储
-                return await this.markCodeAsUsedLocal(code, deviceInfo);
+                return await this.markCodeAsUsedLocal(code, enhancedDeviceInfo);
             }
         } catch (error) {
             console.error('标记激活码为已使用失败:', error);
@@ -398,7 +454,8 @@ class ActivationSystem {
                 ...codes[code],
                 isUsed: true,
                 usedAt: new Date().toISOString(),
-                usedBy: deviceInfo
+                usedBy: deviceInfo,
+                deviceFingerprint: deviceInfo.deviceFingerprint
             };
             
             localStorage.setItem('activationCodes', JSON.stringify(codes));
@@ -443,11 +500,39 @@ class ActivationSystem {
     }
     
     /**
-     * 生成设备指纹
+     * 生成设备指纹 - 使用真实的设备信息生成唯一指纹
      */
     generateDeviceFingerprint() {
-        // 简化为固定设备ID，允许激活码在任何设备上使用
-        return 'universal-device';
+        // 使用维格表存储系统生成设备指纹
+        if (this.vikaStorage && this.vikaStorage.generateDeviceFingerprint) {
+            return this.vikaStorage.generateDeviceFingerprint();
+        }
+
+        // 备用方法：使用浏览器指纹
+        const fingerprint = {
+            userAgent: navigator.userAgent,
+            language: navigator.language,
+            platform: navigator.platform,
+            screenResolution: `${screen.width}x${screen.height}`,
+            colorDepth: screen.colorDepth,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            cookieEnabled: navigator.cookieEnabled,
+            onlineStatus: navigator.onLine,
+            hardwareConcurrency: navigator.hardwareConcurrency || 'unknown',
+            deviceMemory: navigator.deviceMemory || 'unknown',
+            timestamp: Date.now()
+        };
+
+        // 生成哈希值作为设备指纹
+        const fingerprintString = JSON.stringify(fingerprint);
+        let hash = 0;
+        for (let i = 0; i < fingerprintString.length; i++) {
+            const char = fingerprintString.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // 转换为32位整数
+        }
+
+        return Math.abs(hash).toString(36);
     }
     
     /**
