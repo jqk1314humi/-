@@ -11,9 +11,9 @@ class VikaCloudStorage {
         this.VIKA_CONFIG = {
             token: "uskNUrvWvJoD3VuQ5zW7GYH",
             baseUrl: "https://api.vika.cn/fusion/v1/",
-            // 激活码审核维格表（原始激活码存储）
+            // 激活码审核维格表（原始激活码 stores） - 使用'code'列名
             approvalDatasheetId: "dstVZvdm5sqCs9NFY4",
-            // 激活码使用记录维格表（记录已使用的激活码）
+            // 激活码使用记录维格表（记录已使用的激活码） - 使用'codeused'列名
             usageDatasheetId: "dstz67JjuBawS8Zam0",
             fieldKey: "name" // 使用字段名而不是字段ID
         };
@@ -1190,7 +1190,8 @@ Object.assign(VikaCloudStorage.prototype, {
             
             for (const record of usageRecords) {
                 const fields = record.fields;
-                const possibleCodeFields = ['code', 'Code', 'CODE', 'activationCode', 'activation_code'];
+                // 使用记录表使用的列名是codeused
+                const possibleCodeFields = ['codeused', 'Codeused', 'CODEUSED', 'codeUsed'];
                 
                 for (const fieldName of possibleCodeFields) {
                     if (fields[fieldName] && typeof fields[fieldName] === 'string') {
@@ -1228,7 +1229,7 @@ Object.assign(VikaCloudStorage.prototype, {
 
             const writeResponse = await usageDatasheet.records.create([{
                 fields: {
-                    "code": code,
+                    "codeused": code,  // 使用记录表使用的列名是codeused
                     "usedAt": new Date().toISOString(),
                     "usedBy": JSON.stringify(deviceInfo),
                     "userAgent": navigator.userAgent,
@@ -1262,7 +1263,8 @@ Object.assign(VikaCloudStorage.prototype, {
             // 查找要删除的记录
             for (const record of usageRecords) {
                 const fields = record.fields;
-                const possibleCodeFields = ['code', 'Code', 'CODE', 'activationCode', 'activation_code'];
+                // 使用记录表使用的列名是codeused
+                const possibleCodeFields = ['codeused', 'Codeused', 'CODEUSED', 'codeUsed'];
                 
                 for (const fieldName of possibleCodeFields) {
                     if (fields[fieldName] && fields[fieldName] === code) {
