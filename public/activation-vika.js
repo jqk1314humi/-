@@ -245,9 +245,6 @@ class ActivationSystem {
                 
                 // 保存激活信息到本地（确保完全保存）
                 try {
-                    // 清除可能导致循环的sessionStorage
-                    sessionStorage.removeItem('lastRedirectTime');
-                    
                     localStorage.setItem('userActivationCode', code);
                     localStorage.setItem('activationTime', new Date().toISOString());
                     
