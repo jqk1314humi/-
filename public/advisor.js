@@ -146,13 +146,6 @@ class SmartAdvisor {
             this.updateSendButtonState();
         });
         
-        // 管理员按钮事件
-        const adminButtonMain = document.getElementById('adminButtonMain');
-        if (adminButtonMain) {
-            adminButtonMain.addEventListener('click', () => {
-                this.showAdminPasswordPrompt();
-            });
-        }
     }
 
     updateSendButtonState() {
@@ -548,17 +541,6 @@ class SmartAdvisor {
         }
     }
 
-    showAdminPasswordPrompt() {
-        const password = prompt('请输入管理员密码：');
-        if (password === 'jqkkf0922') {
-            // 设置管理员密码验证标记
-            sessionStorage.setItem('adminPasswordVerified', 'jqkkf0922');
-            // 跳转到管理员页面
-            window.location.href = './admin.html';
-        } else if (password !== null) {
-            alert('密码错误！');
-        }
-    }
 }
 
 // 设备指纹识别功能已完全移除

@@ -4,33 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>智能导员 by jqk Group</title>
+    <meta http-equiv="refresh" content="0; url=advisor.html">
     <link rel="stylesheet" href="cute-style.css?v=3.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://unpkg.com/@vikadata/vika@latest/dist/vika.js"></script>
 </head>
 <body>
-    <!-- Activation Page -->
-    <div class="activation-page">
-        <div class="activation-container">
-            <div class="activation-card">
-                <div class="activation-header">
-                    <i class="fas fa-key activation-icon"></i>
-                    <h2 class="activation-title">服务激活</h2>
-                    <p class="activation-subtitle">请输入激活码以使用智能导员服务<br>激活码只能在单个设备上单次使用</p>
-                </div>
-                <div class="activation-form">
-                    <input type="text" id="activationInput" class="activation-input" placeholder="请输入激活码" maxlength="20">
-                    <button id="activationButton" class="activation-button">
-                        <i class="fas fa-check"></i>
-                        激活
-                    </button>
-                </div>
-                <div id="activationMessage" class="activation-message"></div>
-            </div>
+    <!-- 自动跳转到智能导员页面 -->
+    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: 'Arial', sans-serif; color: #666;">
+        <div style="text-align: center;">
+            <i class="fas fa-graduation-cap" style="font-size: 48px; color: #ff69b4; margin-bottom: 20px;"></i>
+            <h2 style="color: #333; margin-bottom: 20px;">正在跳转到智能导员...</h2>
+            <p style="color: #888;">如果页面没有自动跳转，请点击<a href="advisor.html" style="color: #ff69b4; text-decoration: none;">这里</a></p>
         </div>
     </div>
 
-    <script src="cloud-storage-vika-v2.js"></script>
-    <script src="activation-vika.js?v=5.0"></script>
+    <script>
+        // 立即跳转到智能导员页面
+        window.location.href = 'advisor.html';
+    </script>
 </body>
 </html>
