@@ -503,10 +503,17 @@ class ActivationSystem {
             // 保存设备指纹到维格表
             if (this.cloudStorage && this.cloudStorage.saveDeviceFingerprint) {
                 try {
-                    await this.cloudStorage.saveDeviceFingerprint(code, deviceFingerprint);
-                    console.log('✅ 设备指纹已保存到维格表');
+                    console.log('🔄 开始保存设备指纹到维格表...');
+                    const result = await this.cloudStorage.saveDeviceFingerprint(code, deviceFingerprint);
+                    console.log('✅ 设备指纹保存结果:', result);
                 } catch (error) {
                     console.warn('⚠️ 保存设备指纹到维格表失败:', error);
+                    console.warn('⚠️ 错误详情:', {
+                        message: error.message,
+                        stack: error.stack,
+                        code: code,
+                        deviceFingerprint: deviceFingerprint
+                    });
                 }
             }
 

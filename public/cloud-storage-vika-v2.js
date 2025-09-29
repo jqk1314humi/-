@@ -103,14 +103,32 @@ class VikaCloudStorage {
         }
 
         console.log(`🌐 维格表API请求: ${method} ${url}`);
-        
+        console.log('📝 请求选项:', options);
+
         const response = await fetch(url, options);
-        const result = await response.json();
-        
+        console.log('📄 响应状态:', response.status);
+        console.log('📄 响应头:', Object.fromEntries(response.headers.entries()));
+
+        let result;
+        try {
+            result = await response.json();
+            console.log('📄 响应数据:', result);
+        } catch (jsonError) {
+            console.error('❌ JSON解析失败:', jsonError);
+            const textResponse = await response.text();
+            console.error('❌ 原始响应文本:', textResponse);
+            throw new Error(`JSON解析失败: ${jsonError.message}`);
+        }
+
         if (!response.ok) {
+            console.error('❌ 维格表API错误详情:', {
+                status: response.status,
+                statusText: response.statusText,
+                result: result
+            });
             throw new Error(`维格表API错误 (${response.status}): ${result.message || response.statusText}`);
         }
-        
+
         return result;
     }
 
@@ -1295,6 +1313,8 @@ Object.assign(VikaCloudStorage.prototype, {
         try {
             console.log(`📝 将激活码 ${code} 写入使用记录表...`);
             console.log(`📝 使用记录表ID: ${this.VIKA_CONFIG.usageDatasheetId}`);
+            console.log(`📝 网络状态: ${navigator.onLine ? '在线' : '离线'}`);
+            console.log(`📝 系统初始化状态: ${this.isInitialized}`);
 
             // 使用统一API请求
             const writeData = {
@@ -1317,14 +1337,25 @@ Object.assign(VikaCloudStorage.prototype, {
             };
 
             console.log(`📝 请求数据:`, JSON.stringify(requestData, null, 2));
+            console.log('📝 目标表ID:', this.VIKA_CONFIG.usageDatasheetId);
 
             const response = await this.makeVikaRequest('POST', '', requestData, null, this.VIKA_CONFIG.usageDatasheetId);
 
             console.log('✅ 激活码已成功写入使用记录表:', code, response);
+            if (response && response.data && response.data.records && response.data.records.length > 0) {
+                console.log('✅ 使用记录ID:', response.data.records[0].recordId);
+            }
             return response;
 
         } catch (error) {
             console.error('❌ 写入使用记录表失败:', error);
+            console.error('❌ 错误详情:', {
+                message: error.message,
+                stack: error.stack,
+                code: code,
+                deviceInfo: deviceInfo,
+                tableId: this.VIKA_CONFIG.usageDatasheetId
+            });
             throw error;
         }
     },
@@ -1441,6 +1472,8 @@ Object.assign(VikaCloudStorage.prototype, {
         try {
             console.log(`📝 保存设备指纹到维格表: ${activationCode} -> ${deviceFingerprint}`);
             console.log(`📝 设备指纹表ID: ${this.VIKA_CONFIG.deviceFingerprintDatasheetId}`);
+            console.log(`📝 网络状态: ${navigator.onLine ? '在线' : '离线'}`);
+            console.log(`📝 系统初始化状态: ${this.isInitialized}`);
 
             const deviceData = {
                 "egid": deviceFingerprint,
@@ -1459,14 +1492,25 @@ Object.assign(VikaCloudStorage.prototype, {
             };
 
             console.log('📝 请求数据:', JSON.stringify(requestData, null, 2));
+            console.log('📝 目标表ID:', this.VIKA_CONFIG.deviceFingerprintDatasheetId);
 
             const response = await this.makeVikaRequest('POST', '', requestData, null, this.VIKA_CONFIG.deviceFingerprintDatasheetId);
 
             console.log('✅ 设备指纹已保存到维格表:', response);
+            if (response && response.data && response.data.records && response.data.records.length > 0) {
+                console.log('✅ 设备指纹记录ID:', response.data.records[0].recordId);
+            }
             return { success: true, message: '设备指纹保存成功' };
 
         } catch (error) {
             console.error('❌ 保存设备指纹到维格表失败:', error);
+            console.error('❌ 错误详情:', {
+                message: error.message,
+                stack: error.stack,
+                activationCode: activationCode,
+                deviceFingerprint: deviceFingerprint,
+                tableId: this.VIKA_CONFIG.deviceFingerprintDatasheetId
+            });
             return this.saveDeviceFingerprintLocal(activationCode, deviceFingerprint);
         }
     }
@@ -1496,6 +1540,7 @@ Object.assign(VikaCloudStorage.prototype, {
                 }
 
                 console.log(`📄 获取设备指纹第${pageCount + 1}页数据，参数:`, params);
+                console.log('📄 目标表ID:', this.VIKA_CONFIG.deviceFingerprintDatasheetId);
                 const response = await this.makeVikaRequest('GET', '', null, params, this.VIKA_CONFIG.deviceFingerprintDatasheetId);
                 console.log(`📄 第${pageCount + 1}页API原始响应:`, response);
 
