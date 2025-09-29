@@ -24,7 +24,6 @@ class ActivationSystem {
         
         // 系统状态
         this.isInitialized = false;
-        this.deviceFingerprint = null;
         this.cloudStorage = null;
         
         this.init();
@@ -33,10 +32,6 @@ class ActivationSystem {
     async init() {
         try {
             console.log('激活系统初始化开始...');
-            
-            // 生成设备指纹
-            this.deviceFingerprint = this.generateDeviceFingerprint();
-            console.log('设备指纹:', this.deviceFingerprint);
             
             // 等待云存储初始化
             await this.waitForCloudStorage();
@@ -60,36 +55,11 @@ class ActivationSystem {
     }
     
     /**
-     * 生成设备指纹 - 用于唯一标识设备
+     * 生成设备指纹 - 简化为固定值，允许跨设备使用
      */
     generateDeviceFingerprint() {
-        const components = [
-            navigator.userAgent || '',
-            navigator.language || '',
-            navigator.platform || '',
-            screen.width + 'x' + screen.height,
-            screen.colorDepth || 0,
-            new Date().getTimezoneOffset(),
-            navigator.hardwareConcurrency || 0,
-            navigator.maxTouchPoints || 0,
-            navigator.cookieEnabled ? '1' : '0'
-        ];
-        
-        const fingerprint = components.join('|');
-        return this.hashString(fingerprint).substring(0, 16);
-    }
-    
-    /**
-     * 字符串哈希函数
-     */
-    hashString(str) {
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) {
-            const char = str.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash; // 转换为32位整数
-        }
-        return Math.abs(hash).toString(36);
+        // 简化为固定设备ID，允许激活码在任何设备上使用
+        return 'universal-device';
     }
     
     /**
@@ -141,7 +111,6 @@ class ActivationSystem {
                         used: false,
                         usedAt: null,
                         usedBy: null,
-                        deviceFingerprint: null,
                         createdAt: Date.now(),
                         status: 'available',
                         version: '4.0'
@@ -193,7 +162,6 @@ class ActivationSystem {
                         used: codeData.used || false,
                         usedAt: codeData.usedAt || null,
                         usedBy: codeData.usedBy || null,
-                        deviceFingerprint: codeData.deviceFingerprint || null,
                         createdAt: codeData.createdAt || Date.now(),
                         status: codeData.used ? 'used' : 'available',
                         version: '3.0'
@@ -248,12 +216,7 @@ class ActivationSystem {
                 return;
             }
             
-            if (codeData.deviceFingerprint && codeData.deviceFingerprint !== this.deviceFingerprint) {
-                console.warn('设备指纹不匹配，激活码可能被其他设备使用');
-                this.clearActivationStatus();
-                this.showError('检测到激活码已被其他设备使用，请重新激活');
-                return;
-            }
+            // 设备指纹验证已移除，允许跨设备使用
             
             console.log('激活状态验证通过');
             this.redirectToApp();
@@ -271,8 +234,7 @@ class ActivationSystem {
         localStorage.setItem('currentActivation', JSON.stringify({
             activated: false,
             code: null,
-            activatedAt: null,
-            deviceFingerprint: null
+            activatedAt: null
         }));
         console.log('激活状态已清除');
     }
@@ -481,7 +443,6 @@ class ActivationSystem {
                 activated: true,
                 code: code,
                 activatedAt: Date.now(),
-                deviceFingerprint: this.deviceFingerprint,
                 version: '3.0'
             };
             
@@ -506,8 +467,7 @@ class ActivationSystem {
             // 如果有云存储，使用云存储的原子操作
             if (this.cloudStorage) {
                 const deviceInfo = {
-                    ...this.getClientInfo(),
-                    deviceFingerprint: this.deviceFingerprint
+                    ...this.getClientInfo()
                 };
                 
                 const success = await this.cloudStorage.useActivationCode(code, deviceInfo);
@@ -537,7 +497,6 @@ class ActivationSystem {
                 used: true,
                 usedAt: Date.now(),
                 usedBy: this.getClientInfo(),
-                deviceFingerprint: this.deviceFingerprint,
                 status: 'used',
                 version: '4.0'
             };
@@ -569,7 +528,6 @@ class ActivationSystem {
             const logEntry = {
                 code: code,
                 timestamp: Date.now(),
-                deviceFingerprint: this.deviceFingerprint,
                 clientInfo: this.getClientInfo(),
                 type: code === this.DEVELOPER_CODE ? 'developer' : 'user',
                 action: 'activation',

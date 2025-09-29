@@ -561,38 +561,21 @@ class SmartAdvisor {
     }
 }
 
-// 生成设备ID的函数（简化版，允许跨设备使用）
-function generateDeviceId() {
-    // 简化为固定设备ID，允许激活码在任何设备上使用
-    return 'universal-device';
-}
-
-// 简单哈希函数
-function hashString(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        const char = str.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash; // 转换为32位整数
-    }
-    return Math.abs(hash).toString(16);
-}
+// 设备指纹识别功能已完全移除
 
 // 检查激活状态的函数（优化版，减少手机端死循环）
 function checkActivationStatus() {
     try {
         // 使用新的存储键，与activation-vika.js保持一致
         const userActivationCode = localStorage.getItem('userActivationCode');
-        const userDeviceId = localStorage.getItem('userDeviceId');
         const activationTime = localStorage.getItem('activationTime');
 
         console.log('🔍 advisor.js 激活状态检查:', {
             userActivationCode,
-            userDeviceId,
             activationTime
         });
 
-        if (!userActivationCode || !userDeviceId || !activationTime) {
+        if (!userActivationCode || !activationTime) {
             // 检测是否为手机端，如果是，给出更友好的提示
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             if (isMobile) {

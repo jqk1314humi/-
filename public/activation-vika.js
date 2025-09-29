@@ -27,7 +27,6 @@ class ActivationSystem {
         
         // 系统状态
         this.isInitialized = false;
-        this.deviceFingerprint = null;
         this.vikaStorage = null;
         
         this.init();
@@ -36,10 +35,6 @@ class ActivationSystem {
     async init() {
         try {
             console.log('🚀 激活系统初始化开始...');
-            
-            // 生成设备指纹
-            this.deviceFingerprint = this.generateDeviceFingerprint();
-            console.log('🔑 设备指纹:', this.deviceFingerprint);
             
             // 等待维格表云存储初始化
             await this.waitForVikaStorage();
@@ -251,21 +246,18 @@ class ActivationSystem {
                 // 保存激活信息到本地（确保完全保存）
                 try {
                     localStorage.setItem('userActivationCode', code);
-                    localStorage.setItem('userDeviceId', this.deviceFingerprint);
                     localStorage.setItem('activationTime', new Date().toISOString());
                     
                     // 验证保存是否成功
                     const savedCode = localStorage.getItem('userActivationCode');
-                    const savedDeviceId = localStorage.getItem('userDeviceId');
                     const savedTime = localStorage.getItem('activationTime');
                     
                     console.log('✅ 激活信息保存验证:', {
                         code: savedCode,
-                        deviceId: savedDeviceId,
                         time: savedTime
                     });
                     
-                    if (savedCode && savedDeviceId && savedTime) {
+                    if (savedCode && savedTime) {
                         console.log('✅ 激活信息保存成功，准备跳转');
                         // 延迟跳转，确保所有数据都已保存
                         setTimeout(() => {
@@ -333,7 +325,6 @@ class ActivationSystem {
             
             // 激活码可用，标记为已使用
             const deviceInfo = {
-                deviceId: this.deviceFingerprint,
                 userAgent: navigator.userAgent,
                 timestamp: new Date().toISOString(),
                 platform: navigator.platform,
@@ -598,7 +589,6 @@ class ActivationSystem {
     getSystemStatus() {
         return {
             isInitialized: this.isInitialized,
-            deviceFingerprint: this.deviceFingerprint,
             storageType: this.vikaStorage && this.vikaStorage.isInitialized ? 'vika' : 'local',
             connectionStatus: this.vikaStorage ? this.vikaStorage.getConnectionStatus() : null
         };

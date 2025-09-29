@@ -1302,7 +1302,7 @@ Object.assign(VikaCloudStorage.prototype, {
                 "userAgent": navigator.userAgent.slice(0, 200), // 限制长度
                 "timestamp": new Date().toISOString(),
                 "platform": deviceInfo.platform || 'unknown',
-                "deviceId": deviceInfo.deviceId || 'unknown'
+                "deviceId": 'universal-device'
             };
 
             console.log(`📝 准备写入数据:`, writeData);
