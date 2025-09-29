@@ -636,20 +636,7 @@ async function checkActivationStatus() {
             return await checkActivationStatusLocal(userActivationCode, activationTime);
         }
 
-        // 简化为时间检查，移除设备绑定限制
-        const activationDate = new Date(activationTime);
-        const now = new Date();
-        const timeDiff = now - activationDate;
-        const hoursDiff = timeDiff / (1000 * 60 * 60);
-
-        // 检查激活时间是否过期（设置为30天）
-        if (hoursDiff > 720) { // 30天 = 720小时
-            console.log('❌ 激活时间已过期（超过30天）');
-            redirectToActivation('激活码已过期，请重新激活');
-            return false;
-        }
-
-        console.log('✅ 激活状态验证通过（云端设备指纹 + 时间检查）');
+        console.log('✅ 激活状态验证通过（云端设备指纹验证）');
         return true;
 
     } catch (error) {
@@ -663,20 +650,8 @@ async function checkActivationStatus() {
 async function checkActivationStatusLocal(userActivationCode, activationTime) {
     console.log('🔍 执行本地激活状态检查...');
 
-    // 简化为时间检查，移除设备绑定限制
-    const activationDate = new Date(activationTime);
-    const now = new Date();
-    const timeDiff = now - activationDate;
-    const hoursDiff = timeDiff / (1000 * 60 * 60);
-
-    // 检查激活时间是否过期（设置为30天）
-    if (hoursDiff > 720) { // 30天 = 720小时
-        console.log('❌ 本地验证：激活时间已过期（超过30天）');
-        redirectToActivation('激活码已过期，请重新激活');
-        return false;
-    }
-
-    console.log('✅ 本地激活状态验证通过');
+    // 移除时间限制，简化验证逻辑
+    console.log('✅ 本地激活状态验证通过（无时间限制）');
     return true;
 }
 
