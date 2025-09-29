@@ -712,7 +712,6 @@ body::after {
 /* 聊天消息区域 */
 .chat-messages {
     flex: 1;
-    min-height: 500px; /* 增加最小高度，使对话框更长 */
     padding: 1.5rem;
     overflow-y: auto;
     display: flex;
@@ -1150,11 +1149,27 @@ body::after {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(20px);
     display: flex;
-    justify-content: center; /* 确保内容居中 */
+    justify-content: space-between;
     align-items: center;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.admin-button-main {
+    background: linear-gradient(135deg, var(--cute-purple), var(--cute-blue));
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.admin-button-main:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
 
 /* 通知样式 */
 .notification {
