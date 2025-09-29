@@ -546,140 +546,25 @@ class SmartAdvisor {
 // 设备指纹识别功能已完全移除
 
 // 检查激活状态的函数（优化版，减少手机端死循环）
-function checkActivationStatus() {
-    try {
-        // 使用新的存储键，与activation-vika.js保持一致
-        const userActivationCode = localStorage.getItem('userActivationCode');
-        const activationTime = localStorage.getItem('activationTime');
-
-        console.log('🔍 advisor.js 激活状态检查:', {
-            userActivationCode,
-            activationTime
-        });
-
-        if (!userActivationCode || !activationTime) {
-            // 检测是否为手机端，如果是，给出更友好的提示
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            if (isMobile) {
-                console.log('📱 手机端激活信息不完整，准备跳转到激活页面');
-                // 对于手机端，延迟重定向并显示提示
-                setTimeout(() => {
-                    redirectToActivation('激活信息不完整，请重新激活');
-                }, 1000);
-            } else {
-                console.log('❌ 激活信息不完整，重定向到激活页面');
-                redirectToActivation('激活信息不完整，请重新激活');
-            }
-            return false;
-        }
-        
-        // 如果使用的是开发者激活码或管理员激活码，直接通过
-        if (userActivationCode === 'jqkkf0922' || userActivationCode === 'ADMIN2024') {
-            console.log('✅ 使用开发者/管理员激活码，激活状态有效');
-            return true;
-        }
-
-        // 简化为时间检查，移除设备绑定限制
-        const activationDate = new Date(activationTime);
-        const now = new Date();
-        const timeDiff = now - activationDate;
-        const hoursDiff = timeDiff / (1000 * 60 * 60);
-
-        // 检查激活时间是否过期（设置为30天）
-        if (hoursDiff > 720) { // 30天 = 720小时
-            console.log('❌ 激活时间已过期（超过30天）');
-            redirectToActivation('激活码已过期，请重新激活');
-            return false;
-        }
-
-        console.log('✅ 激活状态验证通过（已激活超过30天将过期）');
-        return true;
-        
-    } catch (error) {
-        console.error('❌ 激活状态检查出错:', error);
-        // 出错时不立即重定向，给用户一次机会
-        return true;
-    }
-}
+// 激活检查功能已完全移除，直接允许访问
 
 // 重定向到激活页面的统一函数（优化版，增强防循环机制）
-function redirectToActivation(message) {
-    // 检查是否在短时间内已经重定向过，避免循环
-    const lastRedirect = sessionStorage.getItem('lastRedirectTime');
-    const now = Date.now();
+// 重定向功能已移除，避免页面刷新问题
 
-    // 检测是否为手机端，对手机端使用更长的防循环时间
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    const minInterval = isMobile ? 10000 : 5000; // 手机端10秒，桌面端5秒
-
-    if (lastRedirect && (now - parseInt(lastRedirect)) < minInterval) {
-        console.log(`⚠️ 检测到可能的重定向循环，停止重定向 (手机端: ${isMobile})`);
-        return;
-    }
-
-    // 记录重定向时间
-    sessionStorage.setItem('lastRedirectTime', now.toString());
-
-    // 清除激活信息
-    localStorage.removeItem('userActivationCode');
-    localStorage.removeItem('userDeviceId');
-    localStorage.removeItem('activationTime');
-
-    // 显示消息（如果有的话）
-    if (message) {
-        console.log('重定向原因:', message);
-        // 在手机端可以显示一个临时的提示
-        if (isMobile) {
-            console.log('📱 手机端检测到激活问题，正在跳转到激活页面...');
-        }
-    }
-
-    // 延迟重定向，避免循环（手机端延迟更长）
-    const redirectDelay = isMobile ? 500 : 100;
-    setTimeout(() => {
-        console.log(`🔄 即将跳转到激活页面 (延迟: ${redirectDelay}ms)`);
-        window.location.href = './index.html';
-    }, redirectDelay);
-}
-
-// 页面加载完成后初始化应用（优化版，减少手机端死循环）
+// 页面加载完成后初始化应用（简化版，移除激活检查）
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 智能导员应用启动中...');
+
     // 检测是否为手机端
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    console.log(`📱 设备类型: ${isMobile ? '手机端' : '桌面端'}`);
 
-    // 检查是否刚从激活页面跳转过来
-    const urlParams = new URLSearchParams(window.location.search);
-    const fromActivation = urlParams.get('from') === 'activation';
-
-    if (fromActivation) {
-        console.log(`🔄 从激活页面跳转而来，等待激活信息稳定... (手机端: ${isMobile})`);
-        // 如果是从激活页面跳转过来的，等待更长时间让激活信息稳定
-        // 手机端可能需要更长时间
-        const delayTime = isMobile ? 1500 : 500;
-        setTimeout(() => {
-            if (checkActivationStatus()) {
-                new SmartAdvisor();
-            } else {
-                console.log('❌ 激活检查失败，页面将自动跳转');
-            }
-        }, delayTime);
-    } else {
-        // 正常检查激活状态
-        // 对于手机端，增加延迟以避免快速重定向循环
-        if (isMobile) {
-            console.log('📱 检测到手机端，延迟激活检查...');
-            setTimeout(() => {
-                if (checkActivationStatus()) {
-                    new SmartAdvisor();
-                } else {
-                    console.log('❌ 手机端激活检查失败，页面将自动跳转');
-                }
-            }, 800);
-        } else {
-            if (checkActivationStatus()) {
-                new SmartAdvisor();
-            }
-        }
+    // 直接初始化应用，移除激活检查
+    try {
+        new SmartAdvisor();
+        console.log('✅ 智能导员应用初始化成功');
+    } catch (error) {
+        console.error('❌ 应用初始化失败:', error);
     }
 });
 

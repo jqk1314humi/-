@@ -828,8 +828,9 @@ body::after {
     background: linear-gradient(45deg, transparent, rgba(255, 107, 157, 0.1), transparent);
     border-radius: var(--radius-lg);
     opacity: 0;
-    animation: messageGlow 2s ease-in-out infinite;
-    animation-delay: 1s;
+    /* 禁用可能导致刷新的动画 */
+    /* animation: messageGlow 2s ease-in-out infinite; */
+    /* animation-delay: 1s; */
     z-index: -1;
 }
 
@@ -940,7 +941,8 @@ body::after {
     right: -5px;
     font-size: 0.8rem;
     opacity: 0.8;
-    animation: advisorIconRotate 3s linear infinite;
+    /* 禁用可能导致刷新的动画 */
+    /* animation: advisorIconRotate 3s linear infinite; */
 }
 
 @keyframes advisorIconRotate {
