@@ -17,6 +17,14 @@ body {
     box-sizing: border-box;
 }
 
+/* CSS Variables for Status Colors */
+:root {
+    --status-used-bg: #fee2e2;
+    --status-used-color: #dc2626;
+    --status-unused-bg: #f0fdf4;
+    --status-unused-color: #16a34a;
+}
+
 html {
     margin: 0;
     padding: 0;
@@ -1627,16 +1635,48 @@ html {
         align-items: stretch;
         gap: 1rem;
     }
-    
+
+    .code-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
     .code-actions {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    
     }
     
     .reset-single-button, .delete-code-button {
         flex: 1;
         max-width: 120px;
+        margin: 0;
+    }
+
+    .code-text {
+        word-break: break-all;
+        font-family: 'Courier New', monospace;
+    }
+
+    .code-status {
+        background: var(--status-bg, var(--status-unused-bg));
+        color: var(--status-color, var(--status-unused-color));
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    .code-item.used .code-status {
+        --status-bg: var(--status-used-bg);
+        --status-color: var(--status-used-color);
+    }
+
+    .code-item.unused .code-status {
+        --status-bg: var(--status-unused-bg);
+        --status-color: var(--status-unused-color);
     }
     
     .log-main {

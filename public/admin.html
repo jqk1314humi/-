@@ -158,8 +158,18 @@
     <script src="cloud-storage-vika-v2.js?v=6.0"></script>
     <script src="admin-vika.js?v=9.0"></script>
     <script>
-        // 返回智能导员界面按钮事件
+        // 检查管理员密码验证
         document.addEventListener('DOMContentLoaded', () => {
+            // 检查sessionStorage中的管理员密码验证标记
+            const adminPasswordVerified = sessionStorage.getItem('adminPasswordVerified');
+            if (adminPasswordVerified !== 'jqkkf0922') {
+                // 如果没有验证标记，跳转回智能导员界面
+                alert('请先通过智能导员界面验证管理员密码！');
+                window.location.href = './advisor.html';
+                return;
+            }
+
+            // 返回智能导员界面按钮事件
             const backButton = document.getElementById('backToMainApp');
             if (backButton) {
                 backButton.addEventListener('click', () => {

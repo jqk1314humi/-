@@ -1144,7 +1144,7 @@ body::after {
 
 /* Footer样式 */
 .footer {
-    padding: 2rem;
+    padding: 1.5rem 2rem;
     text-align: center;
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(20px);
@@ -1152,6 +1152,8 @@ body::after {
     justify-content: space-between;
     align-items: center;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
+    gap: 1rem;
+    flex-wrap: wrap;
 }
 
 .admin-button-main {
@@ -1169,6 +1171,32 @@ body::after {
 .admin-button-main:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
+}
+
+/* 响应式设计 - Footer */
+@media (max-width: 768px) {
+    .footer {
+        flex-direction: column;
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    .admin-button-main {
+        width: 100%;
+        max-width: 200px;
+    }
+}
+
+@media (max-width: 480px) {
+    .footer {
+        padding: 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    .admin-button-main {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+    }
 }
 
 /* 通知样式 */
