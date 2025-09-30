@@ -137,6 +137,14 @@ body {
     -webkit-overflow-scrolling: touch;
 }
 
+/* 手机端使用不同的背景图片 */
+@media (max-width: 768px) {
+    body {
+        background-image: url('微信图片_20250930115403_141_5.jpg');
+        background-attachment: scroll; /* 手机端使用scroll而不是fixed，避免性能问题 */
+    }
+}
+
 /* 背景图片叠加效果 - 确保文本可读性 */
 body::before {
     content: '';
@@ -149,6 +157,14 @@ body::before {
         linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 100%);
     pointer-events: none;
     z-index: 1;
+}
+
+/* 手机端背景图片叠加调整 */
+@media (max-width: 768px) {
+    body::before {
+        background:
+            linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.05) 100%);
+    }
 }
 
 @keyframes backgroundPulse {
@@ -1525,8 +1541,7 @@ body::after {
     body {
         background-attachment: scroll; /* 移动端使用scroll而不是fixed，避免性能问题 */
         background-size: cover;
-        /* 禁用背景图片动画 */
-        background-position: center !important;
+        background-position: center;
     }
 
     /* 彻底禁用所有装饰动画防止刷新 */
