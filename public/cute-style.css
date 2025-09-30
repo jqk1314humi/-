@@ -19,29 +19,29 @@
     --cute-yellow: #fde047;
     --cute-lavender: #e6e6fa;
 
-    /* 梦幻背景渐变 - 更广阔更自然的色调范�?*/
+    /* 梦幻背景渐变 - 调整跨度，更自然的色调过渡 */
     --bg-gradient: linear-gradient(135deg,
         #ff9a9e 0%,
-        #fecfef 12%,
-        #ff69b4 24%,
-        #e6e6fa 36%,
-        #c5b3ff 48%,
-        #87ceeb 60%,
-        #98fb98 72%,
-        #ffcba4 84%,
+        #fecfef 20%,
+        #ff69b4 35%,
+        #e6e6fa 50%,
+        #c5b3ff 65%,
+        #87ceeb 75%,
+        #98fb98 85%,
+        #ffcba4 95%,
         #ff9a9e 100%);
     --bg-gradient-webkit: -webkit-linear-gradient(135deg,
         #ff9a9e 0%,
-        #fecfef 12%,
-        #ff69b4 24%,
-        #e6e6fa 36%,
-        #c5b3ff 48%,
-        #87ceeb 60%,
-        #98fb98 72%,
-        #ffcba4 84%,
+        #fecfef 20%,
+        #ff69b4 35%,
+        #e6e6fa 50%,
+        #c5b3ff 65%,
+        #87ceeb 75%,
+        #98fb98 85%,
+        #ffcba4 95%,
         #ff9a9e 100%);
-    --card-bg: rgba(255, 255, 255, 0.98);
-    --glass-bg: rgba(255, 255, 255, 0.15);
+    --card-bg: rgba(255, 255, 255, 0.45);
+    --glass-bg: rgba(255, 255, 255, 0.35);
 
     /* 文字颜色 */
     --text-primary: #2d3748;
@@ -122,8 +122,11 @@ input, textarea {
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
-    background: var(--bg-gradient);
-    background: var(--bg-gradient-webkit);
+    background-image: url('微信图片_20250930110119_140_5.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
     min-height: 100vh;
     color: var(--text-primary);
     overflow-x: hidden;
@@ -134,7 +137,7 @@ body {
     -webkit-overflow-scrolling: touch;
 }
 
-/* 可爱的背景装�?*/
+/* 背景图片叠加效果 - 确保文本可读性 */
 body::before {
     content: '';
     position: fixed;
@@ -143,16 +146,9 @@ body::before {
     width: 100%;
     height: 100%;
     background:
-        radial-gradient(circle at 20% 80%, rgba(255, 154, 158, 0.3) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(254, 207, 239, 0.25) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(168, 230, 207, 0.2) 0%, transparent 50%),
-        radial-gradient(circle at 60% 10%, rgba(135, 206, 235, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 10% 60%, rgba(152, 251, 152, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 90% 70%, rgba(230, 102, 255, 0.1) 0%, transparent 50%);
+        linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 100%);
     pointer-events: none;
-    z-index: -1;
-    /* 禁用可能导致刷新的动画 */
-    /* animation: gentleFloat 35s ease-in-out infinite; */
+    z-index: 1;
 }
 
 @keyframes backgroundPulse {
@@ -179,7 +175,7 @@ body::before {
     }
 }
 
-/* 动态几何图案背�?*/
+/* 背景装饰增强 - 为图片背景添加轻微纹理 */
 body::after {
     content: '';
     position: fixed;
@@ -188,15 +184,10 @@ body::after {
     width: 100%;
     height: 100%;
     background:
-        /* 三角形图�?*/
-        linear-gradient(45deg, transparent 40%, rgba(255, 107, 157, 0.05) 40%, rgba(255, 107, 157, 0.05) 60%, transparent 60%),
-        linear-gradient(-45deg, transparent 40%, rgba(168, 85, 247, 0.05) 40%, rgba(168, 85, 247, 0.05) 60%, transparent 60%);
-    background-size: 60px 60px, 80px 80px;
-    background-position: 0 0, 30px 30px;
+        radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.03) 0%, transparent 35%);
     pointer-events: none;
-    z-index: -1;
-    /* 禁用可能导致刷新的动画 */
-    /* animation: geometricMove 40s linear infinite; */
+    z-index: 2;
 }
 
 @keyframes geometricMove {
@@ -345,7 +336,7 @@ body::after {
 .card {
     background: var(--card-bg);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: var(--radius-lg);
     padding: 1.5rem;
     box-shadow: var(--shadow-md);
@@ -513,11 +504,11 @@ body::after {
 
 .chat-header {
     padding: 1.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    background: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.15);
 }
 
 .chat-icon {
@@ -539,7 +530,7 @@ body::after {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.1);
     position: relative;
 }
 
@@ -552,9 +543,9 @@ body::after {
     right: 0;
     bottom: 0;
     background:
-        radial-gradient(circle at 15% 25%, rgba(255, 107, 157, 0.05) 0%, transparent 30%),
-        radial-gradient(circle at 85% 75%, rgba(168, 85, 247, 0.05) 0%, transparent 30%),
-        radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.03) 0%, transparent 40%);
+        radial-gradient(circle at 15% 25%, rgba(255, 107, 157, 0.02) 0%, transparent 30%),
+        radial-gradient(circle at 85% 75%, rgba(168, 85, 247, 0.02) 0%, transparent 30%),
+        radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.015) 0%, transparent 40%);
     pointer-events: none;
     z-index: -1;
     animation: chatBgFloat 12s ease-in-out infinite;
@@ -765,7 +756,7 @@ body::after {
 }
 
 .advisor-message .message-bubble {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.6);
     color: var(--text-primary);
     border-radius: var(--radius-lg) var(--radius-lg) var(--radius-lg) 0.3rem;
     box-shadow: var(--shadow-sm);
@@ -872,19 +863,19 @@ body::after {
 /* 输入区域 */
 .chat-input-container {
     padding: 1.5rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
     display: flex;
     gap: 1rem;
     align-items: flex-end;
-    background: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.15);
 }
 
 .chat-input {
     flex: 1;
     padding: 1rem 1.5rem;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: var(--radius-lg);
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.3);
     font-size: 1rem;
     line-height: 1.5;
     resize: none;
@@ -987,8 +978,8 @@ body::after {
 
 /* 团队卡片样式 */
 .team-card {
-    background: rgba(255, 255, 255, 0.95);
-    border: 2px solid rgba(255, 105, 180, 0.2);
+    background: rgba(255, 255, 255, 0.5);
+    border: 2px solid rgba(255, 105, 180, 0.15);
     position: relative;
     overflow: hidden;
 }
@@ -1000,7 +991,7 @@ body::after {
     gap: 0.8rem;
     margin-bottom: 1.2rem;
     padding-bottom: 0.8rem;
-    border-bottom: 1px solid rgba(255, 105, 180, 0.2);
+    border-bottom: 1px solid rgba(255, 105, 180, 0.15);
     position: relative;
     z-index: 3;
 }
@@ -1033,15 +1024,15 @@ body::after {
     align-items: flex-start;
     gap: 0.5rem;
     padding: 0.6rem;
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.2);
     border-radius: var(--radius-sm);
-    border: 1px solid rgba(255, 105, 180, 0.1);
+    border: 1px solid rgba(255, 105, 180, 0.08);
     transition: all 0.3s ease;
     text-align: left;
 }
 
 .member-item:hover {
-    background: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.35);
     transform: translateX(3px);
     border-color: var(--cute-pink);
     box-shadow: 0 2px 8px rgba(255, 105, 180, 0.2);
@@ -1070,7 +1061,7 @@ body::after {
     align-items: center;
     justify-content: center;
     padding-top: 0.8rem;
-    border-top: 1px solid rgba(255, 105, 180, 0.2);
+    border-top: 1px solid rgba(255, 105, 180, 0.15);
     color: var(--text-secondary);
     font-size: 0.85rem;
     font-weight: 500;
@@ -1360,7 +1351,7 @@ body::after {
     width: 100%;
     height: 100%;
     pointer-events: none;
-    z-index: -10;
+    z-index: 5;
     overflow: hidden;
 }
 
@@ -1530,6 +1521,12 @@ body::after {
 
 /* 移动端兼容性优化 - 防止刷新问题 */
 @media (max-width: 768px) {
+    /* 背景图片移动端优化 */
+    body {
+        background-attachment: scroll; /* 移动端使用scroll而不是fixed，避免性能问题 */
+        background-size: cover;
+    }
+
     /* 减少动画复杂度 */
     .decoration {
         animation-duration: 12s;
