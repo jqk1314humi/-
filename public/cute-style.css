@@ -1519,53 +1519,84 @@ body::after {
     }
 }
 
-/* 移动端兼容性优化 - 防止刷新问题 */
+/* 移动端兼容性优化 - 彻底禁用动画防止刷新问题 */
 @media (max-width: 768px) {
     /* 背景图片移动端优化 */
     body {
         background-attachment: scroll; /* 移动端使用scroll而不是fixed，避免性能问题 */
         background-size: cover;
+        /* 禁用背景图片动画 */
+        background-position: center !important;
     }
 
-    /* 减少动画复杂度 */
-    .decoration {
-        animation-duration: 12s;
-    }
-
+    /* 彻底禁用所有装饰动画防止刷新 */
+    .decoration,
     .cloud-decoration {
-        animation-duration: 50s;
+        animation: none !important;
+        opacity: 0.15 !important; /* 降低透明度减少视觉负担 */
+    }
+
+    /* 禁用聊天背景动画 */
+    .chat-messages::before {
+        animation: none !important;
+        opacity: 0.3 !important;
     }
 
     /* 禁用可能导致刷新的滤镜效果 */
-    .decoration:hover {
-        filter: none;
-        text-shadow: 0 0 5px currentColor;
+    .decoration:hover,
+    .cloud-decoration:hover {
+        filter: none !important;
+        text-shadow: none !important;
+        transform: none !important;
     }
 
-    /* 降低backdrop-filter模糊强度 */
+    /* 进一步降低backdrop-filter模糊强度 */
     .card, .header, .chat-window {
-        backdrop-filter: blur(10px);
+        backdrop-filter: blur(2px) !important;
+        background: rgba(255, 255, 255, 0.85) !important;
     }
 
-    /* 优化transform性能 */
+    /* 禁用所有装饰元素的过渡效果 */
+    .decoration,
+    .cloud-decoration {
+        transition: none !important;
+    }
+
+    /* 保留必要的过渡效果 */
+    .card, .header, .chat-window, .chat-input, .send-button {
+        transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    /* 禁用可能导致刷新的CSS属性 */
     .decoration, .cloud-decoration {
-        transform: translateZ(0);
-        backface-visibility: hidden;
-        perspective: 1000px;
+        -webkit-transform-style: flat !important;
+        transform-style: flat !important;
+        will-change: auto !important;
     }
 }
 
 /* 微信浏览器特殊优化 */
 @media screen and (max-width: 768px) {
-    /* 禁用可能导致刷新的CSS属性 */
+    /* 进一步禁用可能导致刷新的CSS属性 */
     * {
-        -webkit-transform-style: preserve-3d;
-        -webkit-backface-visibility: hidden;
+        -webkit-transform-style: flat !important;
+        transform-style: flat !important;
     }
 
-    /* 降低动画频率 */
-    .decoration:nth-child(4n) {
-        animation: none;
+    /* 额外禁用装饰元素动画 */
+    .decoration:nth-child(3n),
+    .decoration:nth-child(4n),
+    .cloud-decoration:nth-child(2n) {
+        animation: none !important;
+        opacity: 0.1 !important;
+    }
+
+    /* 禁用所有可能导致刷新的属性 */
+    .decoration, .cloud-decoration {
+        -webkit-backface-visibility: visible !important;
+        backface-visibility: visible !important;
+        -webkit-perspective: none !important;
+        perspective: none !important;
     }
 }
 
@@ -1573,6 +1604,17 @@ body::after {
 @supports (-webkit-touch-callout: none) {
     .decoration, .cloud-decoration {
         transform: translate3d(0, 0, 0);
+        -webkit-transform: translate3d(0, 0, 0);
+        /* 禁用iOS Safari中的动画 */
+        animation: none !important;
+        transition: none !important;
+        opacity: 0.1 !important;
+    }
+
+    /* iOS设备上降低视觉复杂度 */
+    .decoration:nth-child(n+20),
+    .cloud-decoration:nth-child(n+5) {
+        display: none !important;
     }
 }
 

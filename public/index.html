@@ -132,8 +132,9 @@
             const container = document.getElementById('decorations-container');
             const decorationTypes = ['✨', '⭐', '🌟', '💫', '🎀', '🌸', '🍀', '🎈', '🎊', '💖', '🌈', '🦄', '🦋', '🌺', '🍃', '💎', '🔮', '🌙', '☀️', '🌟'];
 
-            // 创建普通装饰元素
-            for (let i = 0; i < 30; i++) {
+            // 创建普通装饰元素（移动端减少数量避免刷新）
+            const decorationCount = isMobileDevice() ? 15 : 30;
+            for (let i = 0; i < decorationCount; i++) {
                 const decoration = document.createElement('div');
                 decoration.className = 'decoration';
                 decoration.textContent = decorationTypes[Math.floor(Math.random() * decorationTypes.length)];
@@ -154,8 +155,10 @@
                 const colors = ['#ff9a9e', '#fecfef', '#ff69b4', '#e6e6fa', '#c5b3ff', '#87ceeb', '#98fb98', '#ffcba4', '#fde047'];
                 decoration.style.color = colors[Math.floor(Math.random() * colors.length)];
 
-                // 随机动画延迟
-                decoration.style.animationDelay = Math.random() * 10 + 's';
+                // 随机动画延迟（移动端禁用动画）
+                if (!isMobileDevice()) {
+                    decoration.style.animationDelay = Math.random() * 10 + 's';
+                }
 
                 // 添加悬停效果
                 decoration.addEventListener('mouseenter', function() {
@@ -175,8 +178,18 @@
             createCloudDecorations();
         }
 
+        // 检测是否为移动设备
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+        }
+
         // 创建云彩装饰元素
         function createCloudDecorations() {
+            // 移动端不创建云彩装饰，避免刷新问题
+            if (isMobileDevice()) {
+                return;
+            }
+
             const container = document.getElementById('decorations-container');
             const cloudTypes = ['☁️', '⛅', '🌤️'];
 
