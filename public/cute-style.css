@@ -1386,19 +1386,23 @@ body::after {
     animation-duration: 6s;
 }
 
-/* 装饰元素的浮动动画 */
+/* 装饰元素的浮动动画 - 优化版，减少旋转避免刷新问题 */
 @keyframes decorationFloat {
     0%, 100% {
-        transform: translateY(0px) translateX(0px) rotate(0deg) scale(1);
+        transform: translateY(0px) translateX(0px);
+        opacity: 0.3;
     }
     25% {
-        transform: translateY(-10px) translateX(5px) rotate(2deg) scale(1.05);
+        transform: translateY(-8px) translateX(3px);
+        opacity: 0.35;
     }
     50% {
-        transform: translateY(-5px) translateX(-3px) rotate(-1deg) scale(0.95);
+        transform: translateY(-4px) translateX(-2px);
+        opacity: 0.25;
     }
     75% {
-        transform: translateY(-15px) translateX(8px) rotate(3deg) scale(1.02);
+        transform: translateY(-12px) translateX(5px);
+        opacity: 0.32;
     }
 }
 
@@ -1409,12 +1413,12 @@ body::after {
 
 @keyframes decorationTwinkle {
     0%, 100% {
-        transform: scale(1) rotate(0deg);
+        transform: scale(1);
         opacity: 0.3;
     }
     50% {
-        transform: scale(1.3) rotate(180deg);
-        opacity: 0.6;
+        transform: scale(1.2);
+        opacity: 0.5;
     }
 }
 
@@ -1428,8 +1432,8 @@ body::after {
         opacity: 0.3;
     }
     50% {
-        transform: scale(1.4);
-        opacity: 0.7;
+        transform: scale(1.15);
+        opacity: 0.55;
     }
 }
 
@@ -1457,5 +1461,122 @@ body::after {
 }
 
 /* 所有装饰元素样式已被删除以优化性能 */
+
+/* 云彩装饰样式 */
+.cloud-decoration {
+    position: absolute;
+    font-size: 60px;
+    opacity: 0.2;
+    animation: cloudFloat 40s linear infinite;
+    pointer-events: none;
+    z-index: -5;
+    text-shadow: 0 2px 8px rgba(255, 255, 255, 0.8);
+    will-change: transform;
+}
+
+/* 云彩飘浮动画 - 优化版，避免复杂的变换导致刷新 */
+@keyframes cloudFloat {
+    0% {
+        transform: translateX(-10vw) translateY(0px);
+    }
+    25% {
+        transform: translateX(25vw) translateY(-3px);
+    }
+    50% {
+        transform: translateX(50vw) translateY(-6px);
+    }
+    75% {
+        transform: translateX(75vw) translateY(-3px);
+    }
+    100% {
+        transform: translateX(110vw) translateY(0px);
+    }
+}
+
+/* 云彩悬停效果 */
+.cloud-decoration:hover {
+    opacity: 0.4;
+    transform: scale(1.1);
+    animation-play-state: paused;
+}
+
+/* 为不同类型的云彩添加微妙变化 */
+.cloud-decoration:nth-child(3n) {
+    animation-duration: 35s;
+    animation-delay: -10s;
+}
+
+.cloud-decoration:nth-child(5n) {
+    animation-duration: 45s;
+    animation-delay: -20s;
+}
+
+/* 响应式设计 - 小屏幕上减少云彩数量 */
+@media (max-width: 768px) {
+    .cloud-decoration {
+        font-size: 45px;
+    }
+
+    .cloud-decoration:nth-child(n+6) {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .cloud-decoration:nth-child(n+4) {
+        display: none;
+    }
+}
+
+/* 移动端兼容性优化 - 防止刷新问题 */
+@media (max-width: 768px) {
+    /* 减少动画复杂度 */
+    .decoration {
+        animation-duration: 12s;
+    }
+
+    .cloud-decoration {
+        animation-duration: 50s;
+    }
+
+    /* 禁用可能导致刷新的滤镜效果 */
+    .decoration:hover {
+        filter: none;
+        text-shadow: 0 0 5px currentColor;
+    }
+
+    /* 降低backdrop-filter模糊强度 */
+    .card, .header, .chat-window {
+        backdrop-filter: blur(10px);
+    }
+
+    /* 优化transform性能 */
+    .decoration, .cloud-decoration {
+        transform: translateZ(0);
+        backface-visibility: hidden;
+        perspective: 1000px;
+    }
+}
+
+/* 微信浏览器特殊优化 */
+@media screen and (max-width: 768px) {
+    /* 禁用可能导致刷新的CSS属性 */
+    * {
+        -webkit-transform-style: preserve-3d;
+        -webkit-backface-visibility: hidden;
+    }
+
+    /* 降低动画频率 */
+    .decoration:nth-child(4n) {
+        animation: none;
+    }
+}
+
+/* iOS Safari特殊优化 */
+@supports (-webkit-touch-callout: none) {
+    .decoration, .cloud-decoration {
+        transform: translate3d(0, 0, 0);
+    }
+}
 
 /* 贴纸样式 - 可在此添加 */

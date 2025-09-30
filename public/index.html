@@ -132,6 +132,7 @@
             const container = document.getElementById('decorations-container');
             const decorationTypes = ['✨', '⭐', '🌟', '💫', '🎀', '🌸', '🍀', '🎈', '🎊', '💖', '🌈', '🦄', '🦋', '🌺', '🍃', '💎', '🔮', '🌙', '☀️', '🌟'];
 
+            // 创建普通装饰元素
             for (let i = 0; i < 30; i++) {
                 const decoration = document.createElement('div');
                 decoration.className = 'decoration';
@@ -168,6 +169,47 @@
                 });
 
                 container.appendChild(decoration);
+            }
+
+            // 创建云彩装饰元素
+            createCloudDecorations();
+        }
+
+        // 创建云彩装饰元素
+        function createCloudDecorations() {
+            const container = document.getElementById('decorations-container');
+            const cloudTypes = ['☁️', '⛅', '🌤️'];
+
+            // 创建8朵云彩
+            for (let i = 0; i < 8; i++) {
+                const cloud = document.createElement('div');
+                cloud.className = 'cloud-decoration';
+                cloud.textContent = cloudTypes[Math.floor(Math.random() * cloudTypes.length)];
+
+                // 云彩从屏幕左侧进入，右侧离开
+                cloud.style.left = '-10%';
+                cloud.style.top = Math.random() * 60 + 10 + '%'; // 在屏幕上部60%的区域
+
+                // 云彩大小 (40px到80px)
+                const size = Math.random() * 40 + 40;
+                cloud.style.fontSize = size + 'px';
+
+                // 云彩透明度 (0.15到0.35，更淡一些)
+                const opacity = Math.random() * 0.2 + 0.15;
+                cloud.style.opacity = opacity;
+
+                // 云彩颜色 (淡蓝色和白色)
+                const cloudColors = ['#e0f2fe', '#f0f9ff', '#f8fafc', '#ecfeff'];
+                cloud.style.color = cloudColors[Math.floor(Math.random() * cloudColors.length)];
+
+                // 云彩飘动速度和延迟
+                const duration = Math.random() * 20 + 30; // 30-50秒飘过屏幕
+                cloud.style.animationDuration = duration + 's';
+
+                // 随机动画延迟
+                cloud.style.animationDelay = Math.random() * 15 + 's';
+
+                container.appendChild(cloud);
             }
         }
 
