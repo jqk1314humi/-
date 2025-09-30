@@ -1,10 +1,10 @@
-/* 可爱洋气的智能导员样�?v3.0 */
+/* 可爱洋气的智能导员样 ?v3.0 */
 
-/* 移除Google字体引用，使用系统兼容字�?*/
+/* 移除Google字体引用，使用系统兼容字 ?*/
 
 /* CSS变量定义 */
 :root {
-    /* 可爱的渐变色�?*/
+    /* 可爱的渐变色 ?*/
     --primary-gradient: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #ff69b4 100%);
     --primary-gradient-webkit: -webkit-linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #ff69b4 100%);
     --cute-pink: #ff9a9e;
@@ -40,15 +40,15 @@
         #98fb98 85%,
         #ffcba4 95%,
         #ff9a9e 100%);
-    --card-bg: rgba(255, 255, 255, 0.45);
-    --glass-bg: rgba(255, 255, 255, 0.35);
+    --card-bg: rgba(255, 255, 255, 0.35);
+    --glass-bg: rgba(255, 255, 255, 0.1);
 
     /* 文字颜色 */
     --text-primary: #2d3748;
     --text-secondary: #718096;
     --text-light: #a0aec0;
 
-    /* 圆角和阴�?*/
+    /* 圆角和阴 ?*/
     --radius-sm: 0.5rem;
     --radius-md: 1rem;
     --radius-lg: 1.5rem;
@@ -68,7 +68,7 @@
     box-sizing: border-box;
 }
 
-/* 微信浏览器兼容性修�?*/
+/* 微信浏览器兼容性修 ?*/
 * {
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
@@ -78,7 +78,7 @@
     user-select: none;
 }
 
-/* 微信浏览器backdrop-filter兼容�?*/
+/* 微信浏览器backdrop-filter兼容 ?*/
 @supports not (backdrop-filter: blur(20px)) {
     .card, .header, .chat-window {
         background: rgba(255, 255, 255, 0.95) !important;
@@ -102,7 +102,7 @@ input, textarea {
     transform: translateZ(0);
 }
 
-/* 修复微信浏览器中可能出现的动画问�?*/
+/* 修复微信浏览器中可能出现的动画问 ?*/
 @keyframes avatarBounce {
     0%, 100% {
         -webkit-transform: scale(1);
@@ -122,7 +122,7 @@ input, textarea {
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
-    background-image: url('微信图片_20250930110119_140_5.jpg');
+    background-image: url('微信图片_20250930182210_143_5.jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -305,7 +305,7 @@ body::after {
     position: relative;
 }
 
-/* 怀抱背�?*/
+/* 怀抱背 ?*/
 .hugging-background {
     position: absolute;
     top: 0;
@@ -322,7 +322,7 @@ body::after {
 .hugging-character {
     width: 400px;
     height: 500px;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500"><defs><radialGradient id="skin" cx="50%" cy="30%" r="60%"><stop offset="0%" stop-color="%23fdbcb4"/><stop offset="100%" stop-color="%23f4a59c"/></radialGradient><linearGradient id="hair" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%23654321"/><stop offset="100%" stop-color="%234a3728"/></linearGradient><linearGradient id="shirt" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%23ff6b9d"/><stop offset="100%" stop-color="%23c44569"/></linearGradient></defs><circle cx="200" cy="120" r="60" fill="url(%23skin)"/><ellipse cx="200" cy="80" rx="70" ry="50" fill="url(%23hair)"/><rect x="150" y="180" width="100" height="120" rx="20" fill="url(%23shirt)"/><circle cx="170" cy="140" r="8" fill="%23000"/><circle cx="230" cy="140" r="8" fill="%23000"/><path d="M 180 160 Q 200 170 220 160" stroke="%23000" stroke-width="2" fill="none"/><ellipse cx="160" cy="200" rx="25" ry="40" fill="%23ff6b9d" opacity="0.7"/><ellipse cx="240" cy="200" rx="25" ry="40" fill="%23ff6b9d" opacity="0.7"/><text x="200" y="450" text-anchor="middle" font-family="Arial" font-size="24" fill="%23ff6b9d">🤗 抱着�?/text></svg>') center/contain no-repeat;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500"><defs><radialGradient id="skin" cx="50%" cy="30%" r="60%"><stop offset="0%" stop-color="%23fdbcb4"/><stop offset="100%" stop-color="%23f4a59c"/></radialGradient><linearGradient id="hair" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%23654321"/><stop offset="100%" stop-color="%234a3728"/></linearGradient><linearGradient id="shirt" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%23ff6b9d"/><stop offset="100%" stop-color="%23c44569"/></linearGradient></defs><circle cx="200" cy="120" r="60" fill="url(%23skin)"/><ellipse cx="200" cy="80" rx="70" ry="50" fill="url(%23hair)"/><rect x="150" y="180" width="100" height="120" rx="20" fill="url(%23shirt)"/><circle cx="170" cy="140" r="8" fill="%23000"/><circle cx="230" cy="140" r="8" fill="%23000"/><path d="M 180 160 Q 200 170 220 160" stroke="%23000" stroke-width="2" fill="none"/><ellipse cx="160" cy="200" rx="25" ry="40" fill="%23ff6b9d" opacity="0.7"/><ellipse cx="240" cy="200" rx="25" ry="40" fill="%23ff6b9d" opacity="0.7"/><text x="200" y="450" text-anchor="middle" font-family="Arial" font-size="24" fill="%23ff6b9d">🤗 抱着 ?/text></svg>') center/contain no-repeat;
     opacity: 0.3;
     animation: characterBreathe 4s ease-in-out infinite;
 }
@@ -352,7 +352,7 @@ body::after {
 .card {
     background: var(--card-bg);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.02);
     border-radius: var(--radius-lg);
     padding: 1.5rem;
     box-shadow: var(--shadow-md);
@@ -410,7 +410,7 @@ body::after {
     font-size: 1.1rem;
 }
 
-/* 快速提问列�?*/
+/* 快速提问列 ?*/
 .question-list {
     list-style: none;
     display: flex;
@@ -464,7 +464,7 @@ body::after {
     font-size: 0.95rem;
 }
 
-/* 系统状态卡片样�?*/
+/* 系统状态卡片样 ?*/
 .system-status-card {
     background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
     border: 1px solid rgba(16, 185, 129, 0.2);
@@ -524,7 +524,7 @@ body::after {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .chat-icon {
@@ -546,11 +546,11 @@ body::after {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.02);
     position: relative;
 }
 
-/* 聊天背景的可爱装�?*/
+/* 聊天背景的可爱装 ?*/
 .chat-messages::before {
     content: '';
     position: absolute;
@@ -572,7 +572,7 @@ body::after {
     50% { opacity: 0.3; }
 }
 
-/* 隐藏滚动�?*/
+/* 隐藏滚动 ?*/
 .chat-messages::-webkit-scrollbar {
     width: 0px;
     display: none;
@@ -772,7 +772,7 @@ body::after {
 }
 
 .advisor-message .message-bubble {
-    background: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.3);
     color: var(--text-primary);
     border-radius: var(--radius-lg) var(--radius-lg) var(--radius-lg) 0.3rem;
     box-shadow: var(--shadow-sm);
@@ -883,15 +883,15 @@ body::after {
     display: flex;
     gap: 1rem;
     align-items: flex-end;
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .chat-input {
     flex: 1;
     padding: 1rem 1.5rem;
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.1);
     border-radius: var(--radius-lg);
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.1);
     font-size: 1rem;
     line-height: 1.5;
     resize: none;
@@ -994,7 +994,7 @@ body::after {
 
 /* 团队卡片样式 */
 .team-card {
-    background: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.2);
     border: 2px solid rgba(255, 105, 180, 0.15);
     position: relative;
     overflow: hidden;
@@ -1040,7 +1040,7 @@ body::after {
     align-items: flex-start;
     gap: 0.5rem;
     padding: 0.6rem;
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
     border-radius: var(--radius-sm);
     border: 1px solid rgba(255, 105, 180, 0.08);
     transition: all 0.3s ease;
@@ -1048,7 +1048,7 @@ body::after {
 }
 
 .member-item:hover {
-    background: rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.2);
     transform: translateX(3px);
     border-color: var(--cute-pink);
     box-shadow: 0 2px 8px rgba(255, 105, 180, 0.2);
@@ -1205,7 +1205,7 @@ body::after {
     background: linear-gradient(135deg, var(--cute-blue), #2563eb);
 }
 
-/* 响应式设�?*/
+/* 响应式设 ?*/
 @media (max-width: 1200px) {
     .main-content {
         gap: 1rem;
@@ -1318,7 +1318,7 @@ body::after {
     to { transform: rotate(360deg); }
 }
 
-/* 成功检查标记动�?*/
+/* 成功检查标记动 ?*/
 .checkmark {
     display: inline-block;
     width: 20px;
