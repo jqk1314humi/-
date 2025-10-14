@@ -937,6 +937,12 @@ body::after {
     flex-shrink: 0;
     position: relative;
     overflow: hidden;
+    /* 移动端触摸优化 */
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    user-select: none;
+    /* 确保按钮始终可见且可触摸 */
+    z-index: 10;
 }
 
 .send-button:hover {
@@ -1128,6 +1134,32 @@ body::after {
     .member-names {
         font-size: 0.85rem;
     }
+
+    /* 移动端发送按钮优化 */
+    .send-button {
+        width: 60px !important;
+        height: 60px !important;
+        min-width: 60px !important;
+        min-height: 60px !important;
+        font-size: 1.4rem !important;
+        /* 增加触摸区域 */
+        padding: 0 !important;
+        margin: 0 0.5rem !important;
+    }
+
+    /* 移动端输入区域优化 */
+    .chat-input-container {
+        padding: 1rem !important;
+        gap: 1rem !important;
+        align-items: flex-end !important;
+    }
+
+    .chat-input {
+        min-height: 50px !important;
+        max-height: 100px !important;
+        padding: 0.75rem 1rem !important;
+        font-size: 16px !important; /* 防止移动端字体自动调整 */
+    }
 }
 
 @media (max-width: 480px) {
@@ -1270,17 +1302,38 @@ body::after {
 }
 
 @media (max-width: 480px) {
-    
+
     .main-content {
         padding: 0.5rem;
     }
-    
+
     .header {
         padding: 0.75rem;
     }
-    
+
     .chat-messages {
         padding: 1rem;
+    }
+
+    /* 极小屏幕上的发送按钮优化 */
+    .send-button {
+        width: 65px !important;
+        height: 65px !important;
+        min-width: 65px !important;
+        min-height: 65px !important;
+        font-size: 1.5rem !important;
+        margin: 0 0.25rem !important;
+    }
+
+    .chat-input-container {
+        padding: 0.75rem !important;
+        gap: 0.75rem !important;
+    }
+
+    .chat-input {
+        min-height: 48px !important;
+        padding: 0.75rem !important;
+        font-size: 16px !important;
     }
 }
 

@@ -118,8 +118,17 @@ class SmartAdvisor {
     }
 
     initializeEventListeners() {
-        // 发送按钮点击事件
-        this.sendButton.addEventListener('click', () => this.handleSendMessage());
+        // 发送按钮点击事件 - 支持触摸设备
+        this.sendButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.handleSendMessage();
+        });
+
+        // 添加触摸事件支持
+        this.sendButton.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.handleSendMessage();
+        });
 
         // 输入框回车事件
         this.chatInput.addEventListener('keypress', (e) => {
@@ -145,24 +154,75 @@ class SmartAdvisor {
         this.chatInput.addEventListener('input', () => {
             this.updateSendButtonState();
         });
+
+        // 添加移动端视口调整
+        this.initializeViewportAdjustment();
     }
 
     updateSendButtonState() {
         const hasText = this.chatInput.value.trim().length > 0;
         this.sendButton.disabled = !hasText;
+
+        // 移动端优化：确保按钮在禁用状态下仍然可见且可触摸
+        if (this.sendButton.disabled) {
+            this.sendButton.style.opacity = '0.5';
+            this.sendButton.style.cursor = 'not-allowed';
+        } else {
+            this.sendButton.style.opacity = '1';
+            this.sendButton.style.cursor = 'pointer';
+        }
+    }
+
+    initializeViewportAdjustment() {
+        // 检测是否为移动设备
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+
+        if (isMobile) {
+            // 监听视口大小变化（键盘弹出/收起时）
+            window.addEventListener('resize', () => {
+                this.adjustMobileLayout();
+            });
+
+            // 监听焦点变化（输入框获得焦点时）
+            this.chatInput.addEventListener('focus', () => {
+                setTimeout(() => this.adjustMobileLayout(), 300);
+            });
+
+            this.chatInput.addEventListener('blur', () => {
+                setTimeout(() => this.adjustMobileLayout(), 300);
+            });
+        }
+    }
+
+    adjustMobileLayout() {
+        const viewportHeight = window.innerHeight;
+        const chatContainer = document.querySelector('.chat-input-container');
+
+        if (chatContainer) {
+            // 确保输入区域始终可见且按钮可点击
+            const containerHeight = chatContainer.offsetHeight;
+            const inputHeight = this.chatInput.offsetHeight;
+            const buttonHeight = this.sendButton.offsetHeight;
+
+            // 在小屏幕上确保按钮有足够大的点击区域
+            if (window.innerWidth <= 480) {
+                this.sendButton.style.minWidth = '60px';
+                this.sendButton.style.minHeight = '60px';
+                this.sendButton.style.width = '60px';
+                this.sendButton.style.height = '60px';
+            }
+        }
     }
 
     async handleSendMessage() {
         const userInput = this.chatInput.value.trim();
         if (!userInput) return;
 
-        // 清空输入框并禁用发送按钮
+        // 清空输入框
         this.chatInput.value = '';
-        this.updateSendButtonState();
 
-        // 禁用输入框和发送按钮，防止重复发送
+        // 禁用输入框，防止重复发送，但保持按钮可用（移动端优化）
         this.chatInput.disabled = true;
-        this.sendButton.disabled = true;
 
         // 添加用户消息
         this.addMessage(userInput, 'user');
@@ -190,9 +250,14 @@ class SmartAdvisor {
             streamingMessage.remove();
             this.addMessage(`抱歉，我现在无法回答您的问题。错误信息: ${error.message}`, 'advisor');
         } finally {
-            // 重新启用输入框和发送按钮
+            // 重新启用输入框和按钮
             this.chatInput.disabled = false;
             this.updateSendButtonState();
+
+            // 移动端优化：确保按钮在重新启用后立即可用
+            setTimeout(() => {
+                this.updateSendButtonState();
+            }, 100);
         }
 
         // 保存聊天历史
